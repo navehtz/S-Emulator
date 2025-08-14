@@ -1,5 +1,8 @@
 package engine;
 
+import engine.exceptions.EngineLoadException;
+import engine.exceptions.EngineRunException;
+
 import java.nio.file.Path;
 import java.util.List;
 
@@ -10,3 +13,4 @@ public interface Engine {
     RunResult run() throws EngineRunException;
     List<RunSummary> getHistory();
 }
+

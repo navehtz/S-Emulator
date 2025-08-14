@@ -1,4 +1,4 @@
-package engine;
+package engine.exceptions;
 
 public class EngineLoadException extends Exception {
     public EngineLoadException(String message) { super(message); }
