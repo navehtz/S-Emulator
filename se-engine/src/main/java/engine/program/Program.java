@@ -14,5 +14,7 @@ public interface Program {
     int calculateMaxDegree();
     int calculateCycles();
 
-    Map<Label, Instruction> labelToInstruction();
+    // Map<Label, Instruction> labelToInstruction();
+    Instruction getInstructionByLabel(Label label);
+    void displayProgram();
 }

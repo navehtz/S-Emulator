@@ -43,4 +43,10 @@ public abstract class AbstractInstruction implements Instruction {
         return this.variable;
     }
 
+    @Override
+    public void printInstruction() {
+
+    }
+
+
 }

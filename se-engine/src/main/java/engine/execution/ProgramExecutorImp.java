@@ -5,27 +5,24 @@ import engine.label.FixedLabel;
 import engine.label.Label;
 import engine.program.Program;
 import engine.variable.Variable;
-import engine.variable.VariableImp;
-import engine.variable.VariableType;
-
 import java.util.Map;
 
 public class ProgramExecutorImp implements ProgramExecutor{
 
     private final Program program;
-
+    ExecutionContext context;
 
     public ProgramExecutorImp(Program program) {
         this.program = program;
+        this.context = new ExecutionContextImp();
     }
 
     @Override
     public long run(Long... inputs) {
-        ExecutionContext context = null;
         Instruction currentInstruction = program.getInstructionsList().get(0);
         Label nextLabel;
 
-        InitializeVariables(context, inputs);
+        context.initializeVariables(inputs);
 
         do {
             nextLabel = currentInstruction.execute(context);
@@ -35,7 +32,7 @@ public class ProgramExecutorImp implements ProgramExecutor{
                 currentInstruction = program.getInstructionsList().get(indexOfNextInstruction);
             }
             else if(nextLabel != FixedLabel.EXIT) {
-                currentInstruction = program.labelToInstruction().get(nextLabel);
+                currentInstruction = program.getInstructionByLabel(nextLabel);
             }
 
         } while(nextLabel != FixedLabel.EXIT);
@@ -43,17 +40,8 @@ public class ProgramExecutorImp implements ProgramExecutor{
         return context.getVariableValue(Variable.RESULT);
     }
 
-    private void InitializeVariables(ExecutionContext context, Long... inputs) {
-        for (int i = 0; i < inputs.length; i++) {
-            Variable newVariable = new VariableImp(VariableType.INPUT, (i + 1));
-            context.updateVariable(newVariable, inputs[i]);
-        }
-
-        context.updateVariable(Variable.RESULT, 0L);
-    }
-
     @Override
-    public Map<Variable, Long> variableToValue() {
-        return Map.of();
+    public Map<Variable, Long> variableState() {
+        return context.getVariableState();
     }
 }
