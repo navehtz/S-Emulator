@@ -8,19 +8,19 @@ import engine.variable.Variable;
 public class DecreaseInstruction extends AbstractInstruction {
 
     public DecreaseInstruction(Variable variable) {
-        super(InstructionData.DECREASE, variable, FixedLabel.EMPTY);
+        super(InstructionData.DECREASE, InstructionType.BASIC, variable, FixedLabel.EMPTY);
     }
 
     public DecreaseInstruction(Variable variable, Label label) {
-        super(InstructionData.DECREASE, variable, label);
+        super(InstructionData.DECREASE, InstructionType.BASIC, variable, label);
     }
 
     @Override
     public Label execute(ExecutionContext context) {
         long variableValue = context.getVariableValue(getVariable());
+        long newVariableValue = Math.max(variableValue - 1, 0);
 
-        variableValue = Math.max(--variableValue, 0);
-        context.updateVariable(getVariable() ,variableValue);
+        context.updateVariable(getVariable() ,newVariableValue);
 
         return FixedLabel.EMPTY;
     }

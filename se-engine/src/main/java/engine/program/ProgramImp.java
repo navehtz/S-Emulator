@@ -1,9 +1,12 @@
 package engine.program;
 
 import engine.instruction.Instruction;
+import engine.label.FixedLabel;
+import engine.label.Label;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ProgramImp implements Program {
 
@@ -23,10 +26,14 @@ public class ProgramImp implements Program {
     @Override
     public void addInstruction(Instruction instruction) {
         programInstructions.add(instruction);
+
+        if(instruction.getLabel() != FixedLabel.EMPTY) {
+            labelToInstruction().put(instruction.getLabel(), instruction);
+        }
     }
 
     @Override
-    public List<Instruction> getInstructions() {
+    public List<Instruction> getInstructionsList() {
         return List.of();
     }
 
@@ -41,4 +48,11 @@ public class ProgramImp implements Program {
         // TODO
         return -1;
     }
+
+    @Override
+    public Map<Label, Instruction> labelToInstruction() {
+        return Map.of();
+    }
+
+
 }

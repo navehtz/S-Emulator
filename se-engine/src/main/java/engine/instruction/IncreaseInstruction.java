@@ -8,19 +8,18 @@ import engine.variable.Variable;
 public class IncreaseInstruction extends AbstractInstruction {
 
     public IncreaseInstruction(Variable variable) {
-        super(InstructionData.INCREASE, variable, FixedLabel.EMPTY);
+        super(InstructionData.INCREASE, InstructionType.BASIC ,variable, FixedLabel.EMPTY);
     }
 
     public IncreaseInstruction(Variable variable, Label label) {
-        super(InstructionData.INCREASE, variable, label);
+        super(InstructionData.INCREASE, InstructionType.BASIC, variable, label);
     }
 
     @Override
     public Label execute(ExecutionContext context) {
         long variableValue = context.getVariableValue(getVariable());
 
-        variableValue++;
-        context.updateVariable(getVariable() ,variableValue);
+        context.updateVariable(getVariable() ,variableValue + 1);
 
         return FixedLabel.EMPTY;
     }
