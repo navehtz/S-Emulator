@@ -1,39 +1,51 @@
 package engine.execution;
 
+import dto.ProgramApi;
 import engine.instruction.Instruction;
 import engine.label.FixedLabel;
 import engine.label.Label;
 import engine.program.Program;
 import engine.variable.Variable;
+
 import java.util.Map;
 
-public class ProgramExecutorImp implements ProgramExecutor{
+public class ProgramExecutorImpl implements ProgramExecutor{
 
     private final Program program;
     ExecutionContext context;
 
-    public ProgramExecutorImp(Program program) {
+    public ProgramExecutorImpl(Program program) {
         this.program = program;
-        this.context = new ExecutionContextImp();
+        this.context = new ExecutionContextImpl();
     }
 
     @Override
     public long run(Long... inputs) {
         Instruction currentInstruction = program.getInstructionsList().get(0);
+        Instruction nextInstruction = null;
         Label nextLabel;
 
-        context.initializeVariables(inputs);
+        context.initializeVariables(program, inputs);
 
         do {
             nextLabel = currentInstruction.execute(context);
 
             if(nextLabel == FixedLabel.EMPTY) {
                 int indexOfNextInstruction = program.getInstructionsList().indexOf(currentInstruction) + 1;
-                currentInstruction = program.getInstructionsList().get(indexOfNextInstruction);
+
+                // If there is more instructions, else Exit
+                if(indexOfNextInstruction < program.getInstructionsList().size()) {
+                    nextInstruction = program.getInstructionsList().get(indexOfNextInstruction);
+                }
+                else {
+                    nextLabel = FixedLabel.EXIT;
+                }
             }
             else if(nextLabel != FixedLabel.EXIT) {
-                currentInstruction = program.getInstructionByLabel(nextLabel);
+                nextInstruction = program.getInstructionByLabel(nextLabel);
             }
+
+            currentInstruction = nextInstruction;
 
         } while(nextLabel != FixedLabel.EXIT);
 
@@ -46,7 +58,12 @@ public class ProgramExecutorImp implements ProgramExecutor{
     }
 
     @Override
-    public void displayProgram() {
-        program.displayProgram();
+    public String programRepresentation() {
+        return program.programRepresentation();
+    }
+
+    @Override
+    public ProgramApi getProgramApi() {
+        return new ProgramApi(programRepresentation());
     }
 }

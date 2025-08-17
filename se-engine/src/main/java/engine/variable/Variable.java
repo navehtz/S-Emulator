@@ -5,6 +5,6 @@ public interface Variable {
     String getRepresentation();
 
     // TODO: ask aviad how to convert it to static initializer
-    Variable RESULT = new VariableImp(VariableType.RESULT, 0);
+    Variable RESULT = new VariableImpl(VariableType.RESULT, 0);
 
 }

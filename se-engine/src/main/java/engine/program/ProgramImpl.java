@@ -3,19 +3,19 @@ package engine.program;
 import engine.instruction.Instruction;
 import engine.label.FixedLabel;
 import engine.label.Label;
+import engine.variable.Variable;
+import engine.variable.VariableType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class ProgramImp implements Program {
+public class ProgramImpl implements Program {
 
     private final String programName;
     private final List<Instruction> programInstructions;
     private final Map<Label, Instruction> labelToInstruction;
+    private final Set<Variable> inputVariables = new LinkedHashSet<>();
 
-    public ProgramImp(String name) {
+    public ProgramImpl(String name) {
         this.programName = name;
         this.programInstructions = new ArrayList<>();
         this.labelToInstruction = new HashMap<>();
@@ -30,8 +30,18 @@ public class ProgramImp implements Program {
     public void addInstruction(Instruction instruction) {
         programInstructions.add(instruction);
 
-        if(instruction.getLabel() != FixedLabel.EMPTY) {
+        if(instruction.getLabel() != FixedLabel.EMPTY) {                    // Add label and its instruction to map
             labelToInstruction.put(instruction.getLabel(), instruction);
+        }
+
+        Variable targetVariable = instruction.getTargetVariable();
+        if(targetVariable.getType() == VariableType.INPUT) {     // Add inputs variable to list
+            inputVariables.add(targetVariable);   // add item to the set only if it is not inside
+        }
+
+        Variable sourceVariable = instruction.getSourceVariable();
+        if (sourceVariable != null && sourceVariable.getType() == VariableType.INPUT) {
+            inputVariables.add(sourceVariable);
         }
     }
 
@@ -54,20 +64,26 @@ public class ProgramImp implements Program {
 
     @Override
     public Instruction getInstructionByLabel(Label label) {
+        // TODO: TO CHECK IF THE LABEL EXIST
         return labelToInstruction.get(label);
     }
 
     @Override
-    public void displayProgram() {
+    public String programRepresentation() {
+        StringBuilder programDisplay = new StringBuilder();
+
         for(int i = 0; i < programInstructions.size(); i++) {
             Instruction instruction = programInstructions.get(i);
-            instruction.printInstruction(i + 1);
+            String line = instruction.instructionRepresentation(i + 1);
+            programDisplay.append(line).append(System.lineSeparator());
         }
+
+        return programDisplay.toString();
     }
 
-/*    @Override
-    public Map<Label, Instruction> labelToInstruction() {
-        return Map.of();
-    }*/
+    @Override
+    public Set<Variable> getInputVariables() {
+        return this.inputVariables;
+    }
 
 }

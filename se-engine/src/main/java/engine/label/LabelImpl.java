@@ -1,10 +1,10 @@
 package engine.label;
 
-public class LabelImp implements Label {
+public class LabelImpl implements Label {
 
     private final String label;
 
-    public LabelImp(int number) {
+    public LabelImpl(int number) {
         this.label = "L" + number;
     }
 

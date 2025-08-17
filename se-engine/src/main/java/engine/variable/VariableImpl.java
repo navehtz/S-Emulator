@@ -1,10 +1,10 @@
 package engine.variable;
 
-public class VariableImp implements Variable {
+public class VariableImpl implements Variable {
     private final VariableType type;
     private final int number;
 
-    public VariableImp(VariableType variableType, int number) {
+    public VariableImpl(VariableType variableType, int number) {
         this.type = variableType;
         this.number = number;
     }

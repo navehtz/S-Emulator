@@ -9,7 +9,8 @@ public interface Instruction {
     int getCycles();
     Label execute(ExecutionContext context);
     Label getLabel();
-    Variable getVariable();
+    Variable getTargetVariable();
+    Variable getSourceVariable();
     String getCommand();
-    void printInstruction(int instructionNumber);
+    String instructionRepresentation(int instructionNumber);
 }

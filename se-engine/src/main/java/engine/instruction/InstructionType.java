@@ -6,7 +6,7 @@ public enum InstructionType {
     SYNTHETIC("S")
     ;
 
-    private String instructionType;
+    private final String instructionType;
 
     InstructionType(String instructionType) {
         this.instructionType = instructionType;
@@ -15,19 +15,4 @@ public enum InstructionType {
     String getInstructionType() {
         return instructionType;
     }
-
-/*    BASIC {
-        @Override
-        public String getInstructionType() {
-            return "B";
-        }
-    },
-    SYNTHETIC {
-        @Override
-        public String getInstructionType() {
-            return "S";
-        }
-    };
-
-    public abstract String getInstructionType();*/
 }

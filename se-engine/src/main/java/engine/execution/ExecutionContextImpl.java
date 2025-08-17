@@ -1,25 +1,29 @@
 package engine.execution;
 
+import engine.program.Program;
 import engine.variable.Variable;
-import engine.variable.VariableImp;
-import engine.variable.VariableType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-public class ExecutionContextImp implements ExecutionContext{
+public class ExecutionContextImpl implements ExecutionContext{
 
     private final Map<Variable, Long> variableToValue;
 
-    public ExecutionContextImp() {
+    public ExecutionContextImpl() {
         this.variableToValue = new HashMap<>();
     }
 
     @Override
-    public void initializeVariables(Long... inputs) {
-        for (int i = 0; i < inputs.length; i++) {
-            Variable newVariable = new VariableImp(VariableType.INPUT, (i + 1));
-            this.updateVariable(newVariable, inputs[i]);
+    public void initializeVariables(Program program, Long... inputs) {
+        Set<Variable> inputVariables = program.getInputVariables();
+        int i = 0;
+
+        for (Variable currVariable : inputVariables){
+            long value = (i < inputs.length && inputs[i] != null) ? inputs[i] : 0L;
+            this.updateVariable(currVariable, value);
+            i++;
         }
 
         this.updateVariable(Variable.RESULT, 0L);
