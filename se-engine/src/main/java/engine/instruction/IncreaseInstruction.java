@@ -23,4 +23,18 @@ public class IncreaseInstruction extends AbstractInstruction {
 
         return FixedLabel.EMPTY;
     }
+
+    @Override
+    public String getCommand() {
+        String variableRepresentation = getVariable().getRepresentation();
+
+        StringBuilder command = new StringBuilder();
+
+        command.append(variableRepresentation);
+        command.append("<-");
+        command.append(variableRepresentation);
+        command.append("+1");
+
+        return command.toString();
+    }
 }

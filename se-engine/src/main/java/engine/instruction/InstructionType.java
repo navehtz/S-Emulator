@@ -12,6 +12,10 @@ public enum InstructionType {
         this.instructionType = instructionType;
     }
 
+    String getInstructionType() {
+        return instructionType;
+    }
+
 /*    BASIC {
         @Override
         public String getInstructionType() {

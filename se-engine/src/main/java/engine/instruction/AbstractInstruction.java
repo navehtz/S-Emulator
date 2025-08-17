@@ -4,6 +4,8 @@ import engine.label.Label;
 import engine.label.FixedLabel;
 import engine.variable.Variable;
 
+import java.util.List;
+
 
 public abstract class AbstractInstruction implements Instruction {
 
@@ -44,9 +46,21 @@ public abstract class AbstractInstruction implements Instruction {
     }
 
     @Override
-    public void printInstruction() {
+    public void printInstruction(int InstructionNumber) {
 
+
+        StringBuilder instructionDisplay = new StringBuilder();
+        instructionDisplay.append("#").append(InstructionNumber);
+        instructionDisplay.append("(").append(instructionType.getInstructionType()).append(")");
+        instructionDisplay.append("[").append(label.getLabelRepresentation()).append("]");
+        instructionDisplay.append(this.getCommand());
+        instructionDisplay.append("(").append(getCycles()).append(")");
+
+        System.out.println(instructionDisplay.toString());
     }
-
-
 }
+
+// לכתוב את COMMAND
+// לתקן את הקריאה לפונקציה - היא מקבלת פרמטר,
+// להחזיר רשימה ובסוף הפונקציה הראשית להדפיס
+// אולי לא, אולי כדאי ישר להדפיס

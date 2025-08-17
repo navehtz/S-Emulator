@@ -59,7 +59,10 @@ public class ProgramImp implements Program {
 
     @Override
     public void displayProgram() {
-        programInstructions.forEach(Instruction::printInstruction);
+        for(int i = 0; i < programInstructions.size(); i++) {
+            Instruction instruction = programInstructions.get(i);
+            instruction.printInstruction(i + 1);
+        }
     }
 
 /*    @Override

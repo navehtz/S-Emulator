@@ -44,4 +44,9 @@ public class ProgramExecutorImp implements ProgramExecutor{
     public Map<Variable, Long> variableState() {
         return context.getVariableState();
     }
+
+    @Override
+    public void displayProgram() {
+        program.displayProgram();
+    }
 }

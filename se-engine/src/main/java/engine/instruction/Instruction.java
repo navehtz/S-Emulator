@@ -10,5 +10,6 @@ public interface Instruction {
     Label execute(ExecutionContext context);
     Label getLabel();
     Variable getVariable();
-    void printInstruction();
+    String getCommand();
+    void printInstruction(int instructionNumber);
 }

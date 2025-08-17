@@ -1,3 +1,5 @@
+import engine.execution.ProgramExecutor;
+import engine.execution.ProgramExecutorImp;
 import engine.instruction.DecreaseInstruction;
 import engine.instruction.IncreaseInstruction;
 import engine.instruction.Instruction;
@@ -9,6 +11,9 @@ import engine.program.ProgramImp;
 import engine.variable.Variable;
 import engine.variable.VariableImp;
 import engine.variable.VariableType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -27,5 +32,12 @@ public class Main {
         Program p = new ProgramImp("test");
         p.addInstruction(increase);
         p.addInstruction(decrease);
+
+        List<Variable> inputs = new ArrayList<Variable>();
+        inputs.add(x1);
+        inputs.add(z1);
+
+        ProgramExecutor pe = new ProgramExecutorImp(p);
+        pe.displayProgram();
     }
 }
