@@ -19,8 +19,11 @@ import engine.variable.VariableType;
 
 public class Main {
     public static void main(String[] args) {
-        check2();
+        check1();
     }
+
+
+
 
     private static void check2() {
 
@@ -53,8 +56,8 @@ public class Main {
         Variable x1 = new VariableImpl(VariableType.INPUT, 1);
         Variable z1 = new VariableImpl(VariableType.WORK, 1);
 
-        Label l1 = new LabelImpl(100);
-        Label l3 = new LabelImpl(200);
+        Label l1 = new LabelImpl(10);
+        Label l3 = new LabelImpl(20);
         Label l2 = FixedLabel.EXIT;
 
         Instruction increase = new IncreaseInstruction(x1, l1);

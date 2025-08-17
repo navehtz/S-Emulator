@@ -51,13 +51,18 @@ public abstract class AbstractInstruction implements Instruction {
     @Override
     public String instructionRepresentation(int InstructionNumber) {
         StringBuilder instructionDisplay = new StringBuilder();
-
+        String labelPadded = labelPadding(getLabel().getLabelRepresentation());
         instructionDisplay.append("#").append(InstructionNumber);
         instructionDisplay.append(" (").append(instructionType.getInstructionType()).append(")");
-        instructionDisplay.append("[").append(label.getLabelRepresentation()).append("] ");
+        instructionDisplay.append("[ ").append(labelPadded).append("] ");
         instructionDisplay.append(this.getCommand());
         instructionDisplay.append(" (").append(getCycles()).append(")");
 
         return instructionDisplay.toString();
     }
+
+    private String labelPadding(String labelStr) {
+            return String.format("%-4s", labelStr);
+    }
+
 }
