@@ -9,7 +9,7 @@ public interface ProgramExecutor {
     long run(Long... inputs);
     Map<Variable, Long> variableState();
 
-    String programRepresentation();
+    String programDisply();
 
     ProgramApi getProgramApi();
 }

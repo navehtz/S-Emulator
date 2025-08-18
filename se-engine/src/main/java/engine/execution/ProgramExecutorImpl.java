@@ -58,12 +58,12 @@ public class ProgramExecutorImpl implements ProgramExecutor{
     }
 
     @Override
-    public String programRepresentation() {
-        return program.programRepresentation();
+    public String programDisply() {
+        return program.getProgramDisplay();
     }
 
     @Override
     public ProgramApi getProgramApi() {
-        return new ProgramApi(programRepresentation());
+        return new ProgramApi(programDisply());
     }
 }

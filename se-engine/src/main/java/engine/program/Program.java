@@ -15,8 +15,9 @@ public interface Program {
     int calculateMaxDegree();
     int calculateCycles();
 
-    // Map<Label, Instruction> labelToInstruction();
     Instruction getInstructionByLabel(Label label);
-    String programRepresentation();
     Set<Variable> getInputVariables();
+    String getProgramDisplay();
+
+    String programRepresentation();
 }
