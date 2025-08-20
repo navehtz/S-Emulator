@@ -4,11 +4,12 @@ import engine.execution.ExecutionContext;
 import engine.instruction.AbstractInstruction;
 import engine.instruction.InstructionData;
 import engine.instruction.InstructionType;
+import engine.instruction.LabelReferencesInstruction;
 import engine.label.FixedLabel;
 import engine.label.Label;
 import engine.variable.Variable;
 
-public class JumpEqualConstantInstruction extends AbstractInstruction {
+public class JumpEqualConstantInstruction extends AbstractInstruction implements LabelReferencesInstruction {
 
     private final Label addedLabel;
     private final long constantValue;
@@ -45,5 +46,10 @@ public class JumpEqualConstantInstruction extends AbstractInstruction {
         command.append(addedLabel.getLabelRepresentation());
 
         return command.toString();
+    }
+
+    @Override
+    public Label getReferenceLabel() {
+        return addedLabel;
     }
 }

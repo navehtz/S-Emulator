@@ -4,28 +4,29 @@ import engine.execution.ExecutionContext;
 import engine.instruction.AbstractInstruction;
 import engine.instruction.InstructionData;
 import engine.instruction.InstructionType;
+import engine.instruction.LabelReferencesInstruction;
 import engine.label.FixedLabel;
 import engine.label.Label;
 import engine.variable.Variable;
 
-public class JumpNotZeroInstruction extends AbstractInstruction {
-    private final Label addedLabel;
+public class JumpNotZeroInstruction extends AbstractInstruction implements LabelReferencesInstruction {
+    private final Label referencesLabel;
 
-    public JumpNotZeroInstruction(Variable variable, Label addedLabel) {
+    public JumpNotZeroInstruction(Variable variable, Label referencesLabel) {
         super(InstructionData.JUMP_NOT_ZERO, InstructionType.BASIC ,variable, FixedLabel.EMPTY);
-        this.addedLabel = addedLabel;
+        this.referencesLabel = referencesLabel;
     }
 
-    public JumpNotZeroInstruction(Variable variable, Label label, Label addedLabel) {
+    public JumpNotZeroInstruction(Variable variable, Label label, Label referencesLabel) {
         super(InstructionData.JUMP_NOT_ZERO, InstructionType.BASIC, variable, label);
-        this.addedLabel = addedLabel;
+        this.referencesLabel = referencesLabel;
     }
 
     @Override
     public Label execute(ExecutionContext context) {
         long variableValue = context.getVariableValue(this.getTargetVariable());
 
-        return variableValue != 0 ? this.addedLabel : FixedLabel.EMPTY;
+        return variableValue != 0 ? this.referencesLabel : FixedLabel.EMPTY;
     }
 
     @Override
@@ -36,8 +37,13 @@ public class JumpNotZeroInstruction extends AbstractInstruction {
         command.append("IF ");
         command.append(variableRepresentation);
         command.append(" != 0 GOTO ");
-        command.append(addedLabel.getLabelRepresentation());
+        command.append(referencesLabel.getLabelRepresentation());
 
         return command.toString();
+    }
+
+    @Override
+    public Label getReferenceLabel() {
+        return referencesLabel;
     }
 }

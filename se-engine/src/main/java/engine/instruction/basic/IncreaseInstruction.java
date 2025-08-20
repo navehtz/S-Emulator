@@ -35,7 +35,7 @@ public class IncreaseInstruction extends AbstractInstruction {
         command.append(variableRepresentation);
         command.append(" <- ");
         command.append(variableRepresentation);
-        command.append(" - 1");
+        command.append(" + 1");
 
         return command.toString();
     }

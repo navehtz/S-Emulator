@@ -18,4 +18,18 @@ public class VariableImpl implements Variable {
     public String getRepresentation() {
         return type.getVariableRepresentation(number);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof VariableImpl)) return false;
+
+        VariableImpl other = (VariableImpl) obj;
+        return this.number == other.number && this.type == other.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(type, number);
+    }
 }

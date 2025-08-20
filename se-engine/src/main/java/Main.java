@@ -1,4 +1,5 @@
 import dto.ProgramApi;
+import engine.exceptions.EngineLoadException;
 import engine.execution.ProgramExecutor;
 import engine.execution.ProgramExecutorImpl;
 import engine.instruction.*;
@@ -16,10 +17,37 @@ import engine.program.ProgramImpl;
 import engine.variable.Variable;
 import engine.variable.VariableImpl;
 import engine.variable.VariableType;
+import engine.xmlStructure.loader.XmlProgramLoader;
+
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+/*
+ .\xjc-run-win.bat -p engine.generated -d "..\..\se-engine\src\main\java" S-Emulator-v1.xsd
+ */
 
 public class Main {
-    public static void main(String[] args) {
-        check1();
+    public static void main(String[] args) throws EngineLoadException, URISyntaxException {
+        XmlProgramLoader loader = new XmlProgramLoader();
+
+        Path xmlPath = Paths.get("se-engine", "src", "main", "resources", "xml-samples", "minus.xml");
+
+        try {
+            Program p = loader.load(xmlPath);
+            p.validateProgram();
+            ProgramExecutor pe = new ProgramExecutorImpl(p);
+            ProgramApi programApi = pe.getProgramApi();
+
+            String display = programApi.programDisplay();
+            System.out.println(display);
+
+            long result = new ProgramExecutorImpl(p).run(1L, 5L, 12L);
+            System.out.println(result);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
 

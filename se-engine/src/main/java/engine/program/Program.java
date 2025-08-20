@@ -1,5 +1,6 @@
 package engine.program;
 
+import engine.exceptions.EngineLoadException;
 import engine.instruction.Instruction;
 import engine.label.Label;
 import engine.variable.Variable;
@@ -12,12 +13,11 @@ public interface Program {
     void addInstruction(Instruction instruction);
     List<Instruction> getInstructionsList();
 
-    int calculateMaxDegree();
-    int calculateCycles();
-
     Instruction getInstructionByLabel(Label label);
     Set<Variable> getInputVariables();
+    Set<Variable> getWorkVariables();
     String getProgramDisplay();
-
-    String programRepresentation();
+    void validateProgram() throws EngineLoadException;
+    int calculateMaxDegree();
+    int calculateCycles();
 }

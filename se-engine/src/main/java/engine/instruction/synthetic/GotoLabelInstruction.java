@@ -4,37 +4,43 @@ import engine.execution.ExecutionContext;
 import engine.instruction.AbstractInstruction;
 import engine.instruction.InstructionData;
 import engine.instruction.InstructionType;
+import engine.instruction.LabelReferencesInstruction;
 import engine.label.FixedLabel;
 import engine.label.Label;
 import engine.variable.Variable;
 
-public class GotoLabelInstruction extends AbstractInstruction {
+public class GotoLabelInstruction extends AbstractInstruction implements LabelReferencesInstruction {
 
-    private final Label addedLabel;
+    private final Label referencesLabel;
 
-    public GotoLabelInstruction(Variable variable, Label addedLabel) {
+    public GotoLabelInstruction(Variable variable, Label referencesLabel) {
         super(InstructionData.GOTO_LABEL, InstructionType.SYNTHETIC ,variable, FixedLabel.EMPTY);
-        this.addedLabel = addedLabel;
+        this.referencesLabel = referencesLabel;
     }
 
-    public GotoLabelInstruction(Variable variable, Label label, Label addedLabel) {
+    public GotoLabelInstruction(Variable variable, Label label, Label referencesLabel) {
         super(InstructionData.GOTO_LABEL, InstructionType.SYNTHETIC, variable, label);
-        this.addedLabel = addedLabel;
+        this.referencesLabel = referencesLabel;
     }
 
     @Override
     public Label execute(ExecutionContext context) {
-        return addedLabel;
+        return referencesLabel;
     }
 
     @Override
     public String getCommand() {
-        String labelRepresentation = addedLabel.getLabelRepresentation();
+        String labelRepresentation = referencesLabel.getLabelRepresentation();
         StringBuilder command = new StringBuilder();
 
         command.append("GOTO ");
         command.append(labelRepresentation);
 
         return command.toString();
+    }
+
+    @Override
+    public Label getReferenceLabel() {
+        return referencesLabel;
     }
 }
