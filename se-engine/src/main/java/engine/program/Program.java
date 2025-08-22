@@ -1,7 +1,6 @@
 package engine.program;
 
 import engine.exceptions.EngineLoadException;
-import engine.execution.ExecutionContext;
 import engine.instruction.Instruction;
 import engine.label.Label;
 import engine.variable.Variable;

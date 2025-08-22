@@ -28,7 +28,7 @@ public class Main {
 
 
         try {
-            xmlPath = Paths.get("se-engine", "src", "main", "resources", "xml-samples", "test.xml");
+            xmlPath = Paths.get("se-engine", "src", "main", "resources", "xml-samples", "synthetic.xml");
             p = loader.load(xmlPath);
             p.validateProgram();
             p.initialize();
@@ -40,7 +40,7 @@ public class Main {
             System.out.println("Max degree: " + maxDegree);
 
             //לבחור דרגת הרצה מ0 ועד מקסימום
-            int runDegree = 0;
+            int runDegree = 3;
 
             // להציג למשתמש את משתני הקלט שהתוכנית משתמשת בהם
             String inputDisplay = pe.getInputVariablesOfProgram().stream()

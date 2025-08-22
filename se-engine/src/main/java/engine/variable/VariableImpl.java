@@ -27,9 +27,8 @@ public class VariableImpl implements Variable {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof VariableImpl)) return false;
+        if (!(obj instanceof VariableImpl other)) return false;
 
-        VariableImpl other = (VariableImpl) obj;
         return this.number == other.number && this.type == other.type;
     }
 

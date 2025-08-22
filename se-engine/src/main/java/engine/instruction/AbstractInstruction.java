@@ -1,12 +1,10 @@
 package engine.instruction;
 
-import engine.execution.ExecutionContext;
 import engine.label.Label;
 import engine.label.FixedLabel;
 import engine.program.Program;
 import engine.variable.Variable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.LongStream;
 

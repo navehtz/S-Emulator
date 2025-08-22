@@ -1,6 +1,5 @@
 package engine.execution;
 
-import engine.program.Program;
 import engine.variable.Variable;
 
 import java.util.ArrayList;

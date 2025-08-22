@@ -1,9 +1,7 @@
 package engine.program;
 
 import engine.exceptions.EngineLoadException;
-import engine.execution.ExecutionContext;
 import engine.instruction.*;
-import engine.instruction.synthetic.ZeroVariableInstruction;
 import engine.label.FixedLabel;
 import engine.label.Label;
 import engine.label.LabelImpl;
@@ -209,27 +207,14 @@ public class ProgramImpl implements Program {
         }
 
         for (int i = 0 ; i < degree ; i++) {
-            boolean firstIter = true;
-
             for (ListIterator<Instruction> iterator = programInstructions.listIterator(); iterator.hasNext(); ) {
                 Instruction instruction = iterator.next();
                 Label originalLabel = instruction.getLabel();
                 List<Instruction> extendedInstructions = instruction.getExtendedInstruction();
 
-                if(extendedInstructions.size() == 1 && extendedInstructions.get(0) == instruction) {   // If instruction is basic
+                if(extendedInstructions.size() == 1 && extendedInstructions.getFirst() == instruction) {   // If instruction is basic
                     continue;
                 }
-
-/*                if (firstIter) {
-                    if (originalLabel != FixedLabel.EMPTY) {
-                        Instruction firstExtendedInstruction = extendedInstructions.remove(0);
-
-                        extendedInstructions.addFirst(firstExtendedInstruction.createNewInstructionWithNewLabel(originalLabel));
-                        }
-                    }
-
-                    firstIter = false;
-                }*/
 
                 iterator.remove();                              // Remove the old (synthetic) instruction
                 labelToInstruction.remove(originalLabel);       // Remove the label from the map because we will add it again in line 239

@@ -28,7 +28,7 @@ public class ProgramExecutorImpl implements ProgramExecutor{
 
     @Override
     public long run(Long... inputs) {
-        Instruction currentInstruction = program.getInstructionsList().get(0);
+        Instruction currentInstruction = program.getInstructionsList().getFirst();
         Instruction nextInstruction = null;
         Label nextLabel;
 

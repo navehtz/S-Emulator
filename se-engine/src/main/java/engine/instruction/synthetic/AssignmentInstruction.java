@@ -8,10 +8,7 @@ import engine.instruction.basic.JumpNotZeroInstruction;
 import engine.instruction.basic.NoOpInstruction;
 import engine.label.FixedLabel;
 import engine.label.Label;
-import engine.label.LabelImpl;
 import engine.variable.Variable;
-import engine.variable.VariableImpl;
-import engine.variable.VariableType;
 
 import java.util.ArrayList;
 import java.util.List;

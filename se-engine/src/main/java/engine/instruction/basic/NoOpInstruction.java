@@ -5,7 +5,6 @@ import engine.instruction.AbstractInstruction;
 import engine.instruction.Instruction;
 import engine.instruction.InstructionData;
 import engine.instruction.InstructionType;
-import engine.instruction.synthetic.ZeroVariableInstruction;
 import engine.label.FixedLabel;
 import engine.label.Label;
 import engine.variable.Variable;
