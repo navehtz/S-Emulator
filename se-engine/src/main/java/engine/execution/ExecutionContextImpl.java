@@ -18,6 +18,7 @@ public class ExecutionContextImpl implements ExecutionContext{
 
     @Override
     public void initializeVariables(Program program, Long... inputs) {
+        program.sortInputVariablesByTypeThenNumber();
 
         initializeInputVariable(program, inputs);
         initializeWorkVariable(program);

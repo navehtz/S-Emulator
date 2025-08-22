@@ -2,6 +2,7 @@ package engine.instruction.basic;
 
 import engine.execution.ExecutionContext;
 import engine.instruction.AbstractInstruction;
+import engine.instruction.Instruction;
 import engine.instruction.InstructionData;
 import engine.instruction.InstructionType;
 import engine.label.Label;
@@ -16,6 +17,11 @@ public class DecreaseInstruction extends AbstractInstruction {
 
     public DecreaseInstruction(Variable variable, Label label) {
         super(InstructionData.DECREASE, InstructionType.BASIC, variable, label);
+    }
+
+    @Override
+    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
+        return new DecreaseInstruction(getTargetVariable(), newLabel);
     }
 
     @Override

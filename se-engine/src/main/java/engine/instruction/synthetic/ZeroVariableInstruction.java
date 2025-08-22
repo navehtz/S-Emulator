@@ -1,14 +1,22 @@
 package engine.instruction.synthetic;
 
 import engine.execution.ExecutionContext;
-import engine.instruction.AbstractInstruction;
-import engine.instruction.InstructionData;
-import engine.instruction.InstructionType;
+import engine.instruction.*;
+import engine.instruction.basic.DecreaseInstruction;
+import engine.instruction.basic.JumpNotZeroInstruction;
 import engine.label.FixedLabel;
 import engine.label.Label;
+import engine.label.LabelImpl;
 import engine.variable.Variable;
+import engine.variable.VariableImpl;
+import engine.variable.VariableType;
 
-public class ZeroVariableInstruction extends AbstractInstruction {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ZeroVariableInstruction extends AbstractInstruction implements SyntheticInstruction {
+
+    private final List<Instruction> innerInstructions = new ArrayList<>();;
 
     public ZeroVariableInstruction(Variable variable) {
         super(InstructionData.ZERO_VARIABLE, InstructionType.SYNTHETIC ,variable, FixedLabel.EMPTY);
@@ -16,6 +24,11 @@ public class ZeroVariableInstruction extends AbstractInstruction {
 
     public ZeroVariableInstruction(Variable variable, Label label) {
         super(InstructionData.ZERO_VARIABLE, InstructionType.SYNTHETIC, variable, label);
+    }
+
+    @Override
+    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
+        return new ZeroVariableInstruction(getTargetVariable(), newLabel);
     }
 
     @Override
@@ -35,5 +48,18 @@ public class ZeroVariableInstruction extends AbstractInstruction {
         command.append(0);
 
         return command.toString();
+    }
+
+    @Override
+    public List<Instruction> getInnerInstructions() {
+        return innerInstructions;
+    }
+
+    @Override
+    public void setInnerInstructions() {
+        Label newLabel1 = (super.getLabel() == FixedLabel.EMPTY) ? super.getProgramOfThisInstruction().generateUniqueLabel() : super.getLabel();
+
+        innerInstructions.add(new DecreaseInstruction(super.getTargetVariable(), newLabel1));
+        innerInstructions.add(new JumpNotZeroInstruction(super.getTargetVariable(), newLabel1));
     }
 }

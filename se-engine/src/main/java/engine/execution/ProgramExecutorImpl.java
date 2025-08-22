@@ -7,16 +7,23 @@ import engine.label.Label;
 import engine.program.Program;
 import engine.variable.Variable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ProgramExecutorImpl implements ProgramExecutor{
 
     private final Program program;
     ExecutionContext context;
+    List<Long> inputsValues;
+    int runDegree = 0;
+    long result = 0;
 
     public ProgramExecutorImpl(Program program) {
         this.program = program;
         this.context = new ExecutionContextImpl();
+        this.inputsValues = new ArrayList<Long>();
     }
 
     @Override
@@ -25,6 +32,7 @@ public class ProgramExecutorImpl implements ProgramExecutor{
         Instruction nextInstruction = null;
         Label nextLabel;
 
+        inputsValues = List.of(inputs);
         context.initializeVariables(program, inputs);
 
         do {
@@ -56,6 +64,11 @@ public class ProgramExecutorImpl implements ProgramExecutor{
     }
 
     @Override
+    public long getVariableValue(Variable variable) {
+        return context.getVariableValue(variable);
+    }
+
+    @Override
     public String programDisplay() {
         return program.getProgramDisplay();
     }
@@ -63,5 +76,37 @@ public class ProgramExecutorImpl implements ProgramExecutor{
     @Override
     public ProgramApi getProgramApi() {
         return new ProgramApi(programDisplay());
+    }
+
+    @Override
+    public int getRunDegree() {
+        return runDegree;
+    }
+
+    @Override
+    public List<Long> getInputsValues() {
+        return inputsValues;
+    }
+
+    @Override
+    public int getTotalCyclesOfProgram() {
+        return program.getTotalCyclesOfProgram();
+    }
+
+    @Override
+    public void extendProgram(int degree) {
+        if (degree > 0) {
+            program.extendProgram(degree);
+        }
+    }
+
+    @Override
+    public Set<Variable> getInputVariablesOfProgram() {
+        return program.getInputVariables();
+    }
+
+    @Override
+    public int calculateProgramMaxDegree() {
+        return program.calculateProgramMaxDegree();
     }
 }

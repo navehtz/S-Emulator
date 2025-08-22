@@ -2,6 +2,7 @@ package engine.instruction.basic;
 
 import engine.execution.ExecutionContext;
 import engine.instruction.AbstractInstruction;
+import engine.instruction.Instruction;
 import engine.instruction.InstructionData;
 import engine.instruction.InstructionType;
 import engine.label.Label;
@@ -25,6 +26,11 @@ public class IncreaseInstruction extends AbstractInstruction {
         context.updateVariable(getTargetVariable() ,variableValue + 1);
 
         return FixedLabel.EMPTY;
+    }
+
+    @Override
+    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
+        return new IncreaseInstruction(getTargetVariable(), newLabel);
     }
 
     @Override

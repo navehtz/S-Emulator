@@ -6,7 +6,7 @@ public class VariableImpl implements Variable {
 
     public VariableImpl(VariableType variableType, int number) {
         this.type = variableType;
-        this.number = number;
+        this.number = (type == VariableType.RESULT) ? 0 : number;       // y will always get 0
     }
 
     @Override
@@ -17,6 +17,11 @@ public class VariableImpl implements Variable {
     @Override
     public String getRepresentation() {
         return type.getVariableRepresentation(number);
+    }
+
+    @Override
+    public int getNumber() {
+        return number;
     }
 
     @Override

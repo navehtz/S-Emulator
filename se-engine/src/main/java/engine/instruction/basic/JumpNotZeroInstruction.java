@@ -1,10 +1,7 @@
 package engine.instruction.basic;
 
 import engine.execution.ExecutionContext;
-import engine.instruction.AbstractInstruction;
-import engine.instruction.InstructionData;
-import engine.instruction.InstructionType;
-import engine.instruction.LabelReferencesInstruction;
+import engine.instruction.*;
 import engine.label.FixedLabel;
 import engine.label.Label;
 import engine.variable.Variable;
@@ -20,6 +17,11 @@ public class JumpNotZeroInstruction extends AbstractInstruction implements Label
     public JumpNotZeroInstruction(Variable variable, Label label, Label referencesLabel) {
         super(InstructionData.JUMP_NOT_ZERO, InstructionType.BASIC, variable, label);
         this.referencesLabel = referencesLabel;
+    }
+
+    @Override
+    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
+        return new JumpNotZeroInstruction(getTargetVariable(), newLabel, referencesLabel);
     }
 
     @Override

@@ -1,8 +1,14 @@
 package engine.instruction;
 
+import engine.execution.ExecutionContext;
 import engine.label.Label;
 import engine.label.FixedLabel;
+import engine.program.Program;
 import engine.variable.Variable;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.LongStream;
 
 
 public abstract class AbstractInstruction implements Instruction {
@@ -11,6 +17,7 @@ public abstract class AbstractInstruction implements Instruction {
     private final InstructionType instructionType;
     private final Label label;
     private final Variable targetVariable;
+    private Program programOfThisInstruction = null;
 
     public AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable) {
         this(instructionData, instructionType, targetVariable,FixedLabel.EMPTY);
@@ -29,11 +36,6 @@ public abstract class AbstractInstruction implements Instruction {
     }
 
     @Override
-    public int getCycles() {
-        return this.instructionData.getCycles();
-    }
-
-    @Override
     public Label getLabel() {
         return this.label;
     }
@@ -49,20 +51,82 @@ public abstract class AbstractInstruction implements Instruction {
     }
 
     @Override
-    public String instructionRepresentation(int InstructionNumber) {
-        StringBuilder instructionDisplay = new StringBuilder();
-        String labelPadded = labelPadding(getLabel().getLabelRepresentation());
-        instructionDisplay.append("#").append(InstructionNumber);
-        instructionDisplay.append(" (").append(instructionType.getInstructionType()).append(")");
-        instructionDisplay.append("[ ").append(labelPadded).append("] ");
-        instructionDisplay.append(this.getCommand());
-        instructionDisplay.append(" (").append(getCycles()).append(")");
+    public String instructionRepresentation(int numberOfInstructionsInProgram, int InstructionNumber) {
+        int labelPadding = 3;
+        int numberPadding = numberOfInstructionsInProgram == 0 ? 1
+                : (int) LongStream.iterate(Math.abs(numberOfInstructionsInProgram), x -> x > 0, x -> x / 10).count();
 
-        return instructionDisplay.toString();
+        String label = getLabel() == null ? "" : getLabel().getLabelRepresentation();
+
+        return String.format(
+                "#%" + numberPadding + "d (%s)[ %-" + labelPadding + "s ] %-" + 5 + "s (%d)",
+                InstructionNumber,
+                instructionType.getInstructionType(),
+                label,
+                getCommand(),
+                getCycleOfInstruction()
+        );
     }
 
-    private String labelPadding(String labelStr) {
-            return String.format("%-4s", labelStr);
+    @Override
+    public int getCycleOfInstruction() {
+        return instructionData.getCycles();
     }
 
+    @Override
+    public int calculateInstructionMaxDegree(Program program) {
+
+        if (this instanceof SyntheticInstruction syntheticInstruction) {
+
+            this.setProgramOfThisInstruction(program);
+            syntheticInstruction.setInnerInstructions();
+
+            int innerMax = 0;
+            for(Instruction innerInstruction : syntheticInstruction.getInnerInstructions()) {
+                  innerMax = Math.max(innerMax, innerInstruction.calculateInstructionMaxDegree(program));
+            }
+
+            return innerMax + 1;
+        }
+
+        return 0;
+    }
+
+    @Override
+    public List<Instruction> getExtendedInstruction() {
+
+        if (this instanceof SyntheticInstruction syntheticInstruction) {
+            return syntheticInstruction.getInnerInstructions();
+        }
+
+        return List.of(this);   // Basic instruction -> keep as it is
+    }
+
+/*    @Override
+    public List<Instruction> getExtendedInstruction(int degree, ExecutionContext context, Program program) {
+        if (degree <= 0) {
+            return List.of(this);
+        }
+
+        if (this instanceof SyntheticInstruction syntheticInstruction) {
+            List<Instruction> extendedInstructions = new ArrayList<>();
+
+            for(Instruction innerInstruction : syntheticInstruction.getInnerInstructions()) {
+                extendedInstructions.addAll(innerInstruction.getExtendedInstruction(degree - 1, context, program));
+
+            }
+            return extendedInstructions;
+        }
+
+        return List.of(this);   // Basic instruction -> keep as it is
+    }*/
+
+    public Program getProgramOfThisInstruction() {
+        return programOfThisInstruction;
+    }
+
+    @Override
+    public void setProgramOfThisInstruction(Program programOfThisInstruction) {
+        this.programOfThisInstruction = programOfThisInstruction;
+    }
 }

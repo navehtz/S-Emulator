@@ -7,7 +7,7 @@ public class ProgramApi {
         this.programRepresentation = programRepresentation;
     }
 
-    public String programDisplay() {
+    public String getProgramDisplay() {
         return programRepresentation;
     }
 }

@@ -160,6 +160,7 @@ final class XmlProgramMapper {
         if (trimmed.equalsIgnoreCase(FixedLabel.EXIT.getLabelRepresentation())) {
             label = FixedLabel.EXIT;
         }
+
         else if (trimmed.matches("L\\d+")) {
             String numberPart = trimmed.substring(1);
             int labelNumber = Integer.parseInt(numberPart);
@@ -201,13 +202,12 @@ final class XmlProgramMapper {
         }
 
         throw new IllegalArgumentException(
-                "Problem creating the variable: " + trimmed + ". expected x1, x2... or z1, z2... or y" + System.lineSeparator() +
-                        "Instruction number: " + ordinal + System.lineSeparator() +
-                        "Instruction name: " + where
+                "Problem creating the variable: " + trimmed + ". expected x / y / z" + System.lineSeparator() +
+                        "The problem accour at instruction number: " + ordinal + " named: " + where
         );
     }
 
-    private static String safeTrim(String s) { return s == null ? null : s.trim(); }
+    private static String safeTrim(String s) { return s == null ? null : s.trim().toUpperCase(Locale.ROOT); }
 
     private static String toUpperSafe(String s) { return s == null ? null : s.trim().toUpperCase(Locale.ROOT); }
 }
