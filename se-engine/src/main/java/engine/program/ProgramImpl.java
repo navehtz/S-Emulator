@@ -167,6 +167,7 @@ public class ProgramImpl implements Program {
 
     private List<String> displayInputVariable() {
         return inputVariables.stream()
+                .sorted(Comparator.comparingInt(Variable::getNumber))
                 .map(Variable::getRepresentation)
                 .collect(Collectors.toList());
     }
@@ -317,5 +318,10 @@ public class ProgramImpl implements Program {
 
         inputVariables.clear();
         inputVariables.addAll(sorted);
+    }
+
+    @Override
+    public void addInputVariable(Variable variable) {
+        inputVariables.add(variable);
     }
 }

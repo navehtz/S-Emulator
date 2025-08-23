@@ -26,4 +26,5 @@ public interface Program {
     Label generateUniqueLabel();
     Variable generateUniqueVariable();
     void sortInputVariablesByTypeThenNumber();
+    void addInputVariable(Variable variable);
 }

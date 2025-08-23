@@ -28,7 +28,7 @@ public class Main {
 
 
         try {
-            xmlPath = Paths.get("se-engine", "src", "main", "resources", "xml-samples", "synthetic.xml");
+            xmlPath = Paths.get("se-engine", "src", "main", "resources", "xml-samples", "test.xml");
             p = loader.load(xmlPath);
             p.validateProgram();
             p.initialize();
@@ -40,7 +40,7 @@ public class Main {
             System.out.println("Max degree: " + maxDegree);
 
             //לבחור דרגת הרצה מ0 ועד מקסימום
-            int runDegree = 3;
+            int runDegree = 0;
 
             // להציג למשתמש את משתני הקלט שהתוכנית משתמשת בהם
             String inputDisplay = pe.getInputVariablesOfProgram().stream()
@@ -53,7 +53,7 @@ public class Main {
             pe.extendProgram(runDegree);
 
             // להריץ את התוכנית (וגם לשמור היסטוריה, לאתחל משתנים..)
-            long res = pe.run(1L, 0L, 15L);
+            long res = pe.run(5L, 10L, 15L);
 
             // להציג למשתמש את התוכנית
             programApi = pe.getProgramApi();
