@@ -2,6 +2,8 @@ package engine.instruction;
 
 public enum InstructionData {
 
+    ORIGIN("ORIGIN", 0),
+
     INCREASE("INCREASE", 1),
     DECREASE("DECREASE", 1),
     JUMP_NOT_ZERO("JNZ", 2),

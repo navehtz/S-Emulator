@@ -21,7 +21,7 @@ public class ProgramImpl implements Program {
     private final Set<Variable> workVariables;
     private final Map<Label, Instruction> labelToInstruction;
     private final List<Label> labelsInProgram;  // Need it to keep the order of the labels
-    private final Set<Label> labelsAddedAfterExtention;  // Need it to keep the order of the labels
+    private final Set<Label> labelsAddedAfterExtension;  // Need it to keep the order of the labels
     private final Set<Label> referencedLabels ;
     private int totalCycles = 0;
     private int nextLabelNumber = 1;
@@ -34,7 +34,7 @@ public class ProgramImpl implements Program {
         this.inputVariables = new LinkedHashSet<>();
         this.workVariables = new LinkedHashSet<>();
         this.labelsInProgram = new ArrayList<>();
-        this.labelsAddedAfterExtention = new LinkedHashSet<>();
+        this.labelsAddedAfterExtension = new LinkedHashSet<>();
         this.referencedLabels  = new LinkedHashSet<>();
     }
 
@@ -176,9 +176,8 @@ public class ProgramImpl implements Program {
         StringBuilder programDisplay = new StringBuilder();
         int numberOfInstructionsInProgram = programInstructions.size();
 
-        for(int i = 0; i < programInstructions.size(); i++) {
-            Instruction instruction = programInstructions.get(i);
-            String line = instruction.instructionRepresentation(numberOfInstructionsInProgram, i + 1);
+        for (Instruction instruction : programInstructions) {
+            String line = instruction.getInstructionRepresentation(numberOfInstructionsInProgram);
             programDisplay.append(line).append(System.lineSeparator());
         }
 
@@ -191,6 +190,31 @@ public class ProgramImpl implements Program {
     }
 
     @Override
+    public List<String> getExtendedProgramDisplay() {
+        List<String> extendedProgram = new ArrayList<>();
+        int numberOfInstructionsInProgram = programInstructions.size();
+
+        for(Instruction instruction : programInstructions) {
+            extendedProgram.add(instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram));
+        }
+
+        return extendedProgram;
+    }
+
+    @Override
+    public int calculateProgramMaxDegree() {
+        int maxDegree = 1;
+
+        for (Instruction instruction : programInstructions) {
+            if(instruction instanceof SyntheticInstruction syntheticInstruction) {
+                maxDegree = Math.max(maxDegree, syntheticInstruction.getMaxDegree());
+            }
+        }
+
+        return maxDegree;
+    }
+
+/*    @Override
     public int calculateProgramMaxDegree() {
         int maxDegree = 0;
 
@@ -199,9 +223,9 @@ public class ProgramImpl implements Program {
         }
 
         return maxDegree;
-    }
+    }*/
 
-    @Override
+/*    @Override
     public void extendProgram(int degree) {
         if (degree <= 0) {
             return;
@@ -223,52 +247,53 @@ public class ProgramImpl implements Program {
 
                 for (Instruction extendedInstruction : extendedInstructions) {
                     updateVariableAndLabel(extendedInstruction);
-                    iterator.add(extendedInstruction);        // Add the extended (inner) instruction to the list
+                    iterator.add(extendedInstruction);          // Add the extended (inner) instruction to the list
+                }
+            }
+        }
+    }*/
 
-/*                    if (extendedInstruction instanceof SyntheticInstruction syntheticInstruction) {
-                        extendedInstruction.setProgramOfThisInstruction(this);
-                        syntheticInstruction.setInnerInstructions();
-                    }*/
+    @Override
+    public void extendProgram(int degree) {
+        if (degree <= 0) {
+            return;
+        }
+
+        for (int i = 0 ; i < degree ; i++) {
+            int nextInstructionNumber = 1;
+
+            for (ListIterator<Instruction> iterator = programInstructions.listIterator(); iterator.hasNext(); ) {
+                Instruction instruction = iterator.next();
+                Label originalLabel = instruction.getLabel();
+                List<Instruction> newInstructionsList = new ArrayList<>();
+
+                int cycleOfOldInstruction = instruction.getCycleOfInstruction();
+                totalCycles -=  cycleOfOldInstruction;
+
+                // initialize
+                instruction.setProgramOfThisInstruction(this);
+                if (instruction instanceof SyntheticInstruction syntheticInstruction) {
+                    nextInstructionNumber = syntheticInstruction.setInnerInstructionsAndReturnTheNextOne(nextInstructionNumber);
+                    newInstructionsList = instruction.getExtendedInstruction();
+                }
+                else {
+                    Instruction cloneInstruction = instruction.createInstructionWithInstructionNumber(nextInstructionNumber);
+                    newInstructionsList.add(cloneInstruction);
+                    nextInstructionNumber++;
+                }
+
+                iterator.remove();                              // Remove the old instruction
+                labelToInstruction.remove(originalLabel);       // Remove the label from the map because we will add it again in line 239
+                labelsInProgram.remove(originalLabel);          // Remove the label from the map because we will add it again in line 239
+
+                for (Instruction extendedInstruction : newInstructionsList) {
+                    totalCycles += extendedInstruction.getCycleOfInstruction();
+                    updateVariableAndLabel(extendedInstruction);
+                    iterator.add(extendedInstruction);          // Add the extended (inner) instruction to the list
                 }
             }
         }
     }
-
-/*    @Override
-    public void extendProgram(int degree, ExecutionContext context) {
-        if (degree <= 0) {
-            return;
-        }
-        boolean firstIter = true;
-
-        for (ListIterator<Instruction> iterator = programInstructions.listIterator(); iterator.hasNext(); ) {
-            Instruction instruction = iterator.next();
-            Label originalLabel = instruction.getLabel();
-            List<Instruction> extendedInstructions = instruction.getExtendedInstruction(degree, context, this);
-
-
-            if(extendedInstructions.size() == 1 && extendedInstructions.get(0) == instruction) {   // If instruction is basic
-                continue;
-            }
-
-            if (firstIter) {
-                if (originalLabel != FixedLabel.EMPTY) {
-                    Instruction firstExtendedInstruction = extendedInstructions.remove(0);
-                    labelToInstruction.remove(originalLabel);
-                    labelsInProgram.remove(originalLabel);
-                    extendedInstructions.addFirst(firstExtendedInstruction.createNewInstructionWithNewLabel(originalLabel));
-                }
-
-                firstIter = false;
-            }
-
-            iterator.remove();                             // Remove the old (synthetic) instruction
-            for (Instruction extendedInstruction : extendedInstructions) {
-                updateVariableAndLabel(extendedInstruction);
-                iterator.add(extendedInstruction);        // Add the extended (inner) instruction to the list
-            }
-        }
-    }*/
 
     private void initNextLabelNumber() {
         nextLabelNumber = labelsInProgram.stream()
@@ -282,12 +307,12 @@ public class ProgramImpl implements Program {
     public Label generateUniqueLabel() {
         Label uniqueLabel = new LabelImpl(nextLabelNumber++);
 
-        if (labelsAddedAfterExtention.contains(uniqueLabel)) {
+        if (labelsAddedAfterExtension.contains(uniqueLabel)) {
             throw new IllegalStateException(
                     "Attempted to add duplicate labels after extention: " + uniqueLabel.getLabelRepresentation()
             );
         }
-        labelsAddedAfterExtention.add(uniqueLabel);
+        labelsAddedAfterExtension.add(uniqueLabel);
         return uniqueLabel;
     }
 
@@ -311,17 +336,27 @@ public class ProgramImpl implements Program {
     }
 
     @Override
-    public void sortInputVariablesByTypeThenNumber() {
-        var sorted = inputVariables.stream()
+    public void sortVariableSetByNumber(Set<Variable> variablesSet) {
+        var sorted = variablesSet.stream()
                 .sorted(Comparator.comparingInt(Variable::getNumber))
                 .toList();
 
-        inputVariables.clear();
-        inputVariables.addAll(sorted);
+        variablesSet.clear();
+        variablesSet.addAll(sorted);
     }
 
     @Override
     public void addInputVariable(Variable variable) {
         inputVariables.add(variable);
+    }
+
+    @Override
+    public List<Variable> getInputAndWorkVariablesSortedBySerial() {
+        sortVariableSetByNumber(inputVariables);
+        sortVariableSetByNumber(workVariables);
+
+        List<Variable> inputAndWorkVariablesAndTheirValues = new ArrayList<>(inputVariables);
+        inputAndWorkVariablesAndTheirValues.addAll(workVariables);
+        return inputAndWorkVariablesAndTheirValues;
     }
 }

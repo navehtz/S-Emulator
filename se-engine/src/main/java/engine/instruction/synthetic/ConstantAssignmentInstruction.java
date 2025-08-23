@@ -15,19 +15,19 @@ public class ConstantAssignmentInstruction extends AbstractInstruction implement
     private final List<Instruction> innerInstructions = new ArrayList<>();
     private final long constantValue;
 
-    public ConstantAssignmentInstruction(Variable targetVariable, long constantValue) {
-        super(InstructionData.CONSTANT_ASSIGNMENT, InstructionType.SYNTHETIC ,targetVariable, FixedLabel.EMPTY);
+    public ConstantAssignmentInstruction(Variable targetVariable, long constantValue, Instruction origin, int instructionNumber) {
+        super(InstructionData.CONSTANT_ASSIGNMENT, InstructionType.SYNTHETIC ,targetVariable, FixedLabel.EMPTY, origin, instructionNumber);
         this.constantValue = constantValue;
     }
 
-    public ConstantAssignmentInstruction(Variable targetVariable, Label label, long constantValue) {
-        super(InstructionData.CONSTANT_ASSIGNMENT, InstructionType.SYNTHETIC, targetVariable, label);
+    public ConstantAssignmentInstruction(Variable targetVariable, Label label, long constantValue, Instruction origin, int instructionNumber) {
+        super(InstructionData.CONSTANT_ASSIGNMENT, InstructionType.SYNTHETIC, targetVariable, label, origin, instructionNumber);
         this.constantValue = constantValue;
     }
 
     @Override
-    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
-        return new ConstantAssignmentInstruction(getTargetVariable(), newLabel, constantValue);
+    public Instruction createInstructionWithInstructionNumber(int  instructionNumber) {
+        return new ConstantAssignmentInstruction(getTargetVariable(), getLabel(), constantValue, getOriginalInstruction(), instructionNumber);
     }
 
     @Override
@@ -55,13 +55,24 @@ public class ConstantAssignmentInstruction extends AbstractInstruction implement
     }
 
     @Override
-    public void setInnerInstructions() {
-        Label newLabel1 = (super.getLabel() == FixedLabel.EMPTY) ? FixedLabel.EMPTY : super.getLabel();
+    public int getMaxDegree() {
+        int maxDegree = 2;
+        return maxDegree;
+    }
 
-        innerInstructions.add(new ZeroVariableInstruction(super.getTargetVariable(), newLabel1));
+
+    @Override
+    public int setInnerInstructionsAndReturnTheNextOne(int startNumber) {
+        Label newLabel1 = (super.getLabel() == FixedLabel.EMPTY) ? FixedLabel.EMPTY : super.getLabel();
+        int instructionNumber = startNumber;
+
+        innerInstructions.add(new ZeroVariableInstruction(super.getTargetVariable(), newLabel1, this, instructionNumber++));
 
         for(int i = 0 ; i < constantValue ; i++) {
-            innerInstructions.add(new IncreaseInstruction(super.getTargetVariable()));
+            innerInstructions.add(new IncreaseInstruction(super.getTargetVariable(), this,  instructionNumber++));
         }
+
+        return instructionNumber;
     }
+
 }

@@ -11,17 +11,17 @@ import engine.variable.Variable;
 
 public class DecreaseInstruction extends AbstractInstruction {
 
-    public DecreaseInstruction(Variable variable) {
-        super(InstructionData.DECREASE, InstructionType.BASIC, variable, FixedLabel.EMPTY);
+    public DecreaseInstruction(Variable variable, Instruction origin, int instructionNumber) {
+        super(InstructionData.DECREASE, InstructionType.BASIC, variable, FixedLabel.EMPTY, origin, instructionNumber);
     }
 
-    public DecreaseInstruction(Variable variable, Label label) {
-        super(InstructionData.DECREASE, InstructionType.BASIC, variable, label);
+    public DecreaseInstruction(Variable variable, Label label, Instruction origin, int instructionNumber) {
+        super(InstructionData.DECREASE, InstructionType.BASIC, variable, label, origin,  instructionNumber);
     }
 
     @Override
-    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
-        return new DecreaseInstruction(getTargetVariable(), newLabel);
+    public Instruction createInstructionWithInstructionNumber(int instructionNumber) {
+        return new DecreaseInstruction(getTargetVariable(), getLabel(), getOriginalInstruction(), instructionNumber);
     }
 
     @Override

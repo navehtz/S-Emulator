@@ -18,19 +18,19 @@ public class AssignmentInstruction extends AbstractInstruction implements Synthe
     private final List<Instruction> innerInstructions = new ArrayList<>();
     private final Variable sourceVariable;
 
-    public AssignmentInstruction(Variable targetVariable, Variable sourceVariable) {
-        super(InstructionData.ASSIGNMENT, InstructionType.SYNTHETIC ,targetVariable, FixedLabel.EMPTY);
+    public AssignmentInstruction(Variable targetVariable, Variable sourceVariable, Instruction origin, int instructionNumber) {
+        super(InstructionData.ASSIGNMENT, InstructionType.SYNTHETIC ,targetVariable, FixedLabel.EMPTY, origin, instructionNumber);
         this.sourceVariable = sourceVariable;
     }
 
-    public AssignmentInstruction(Variable targetVariable, Label label, Variable sourceVariable) {
-        super(InstructionData.ASSIGNMENT, InstructionType.SYNTHETIC, targetVariable, label);
+    public AssignmentInstruction(Variable targetVariable, Label label, Variable sourceVariable, Instruction origin, int instructionNumber) {
+        super(InstructionData.ASSIGNMENT, InstructionType.SYNTHETIC, targetVariable, label, origin, instructionNumber);
         this.sourceVariable = sourceVariable;
     }
 
     @Override
-    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
-        return new AssignmentInstruction(getTargetVariable(), newLabel, sourceVariable);
+    public Instruction createInstructionWithInstructionNumber(int instructionNumber) {
+        return new AssignmentInstruction(getTargetVariable(), getLabel(), sourceVariable, getOriginalInstruction(), instructionNumber);
     }
 
     @Override
@@ -65,25 +65,35 @@ public class AssignmentInstruction extends AbstractInstruction implements Synthe
     }
 
     @Override
-    public void setInnerInstructions() {
+    public int getMaxDegree() {
+        int maxDegree = 2;
+        return maxDegree;
+    }
+
+    @Override
+    public int setInnerInstructionsAndReturnTheNextOne(int startNumber) {
         Variable workVariable1 = super.getProgramOfThisInstruction().generateUniqueVariable();
         Label newLabel1 = (super.getLabel() == FixedLabel.EMPTY) ? FixedLabel.EMPTY : super.getLabel();
         Label newLabel2 =  super.getProgramOfThisInstruction().generateUniqueLabel();
         Label newLabel3 =  super.getProgramOfThisInstruction().generateUniqueLabel();
         Label newLabel4 =  super.getProgramOfThisInstruction().generateUniqueLabel();
+        int instructionNumber = startNumber;
 
-        innerInstructions.add(new ZeroVariableInstruction(super.getTargetVariable(), newLabel1));
-        innerInstructions.add(new JumpNotZeroInstruction(sourceVariable, newLabel2));
-        innerInstructions.add(new GotoLabelInstruction(workVariable1, newLabel4)); // TODO: fix this, GOTO label shouldn't get any variable. see aviad github
-        innerInstructions.add(new DecreaseInstruction(sourceVariable, newLabel2));
-        innerInstructions.add(new IncreaseInstruction(workVariable1));
-        innerInstructions.add(new JumpNotZeroInstruction(sourceVariable, newLabel2));
+        innerInstructions.add(new ZeroVariableInstruction(super.getTargetVariable(), newLabel1,this, instructionNumber++));
+        innerInstructions.add(new JumpNotZeroInstruction(sourceVariable, newLabel2, this, instructionNumber++));
+        innerInstructions.add(new GotoLabelInstruction(workVariable1, newLabel4, this, instructionNumber++));
+        innerInstructions.add(new DecreaseInstruction(sourceVariable, newLabel2, this, instructionNumber++));
+        innerInstructions.add(new IncreaseInstruction(workVariable1, this, instructionNumber++));
+        innerInstructions.add(new JumpNotZeroInstruction(sourceVariable, newLabel2, this, instructionNumber++));
 
-        innerInstructions.add(new DecreaseInstruction(workVariable1, newLabel3));
-        innerInstructions.add(new IncreaseInstruction(super.getTargetVariable()));
-        innerInstructions.add(new IncreaseInstruction(sourceVariable));
-        innerInstructions.add(new JumpNotZeroInstruction(workVariable1, newLabel3));
+        innerInstructions.add(new DecreaseInstruction(workVariable1, newLabel3, this, instructionNumber++));
+        innerInstructions.add(new IncreaseInstruction(super.getTargetVariable(), this, instructionNumber++));
+        innerInstructions.add(new IncreaseInstruction(sourceVariable, this, instructionNumber++));
+        innerInstructions.add(new JumpNotZeroInstruction(workVariable1, newLabel3, this, instructionNumber++));
 
-        innerInstructions.add(new NoOpInstruction(super.getTargetVariable(), newLabel4));
+        innerInstructions.add(new NoOpInstruction(super.getTargetVariable(), newLabel4, this, instructionNumber++));
+
+        return instructionNumber;
     }
+
 }

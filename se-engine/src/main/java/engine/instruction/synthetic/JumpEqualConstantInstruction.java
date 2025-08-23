@@ -18,22 +18,22 @@ public class JumpEqualConstantInstruction extends AbstractInstruction implements
     private final Label referencelabel;
     private final long constantValue;
 
-    public JumpEqualConstantInstruction(Variable targetVariable, long constantValue, Label referencelabel) {
-        super(InstructionData.JUMP_EQUAL_CONSTANT, InstructionType.SYNTHETIC ,targetVariable, FixedLabel.EMPTY);
+    public JumpEqualConstantInstruction(Variable targetVariable, long constantValue, Label referencelabel, Instruction origin, int instructionNumber) {
+        super(InstructionData.JUMP_EQUAL_CONSTANT, InstructionType.SYNTHETIC ,targetVariable, FixedLabel.EMPTY, origin, instructionNumber);
         this.constantValue = constantValue;
         this.referencelabel = referencelabel;
 
     }
 
-    public JumpEqualConstantInstruction(Variable targetVariable, Label label, long constantValue, Label referencelabel) {
-        super(InstructionData.JUMP_EQUAL_CONSTANT, InstructionType.SYNTHETIC, targetVariable, label);
+    public JumpEqualConstantInstruction(Variable targetVariable, Label label, long constantValue, Label referencelabel, Instruction origin, int instructionNumber) {
+        super(InstructionData.JUMP_EQUAL_CONSTANT, InstructionType.SYNTHETIC, targetVariable, label, origin, instructionNumber);
         this.constantValue = constantValue;
         this.referencelabel = referencelabel;
     }
 
     @Override
-    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
-        return new JumpEqualConstantInstruction(getTargetVariable(), newLabel, constantValue, referencelabel);
+    public Instruction createInstructionWithInstructionNumber(int instructionNumber) {
+        return new JumpEqualConstantInstruction(getTargetVariable(), getLabel(), constantValue, referencelabel, getOriginalInstruction(), instructionNumber);
     }
 
     @Override
@@ -69,20 +69,29 @@ public class JumpEqualConstantInstruction extends AbstractInstruction implements
     }
 
     @Override
-    public void setInnerInstructions() {
+    public int getMaxDegree() {
+        int maxDegree = 3;
+        return maxDegree;
+    }
+
+    @Override
+    public int setInnerInstructionsAndReturnTheNextOne(int startNumber) {
         Variable workVariable1 = super.getProgramOfThisInstruction().generateUniqueVariable();
         Label newLabel1 = (super.getLabel() == FixedLabel.EMPTY) ? FixedLabel.EMPTY : super.getLabel();
         Label newLabel2 = super.getProgramOfThisInstruction().generateUniqueLabel();
+        int instructionNumber = startNumber;
 
-        innerInstructions.add(new AssignmentInstruction(workVariable1, newLabel1 ,super.getTargetVariable()));
+        innerInstructions.add(new AssignmentInstruction(workVariable1, newLabel1 ,super.getTargetVariable(), super.getOriginalInstruction(), instructionNumber++));
 
         for(int i = 0 ; i < constantValue ; i++) {
-            innerInstructions.add(new JumpZeroInstruction(workVariable1, newLabel2));
-            innerInstructions.add(new DecreaseInstruction(workVariable1));
+            innerInstructions.add(new JumpZeroInstruction(workVariable1, newLabel2, super.getOriginalInstruction(), instructionNumber++));
+            innerInstructions.add(new DecreaseInstruction(workVariable1, super.getOriginalInstruction(), instructionNumber++));
         }
 
-        innerInstructions.add(new JumpNotZeroInstruction(workVariable1, newLabel2));
-        innerInstructions.add(new GotoLabelInstruction(super.getTargetVariable(), referencelabel)); // TODO: fix this, GOTO label shouldn't get any variable. see aviad github
-        innerInstructions.add(new NoOpInstruction(Variable.RESULT, newLabel2));
+        innerInstructions.add(new JumpNotZeroInstruction(workVariable1, newLabel2, this, instructionNumber++));
+        innerInstructions.add(new GotoLabelInstruction(super.getTargetVariable(), referencelabel, this, instructionNumber++));
+        innerInstructions.add(new NoOpInstruction(Variable.RESULT, newLabel2, this, instructionNumber++));
+
+        return instructionNumber;
     }
 }

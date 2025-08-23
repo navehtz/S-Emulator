@@ -7,10 +7,7 @@ import engine.label.Label;
 import engine.program.Program;
 import engine.variable.Variable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ProgramExecutorImpl implements ProgramExecutor{
 
@@ -69,18 +66,30 @@ public class ProgramExecutorImpl implements ProgramExecutor{
     }
 
     @Override
-    public String programDisplay() {
+    public String getProgramDisplay() {
         return program.getProgramDisplay();
     }
 
     @Override
     public ProgramApi getProgramApi() {
-        return new ProgramApi(programDisplay());
+        return new ProgramApi(getProgramDisplay());
     }
 
     @Override
     public int getRunDegree() {
         return runDegree;
+    }
+
+    @Override
+    public String getExtendedProgramDisplay() {
+        List<String> extendedDisplay = program.getExtendedProgramDisplay();
+        StringBuilder extendedProgramDisplay = new StringBuilder();
+
+        for(String line : extendedDisplay) {
+            extendedProgramDisplay.append(line).append(System.lineSeparator());
+        }
+
+        return extendedProgramDisplay.toString();
     }
 
     @Override
@@ -96,13 +105,43 @@ public class ProgramExecutorImpl implements ProgramExecutor{
     @Override
     public void extendProgram(int degree) {
         if (degree > 0) {
+            runDegree = degree;
             program.extendProgram(degree);
         }
     }
 
     @Override
-    public Set<Variable> getInputVariablesOfProgram() {
+    public Set<Variable> getInputVariablesSet() {
         return program.getInputVariables();
+    }
+
+    @Override
+    public Map<Variable, Long> getInputAndWorkVariablesAndTheirValuesMap() {
+
+        List<Variable> variableList = program.getInputAndWorkVariablesSortedBySerial();
+        Map<Variable, Long> variableToValue = new LinkedHashMap<Variable, Long>();
+
+        for (Variable variable : variableList) {
+            variableToValue.put(variable, context.getVariableValue(variable));
+        }
+
+        return variableToValue;
+    }
+
+    @Override
+    public String getInputAndWorkVariablesWithValuesDisplay() {
+        StringBuilder variablesDisplay = new StringBuilder();
+        Map<Variable, Long> variableToValue = getInputAndWorkVariablesAndTheirValuesMap();
+
+        for (Map.Entry<Variable, Long> entry : variableToValue.entrySet()) {
+            Variable key = entry.getKey();
+            String v = key.getRepresentation();
+            Long value = entry.getValue();
+
+            variablesDisplay.append(v).append(" = ").append(value).append(System.lineSeparator());
+        }
+
+        return variablesDisplay.toString();
     }
 
     @Override

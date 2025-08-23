@@ -11,12 +11,12 @@ import engine.variable.Variable;
 
 public class IncreaseInstruction extends AbstractInstruction {
 
-    public IncreaseInstruction(Variable variable) {
-        super(InstructionData.INCREASE, InstructionType.BASIC ,variable, FixedLabel.EMPTY);
+    public IncreaseInstruction(Variable variable, Instruction origin, int instructionNumber) {
+        super(InstructionData.INCREASE, InstructionType.BASIC ,variable, FixedLabel.EMPTY, origin, instructionNumber);
     }
 
-    public IncreaseInstruction(Variable variable, Label label) {
-        super(InstructionData.INCREASE, InstructionType.BASIC, variable, label);
+    public IncreaseInstruction(Variable variable, Label label, Instruction origin, int instructionNumber) {
+        super(InstructionData.INCREASE, InstructionType.BASIC, variable, label, origin,  instructionNumber);
     }
 
     @Override
@@ -29,8 +29,8 @@ public class IncreaseInstruction extends AbstractInstruction {
     }
 
     @Override
-    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
-        return new IncreaseInstruction(getTargetVariable(), newLabel);
+    public Instruction createInstructionWithInstructionNumber(int instructionNumber) {
+        return new IncreaseInstruction(getTargetVariable(), getLabel(), getOriginalInstruction(), instructionNumber);
     }
 
     @Override

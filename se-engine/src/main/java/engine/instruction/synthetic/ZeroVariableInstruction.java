@@ -15,17 +15,17 @@ public class ZeroVariableInstruction extends AbstractInstruction implements Synt
 
     private final List<Instruction> innerInstructions = new ArrayList<>();;
 
-    public ZeroVariableInstruction(Variable variable) {
-        super(InstructionData.ZERO_VARIABLE, InstructionType.SYNTHETIC ,variable, FixedLabel.EMPTY);
+    public ZeroVariableInstruction(Variable variable, Instruction origin, int instructionNumber) {
+        super(InstructionData.ZERO_VARIABLE, InstructionType.SYNTHETIC ,variable, FixedLabel.EMPTY, origin, instructionNumber);
     }
 
-    public ZeroVariableInstruction(Variable variable, Label label) {
-        super(InstructionData.ZERO_VARIABLE, InstructionType.SYNTHETIC, variable, label);
+    public ZeroVariableInstruction(Variable variable, Label label, Instruction origin, int instructionNumber) {
+        super(InstructionData.ZERO_VARIABLE, InstructionType.SYNTHETIC, variable, label, origin, instructionNumber);
     }
 
     @Override
-    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
-        return new ZeroVariableInstruction(getTargetVariable(), newLabel);
+    public Instruction createInstructionWithInstructionNumber(int instructionNumber) {
+        return new ZeroVariableInstruction(getTargetVariable(), getLabel(), getOriginalInstruction(), instructionNumber);
     }
 
     @Override
@@ -53,10 +53,19 @@ public class ZeroVariableInstruction extends AbstractInstruction implements Synt
     }
 
     @Override
-    public void setInnerInstructions() {
+    public int getMaxDegree() {
+        int maxDegree = 1;
+        return maxDegree;
+    }
+
+    @Override
+    public int setInnerInstructionsAndReturnTheNextOne(int startNumber) {
+        int instructionNumber = startNumber;
         Label newLabel1 = (super.getLabel() == FixedLabel.EMPTY) ? super.getProgramOfThisInstruction().generateUniqueLabel() : super.getLabel();
 
-        innerInstructions.add(new DecreaseInstruction(super.getTargetVariable(), newLabel1));
-        innerInstructions.add(new JumpNotZeroInstruction(super.getTargetVariable(), newLabel1));
+        innerInstructions.add(new DecreaseInstruction(super.getTargetVariable(), newLabel1, this,  instructionNumber++));
+        innerInstructions.add(new JumpNotZeroInstruction(super.getTargetVariable(), newLabel1, this, instructionNumber++));
+
+        return instructionNumber;
     }
 }

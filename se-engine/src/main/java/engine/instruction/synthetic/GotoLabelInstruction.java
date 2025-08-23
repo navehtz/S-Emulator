@@ -2,6 +2,7 @@ package engine.instruction.synthetic;
 
 import engine.execution.ExecutionContext;
 import engine.instruction.*;
+import engine.instruction.basic.DecreaseInstruction;
 import engine.instruction.basic.IncreaseInstruction;
 import engine.instruction.basic.JumpNotZeroInstruction;
 import engine.label.FixedLabel;
@@ -16,19 +17,19 @@ public class GotoLabelInstruction extends AbstractInstruction implements LabelRe
     private final List<Instruction> innerInstructions = new ArrayList<>();;
     private final Label referencesLabel;
 
-    public GotoLabelInstruction(Variable variable, Label referencesLabel) {
-        super(InstructionData.GOTO_LABEL, InstructionType.SYNTHETIC ,variable, FixedLabel.EMPTY);
+    public GotoLabelInstruction(Variable variable, Label referencesLabel, Instruction origin, int instructionNumber) {
+        super(InstructionData.GOTO_LABEL, InstructionType.SYNTHETIC ,variable, FixedLabel.EMPTY, origin, instructionNumber);
         this.referencesLabel = referencesLabel;
     }
 
-    public GotoLabelInstruction(Variable variable, Label label, Label referencesLabel) {
-        super(InstructionData.GOTO_LABEL, InstructionType.SYNTHETIC, variable, label);
+    public GotoLabelInstruction(Variable variable, Label label, Label referencesLabel, Instruction origin, int instructionNumber) {
+        super(InstructionData.GOTO_LABEL, InstructionType.SYNTHETIC, variable, label, origin, instructionNumber);
         this.referencesLabel = referencesLabel;
     }
 
     @Override
-    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
-        return new GotoLabelInstruction(getTargetVariable(), newLabel, referencesLabel);
+    public Instruction createInstructionWithInstructionNumber(int instructionNumber) {
+        return new GotoLabelInstruction(getTargetVariable(), getLabel(), referencesLabel, getOriginalInstruction(), instructionNumber);
     }
 
     @Override
@@ -58,12 +59,21 @@ public class GotoLabelInstruction extends AbstractInstruction implements LabelRe
     }
 
     @Override
-    public void setInnerInstructions() {
+    public int getMaxDegree() {
+        int maxDegree = 1;
+        return maxDegree;
+    }
+
+    @Override
+    public int setInnerInstructionsAndReturnTheNextOne(int startNumber) {
         Variable workVariable1 = super.getProgramOfThisInstruction().generateUniqueVariable();
         Label newLabel1 = (super.getLabel() == FixedLabel.EMPTY) ? FixedLabel.EMPTY : super.getLabel();
+        int instructionNumber = startNumber;
 
+        innerInstructions.add(new IncreaseInstruction(workVariable1, newLabel1, this, instructionNumber++));
+        innerInstructions.add(new JumpNotZeroInstruction(workVariable1, this.referencesLabel, this,  instructionNumber++));
 
-        innerInstructions.add(new IncreaseInstruction(workVariable1, newLabel1));
-        innerInstructions.add(new JumpNotZeroInstruction(workVariable1, this.referencesLabel));
+        return instructionNumber;
     }
+
 }

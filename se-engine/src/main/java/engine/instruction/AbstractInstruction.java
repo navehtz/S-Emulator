@@ -1,5 +1,6 @@
 package engine.instruction;
 
+import engine.instruction.OriginOfAllInstruction;
 import engine.label.Label;
 import engine.label.FixedLabel;
 import engine.program.Program;
@@ -13,19 +14,23 @@ public abstract class AbstractInstruction implements Instruction {
 
     private final InstructionData instructionData;
     private final InstructionType instructionType;
+    private final int instructionNumber;
     private final Label label;
     private final Variable targetVariable;
+    private final Instruction origin;
     private Program programOfThisInstruction = null;
 
-    public AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable) {
-        this(instructionData, instructionType, targetVariable,FixedLabel.EMPTY);
+    public AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable, Instruction origin, int instructionNumber) {
+        this(instructionData, instructionType, targetVariable,FixedLabel.EMPTY, origin, instructionNumber);
     }
 
-    public AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable, Label label) {
+    public AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable, Label label, Instruction origin, int instructionNumber) {
         this.instructionData = instructionData;
         this.instructionType = instructionType;
         this.targetVariable = targetVariable;
         this.label = label;
+        this.origin = origin;
+        this.instructionNumber = instructionNumber;
     }
 
     @Override
@@ -49,7 +54,12 @@ public abstract class AbstractInstruction implements Instruction {
     }
 
     @Override
-    public String instructionRepresentation(int numberOfInstructionsInProgram, int InstructionNumber) {
+    public int getInstructionNumber() {
+        return this.instructionNumber;
+    }
+
+    @Override
+    public String getInstructionRepresentation(int numberOfInstructionsInProgram) {
         int labelPadding = 3;
         int numberPadding = numberOfInstructionsInProgram == 0 ? 1
                 : (int) LongStream.iterate(Math.abs(numberOfInstructionsInProgram), x -> x > 0, x -> x / 10).count();
@@ -58,7 +68,7 @@ public abstract class AbstractInstruction implements Instruction {
 
         return String.format(
                 "#%" + numberPadding + "d (%s)[ %-" + labelPadding + "s ] %-" + 5 + "s (%d)",
-                InstructionNumber,
+                this.instructionNumber,
                 instructionType.getInstructionType(),
                 label,
                 getCommand(),
@@ -71,7 +81,7 @@ public abstract class AbstractInstruction implements Instruction {
         return instructionData.getCycles();
     }
 
-    @Override
+/*    @Override
     public int calculateInstructionMaxDegree(Program program) {
 
         if (this instanceof SyntheticInstruction syntheticInstruction) {
@@ -88,7 +98,7 @@ public abstract class AbstractInstruction implements Instruction {
         }
 
         return 0;
-    }
+    }*/
 
     @Override
     public List<Instruction> getExtendedInstruction() {
@@ -100,25 +110,6 @@ public abstract class AbstractInstruction implements Instruction {
         return List.of(this);   // Basic instruction -> keep as it is
     }
 
-/*    @Override
-    public List<Instruction> getExtendedInstruction(int degree, ExecutionContext context, Program program) {
-        if (degree <= 0) {
-            return List.of(this);
-        }
-
-        if (this instanceof SyntheticInstruction syntheticInstruction) {
-            List<Instruction> extendedInstructions = new ArrayList<>();
-
-            for(Instruction innerInstruction : syntheticInstruction.getInnerInstructions()) {
-                extendedInstructions.addAll(innerInstruction.getExtendedInstruction(degree - 1, context, program));
-
-            }
-            return extendedInstructions;
-        }
-
-        return List.of(this);   // Basic instruction -> keep as it is
-    }*/
-
     public Program getProgramOfThisInstruction() {
         return programOfThisInstruction;
     }
@@ -126,5 +117,24 @@ public abstract class AbstractInstruction implements Instruction {
     @Override
     public void setProgramOfThisInstruction(Program programOfThisInstruction) {
         this.programOfThisInstruction = programOfThisInstruction;
+    }
+
+    @Override
+    public Instruction getOriginalInstruction() {
+        return origin;
+    }
+
+    @Override
+    public String getInstructionExtendedDisplay(int numberOfInstructionsInProgram) {
+        if(this instanceof OriginOfAllInstruction) {
+            return "";
+        }
+
+        String ancestorsDisplay = origin.getInstructionExtendedDisplay(numberOfInstructionsInProgram);
+        String currentDisplay = getInstructionRepresentation(numberOfInstructionsInProgram);
+
+        return ancestorsDisplay.isEmpty()
+                ? currentDisplay
+                : currentDisplay + "  <<<  " + ancestorsDisplay;
     }
 }

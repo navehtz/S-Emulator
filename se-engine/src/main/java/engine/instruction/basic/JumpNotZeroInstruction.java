@@ -9,19 +9,19 @@ import engine.variable.Variable;
 public class JumpNotZeroInstruction extends AbstractInstruction implements LabelReferencesInstruction {
     private final Label referencesLabel;
 
-    public JumpNotZeroInstruction(Variable variable, Label referencesLabel) {
-        super(InstructionData.JUMP_NOT_ZERO, InstructionType.BASIC ,variable, FixedLabel.EMPTY);
+    public JumpNotZeroInstruction(Variable variable, Label referencesLabel, Instruction origin, int instructionNumber) {
+        super(InstructionData.JUMP_NOT_ZERO, InstructionType.BASIC ,variable, FixedLabel.EMPTY, origin, instructionNumber);
         this.referencesLabel = referencesLabel;
     }
 
-    public JumpNotZeroInstruction(Variable variable, Label label, Label referencesLabel) {
-        super(InstructionData.JUMP_NOT_ZERO, InstructionType.BASIC, variable, label);
+    public JumpNotZeroInstruction(Variable variable, Label label, Label referencesLabel, Instruction origin, int instructionNumber) {
+        super(InstructionData.JUMP_NOT_ZERO, InstructionType.BASIC, variable, label,  origin, instructionNumber);
         this.referencesLabel = referencesLabel;
     }
 
     @Override
-    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
-        return new JumpNotZeroInstruction(getTargetVariable(), newLabel, referencesLabel);
+    public Instruction createInstructionWithInstructionNumber(int instructionNumber) {
+        return new JumpNotZeroInstruction(getTargetVariable(), getLabel(), referencesLabel, getOriginalInstruction(), instructionNumber);
     }
 
     @Override

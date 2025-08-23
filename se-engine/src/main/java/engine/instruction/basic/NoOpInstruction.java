@@ -11,17 +11,17 @@ import engine.variable.Variable;
 
 public class NoOpInstruction extends AbstractInstruction {
 
-    public NoOpInstruction(Variable variable) {
-        super(InstructionData.NO_OP, InstructionType.BASIC ,variable, FixedLabel.EMPTY);
+    public NoOpInstruction(Variable variable, Instruction origin, int instructionNumber) {
+        super(InstructionData.NO_OP, InstructionType.BASIC ,variable, FixedLabel.EMPTY, origin ,instructionNumber);
     }
 
-    public NoOpInstruction(Variable variable, Label label) {
-        super(InstructionData.NO_OP, InstructionType.BASIC, variable, label);
+    public NoOpInstruction(Variable variable, Label label, Instruction origin, int instructionNumber) {
+        super(InstructionData.NO_OP, InstructionType.BASIC, variable, label,  origin, instructionNumber);
     }
 
     @Override
-    public Instruction createNewInstructionWithNewLabel(Label newLabel) {
-        return new NoOpInstruction(getTargetVariable(), newLabel);
+    public Instruction createInstructionWithInstructionNumber(int instructionNumber) {
+        return new NoOpInstruction(getTargetVariable(), getLabel(), getOriginalInstruction(), instructionNumber);
     }
 
     @Override
