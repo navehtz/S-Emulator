@@ -1,0 +1,26 @@
+{
+  "programName": "Not-XML-Program",
+  "instructions": [
+    {
+      "type": "synthetic",
+      "name": "ASSIGNMENT",
+      "variable": "z1",
+      "args": {
+        "assignedVariable": "x2"
+      }
+    },
+    {
+      "type": "synthetic",
+      "name": "ASSIGNMENT",
+      "variable": "y",
+      "args": {
+        "assignedVariable": "z1"
+      }
+    },
+    {
+      "type": "basic",
+      "name": "INCREASE",
+      "variable": "y"
+    }
+  ]
+}
