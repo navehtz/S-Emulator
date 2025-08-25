@@ -5,7 +5,7 @@
 //
 
 
-package xmlStructure.generated;
+package generatedFromXml;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;

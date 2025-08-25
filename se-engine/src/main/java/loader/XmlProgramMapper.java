@@ -1,4 +1,4 @@
-package xmlStructure.loader;
+package loader;
 
 import instruction.AbstractInstruction;
 import instruction.Instruction;
@@ -11,9 +11,9 @@ import program.ProgramImpl;
 import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;
-import xmlStructure.generated.SInstruction;
-import xmlStructure.generated.SInstructionArgument;
-import xmlStructure.generated.SProgram;
+import generatedFromXml.SInstruction;
+import generatedFromXml.SInstructionArgument;
+import generatedFromXml.SProgram;
 import instruction.basic.DecreaseInstruction;
 import instruction.basic.IncreaseInstruction;
 import instruction.basic.JumpNotZeroInstruction;

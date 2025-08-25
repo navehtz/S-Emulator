@@ -6,6 +6,7 @@ import label.Label;
 import variable.Variable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface Program {
@@ -14,19 +15,22 @@ public interface Program {
     List<Instruction> getInstructionsList();
     Instruction getInstructionByLabel(Label label);
     Set<Variable> getInputVariables();
+    List<String> getInputVariableSorted();
     Set<Variable> getWorkVariables();
     String getProgramDisplay();
-    int getTotalCyclesOfProgram();
-    List<String> getExtendedProgramDisplay();
     List<Variable> getInputAndWorkVariablesSortedBySerial();
+    List<Label> getLabelsInProgram();
+    Map<Label, Instruction> getLabelToInstruction();
 
     void addInstruction(Instruction instruction);
     void validateProgram() throws EngineLoadException;
     int calculateProgramMaxDegree();
-    void extendProgram(int degree);
+    void expandProgram(int degree);
     void initialize();
     Label generateUniqueLabel();
     Variable generateUniqueVariable();
     void sortVariableSetByNumber(Set<Variable> variables);
     void addInputVariable(Variable variable);
+    String getExtendedProgramDisplay();
+
 }

@@ -2,12 +2,13 @@ package console.actions;
 
 import console.menu.MenuActionable;
 import engine.Engine;
+import exceptions.EngineLoadException;
 
 import java.util.Scanner;
 
-public class History implements MenuActionable {
+public class DisplayProgram implements MenuActionable {
     @Override
     public void startAction(Scanner scanner, Engine engine) {
-        engine.displayHistory();
+        engine.displayProgram();
     }
 }

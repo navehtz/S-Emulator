@@ -1,11 +1,11 @@
 package console.menu;
 
-import dto.ExecutionHistoryDTO;
+import engine.Engine;
 import exceptions.EngineLoadException;
 
 import java.util.Scanner;
 
 public interface MenuActionable {
 
-    ExecutionHistoryDTO startAction(Scanner scanner, ExecutionHistoryDTO executionHistoryDTO) throws EngineLoadException;
+    void startAction(Scanner scanner, Engine engine) throws EngineLoadException;
 }

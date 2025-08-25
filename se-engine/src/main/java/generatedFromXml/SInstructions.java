@@ -5,7 +5,7 @@
 //
 
 
-package xmlStructure.generated;
+package generatedFromXml;
 
 import java.util.ArrayList;
 import java.util.List;

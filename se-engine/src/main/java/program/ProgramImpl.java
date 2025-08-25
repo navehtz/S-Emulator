@@ -13,7 +13,6 @@ import instruction.SyntheticInstruction;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ProgramImpl implements Program {
 
@@ -25,7 +24,7 @@ public class ProgramImpl implements Program {
     private final List<Label> labelsInProgram;  // Need it to keep the order of the labels
     private final Set<Label> labelsAddedAfterExtension;  // Need it to keep the order of the labels
     private final Set<Label> referencedLabels ;
-    private int totalCycles = 0;
+
     private int nextLabelNumber = 1;
     private int nextWorkVariableNumber = 1;
 
@@ -56,7 +55,7 @@ public class ProgramImpl implements Program {
 
         updateVariableAndLabel(instruction);
 
-        totalCycles += instruction.getCycleOfInstruction();
+        //totalCycles += instruction.getCycleOfInstruction();
         programInstructions.add(instruction);
     }
 
@@ -119,13 +118,14 @@ public class ProgramImpl implements Program {
     @Override
     public String getProgramDisplay() {
 
-        List<String> inputs = displayInputVariable();
-        List<String> labels = displayOrderedLabelsExitLast();
+        List<String> variablesInputInProgram = getInputVariableSorted();
+        List<String> labels = getOrderedLabelsExitLast();
 
         StringBuilder programDisplay = new StringBuilder();
-        programDisplay.append("Program: ").append(getName()).append(System.lineSeparator());
-        programDisplay.append("Inputs: ").append(String.join(", ", inputs)).append(System.lineSeparator());
-        programDisplay.append("Labels: ").append(String.join(", ", labels)).append(System.lineSeparator()).append(System.lineSeparator());
+        programDisplay.append("Program Display:").append(System.lineSeparator());
+        programDisplay.append("Name: ").append(getName()).append(System.lineSeparator());
+        programDisplay.append("Inputs: ").append(String.join(", ", variablesInputInProgram)).append(System.lineSeparator());
+        programDisplay.append("Labels: ").append(String.join(", ", labels)).append(System.lineSeparator());
         programDisplay.append("Instructions: ").append(System.lineSeparator());
 
         programDisplay.append(programRepresentation());
@@ -152,7 +152,17 @@ public class ProgramImpl implements Program {
         }
     }
 
-    private List<String> displayOrderedLabelsExitLast() {
+    private List<String> getOrderedLabelsExitLast() {
+        return labelsInProgram.stream()
+                .sorted(
+                        Comparator.comparing((Label l) -> FixedLabel.EXIT.equals(l))
+                                .thenComparingInt(Label::getNumber)
+                )
+                .map(Label::getLabelRepresentation)
+                .toList();
+    }
+
+/*    private List<String> getOrderedLabelsExitLast() {
         List<Label> labels = reorderLabelsExitLast(labelsInProgram);
 
         return labels.stream()
@@ -161,13 +171,15 @@ public class ProgramImpl implements Program {
     }
 
     private List<Label> reorderLabelsExitLast(List<Label> labelsInOrder) {
-        return Stream.concat(
+        return Stream
+                .concat(
                 labelsInOrder.stream().filter(l -> !FixedLabel.EXIT.equals(l)),
                 labelsInOrder.stream().filter(l ->  FixedLabel.EXIT.equals(l))
         ).collect(Collectors.toList());
-    }
+    }*/
 
-    private List<String> displayInputVariable() {
+    @Override
+    public List<String> getInputVariableSorted() {
         return inputVariables.stream()
                 .sorted(Comparator.comparingInt(Variable::getNumber))
                 .map(Variable::getRepresentation)
@@ -186,26 +198,27 @@ public class ProgramImpl implements Program {
         return programDisplay.toString();
     }
 
-    @Override
+/*    @Override
     public int getTotalCyclesOfProgram() {
         return totalCycles;
-    }
+    }*/
 
     @Override
-    public List<String> getExtendedProgramDisplay() {
-        List<String> extendedProgram = new ArrayList<>();
+    public String getExtendedProgramDisplay() {
+        StringBuilder extendedProgramDisplay = new StringBuilder();
+
         int numberOfInstructionsInProgram = programInstructions.size();
 
         for(Instruction instruction : programInstructions) {
-            extendedProgram.add(instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram));
+            extendedProgramDisplay.append(instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram)).append(System.lineSeparator());
         }
 
-        return extendedProgram;
+        return extendedProgramDisplay.toString();
     }
 
     @Override
     public int calculateProgramMaxDegree() {
-        int maxDegree = 1;
+        int maxDegree = 0;
 
         for (Instruction instruction : programInstructions) {
             if(instruction instanceof SyntheticInstruction syntheticInstruction) {
@@ -255,23 +268,18 @@ public class ProgramImpl implements Program {
         }
     }*/
 
-    // TODO: FIX cycles
     @Override
-    public void extendProgram(int degree) {
-        if (degree <= 0) {
-            return;
-        }
-
+    public void expandProgram(int degree) {
         for (int i = 0 ; i < degree ; i++) {
             int nextInstructionNumber = 1;
 
-            for (ListIterator<Instruction> iterator = programInstructions.listIterator(); iterator.hasNext(); ) {
+            for (ListIterator<Instruction> iterator = getInstructionsList().listIterator(); iterator.hasNext(); ) {
                 Instruction instruction = iterator.next();
                 Label originalLabel = instruction.getLabel();
                 List<Instruction> newInstructionsList = new ArrayList<>();
 
-                int cycleOfOldInstruction = instruction.getCycleOfInstruction();
-                totalCycles -=  cycleOfOldInstruction;
+                //int cycleOfOldInstruction = instruction.getCycleOfInstruction();
+                //totalCycles -=  cycleOfOldInstruction;
 
                 // initialize
                 instruction.setProgramOfThisInstruction(this);
@@ -286,11 +294,11 @@ public class ProgramImpl implements Program {
                 }
 
                 iterator.remove();                              // Remove the old instruction
-                labelToInstruction.remove(originalLabel);       // Remove the label from the map because we will add it again in line 239
-                labelsInProgram.remove(originalLabel);          // Remove the label from the map because we will add it again in line 239
+                getLabelToInstruction().remove(originalLabel);       // Remove the label from the map because we will add it again in line 239
+                getLabelsInProgram().remove(originalLabel);          // Remove the label from the map because we will add it again in line 239
 
                 for (Instruction extendedInstruction : newInstructionsList) {
-                    totalCycles += extendedInstruction.getCycleOfInstruction();
+                    //totalCycles += extendedInstruction.getCycleOfInstruction();
                     updateVariableAndLabel(extendedInstruction);
                     iterator.add(extendedInstruction);          // Add the extended (inner) instruction to the list
                 }
@@ -361,5 +369,15 @@ public class ProgramImpl implements Program {
         List<Variable> inputAndWorkVariablesAndTheirValues = new ArrayList<>(inputVariables);
         inputAndWorkVariablesAndTheirValues.addAll(workVariables);
         return inputAndWorkVariablesAndTheirValues;
+    }
+
+    @Override
+    public List<Label> getLabelsInProgram() {
+        return labelsInProgram;
+    }
+
+    @Override
+    public Map<Label, Instruction> getLabelToInstruction() {
+        return labelToInstruction;
     }
 }

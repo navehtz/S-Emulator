@@ -5,7 +5,7 @@
 //
 
 
-package xmlStructure.generated;
+package generatedFromXml;
 
 import javax.xml.namespace.QName;
 import jakarta.xml.bind.JAXBElement;

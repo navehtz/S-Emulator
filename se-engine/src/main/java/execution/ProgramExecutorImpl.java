@@ -11,10 +11,11 @@ import java.util.*;
 public class ProgramExecutorImpl implements ProgramExecutor{
 
     private final Program program;
-    ExecutionContext context;
-    List<Long> inputsValues;
-    int runDegree = 0;
-    long result = 0;
+    private final ExecutionContext context;
+    private List<Long> inputsValues;
+    private int runDegree = 0;
+    private int totalCycles = 0;
+
 
     public ProgramExecutorImpl(Program program) {
         this.program = program;
@@ -23,16 +24,18 @@ public class ProgramExecutorImpl implements ProgramExecutor{
     }
 
     @Override
-    public long run(Long... inputs) {
+    public long run(int runDegree, Long... inputs) {
         Instruction currentInstruction = program.getInstructionsList().getFirst();
         Instruction nextInstruction = null;
         Label nextLabel;
 
         inputsValues = List.of(inputs);
         context.initializeVariables(program, inputs);
+        this.runDegree = runDegree;
 
         do {
                 nextLabel = currentInstruction.execute(context);
+                totalCycles += currentInstruction.getCycleOfInstruction();
 
                 if (nextLabel == FixedLabel.EMPTY) {
                     int indexOfNextInstruction = program.getInstructionsList().indexOf(currentInstruction) + 1;
@@ -64,27 +67,13 @@ public class ProgramExecutorImpl implements ProgramExecutor{
         return context.getVariableValue(variable);
     }
 
-    @Override
-    public String getProgramDisplay() {
-        return program.getProgramDisplay();
-    }
 
     @Override
     public int getRunDegree() {
         return runDegree;
     }
 
-    @Override
-    public String getExtendedProgramDisplay() {
-        List<String> extendedDisplay = program.getExtendedProgramDisplay();
-        StringBuilder extendedProgramDisplay = new StringBuilder();
 
-        for(String line : extendedDisplay) {
-            extendedProgramDisplay.append(line).append(System.lineSeparator());
-        }
-
-        return extendedProgramDisplay.toString();
-    }
 
     @Override
     public List<Long> getInputsValues() {
@@ -93,15 +82,17 @@ public class ProgramExecutorImpl implements ProgramExecutor{
 
     @Override
     public int getTotalCyclesOfProgram() {
-        return program.getTotalCyclesOfProgram();
+        return this.totalCycles;
     }
 
     @Override
-    public void extendProgram(int degree) {
-        if (degree > 0) {
-            runDegree = degree;
-            program.extendProgram(degree);
-        }
+    public long getResultValue() {
+        return context.getVariableValue(Variable.RESULT);
+    }
+
+    @Override
+    public String getProgramAfterRun() {
+        return program.getProgramDisplay();
     }
 
     @Override
@@ -109,8 +100,7 @@ public class ProgramExecutorImpl implements ProgramExecutor{
         return program.getInputVariables();
     }
 
-    @Override
-    public Map<Variable, Long> getInputAndWorkVariablesAndTheirValuesMap() {
+    private Map<Variable, Long> getInputAndWorkVariablesAndTheirValuesMap() {
 
         List<Variable> variableList = program.getInputAndWorkVariablesSortedBySerial();
         Map<Variable, Long> variableToValue = new LinkedHashMap<Variable, Long>();
@@ -123,9 +113,11 @@ public class ProgramExecutorImpl implements ProgramExecutor{
     }
 
     @Override
-    public String getInputAndWorkVariablesWithValuesDisplay() {
+    public String getVariablesWithValuesSortedString() {
         StringBuilder variablesDisplay = new StringBuilder();
         Map<Variable, Long> variableToValue = getInputAndWorkVariablesAndTheirValuesMap();
+
+        variablesDisplay.append("y").append(" = ").append(getResultValue()).append(System.lineSeparator());
 
         for (Map.Entry<Variable, Long> entry : variableToValue.entrySet()) {
             Variable key = entry.getKey();
@@ -138,8 +130,28 @@ public class ProgramExecutorImpl implements ProgramExecutor{
         return variablesDisplay.toString();
     }
 
-    @Override
+    /*    @Override
+    public void extendProgram(int degree) {
+        if (degree > 0) {
+            runDegree = degree;
+            program.extendProgram(degree);
+        }
+    }*/
+
+    /*    @Override
+    public String getExtendedProgramDisplay() {
+        List<String> extendedDisplay = program.getExtendedProgramDisplay();
+        StringBuilder extendedProgramDisplay = new StringBuilder();
+
+        for(String line : extendedDisplay) {
+            extendedProgramDisplay.append(line).append(System.lineSeparator());
+        }
+
+        return extendedProgramDisplay.toString();
+    }*/
+
+/*    @Override
     public int calculateProgramMaxDegree() {
         return program.calculateProgramMaxDegree();
-    }
+    }*/
 }

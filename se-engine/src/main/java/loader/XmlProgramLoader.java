@@ -1,8 +1,8 @@
-package xmlStructure.loader;
+package loader;
 
 import exceptions.EngineLoadException;
 import program.Program;
-import xmlStructure.generated.SProgram;
+import generatedFromXml.SProgram;
 import jakarta.xml.bind.*;
 
 import javax.xml.transform.stream.StreamSource;
@@ -13,7 +13,7 @@ import java.nio.file.Path;
 
 public class XmlProgramLoader {
 
-    private static final String JAXB_PACKAGE = "xmlStructure.generated";
+    private static final String JAXB_PACKAGE = "generatedFromXml";
     private static final JAXBContext JAXB_CTX;
 
     static {

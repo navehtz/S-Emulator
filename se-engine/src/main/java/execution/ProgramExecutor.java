@@ -7,19 +7,21 @@ import java.util.Map;
 import java.util.Set;
 
 public interface ProgramExecutor {
-    long run(Long... inputs);
+    long run(int runDegree, Long... inputs);
     Map<Variable, Long> variableState();        // TODO: ask aviad why needed and delete
 
     long getVariableValue(Variable variable);
     int getRunDegree();
-    //String getProgramDisplay();
-    //String getExtendedProgramDisplay();
     List<Long> getInputsValues();
     int getTotalCyclesOfProgram();
-    //Set<Variable> getInputVariablesSet();
-    //Map<Variable, Long> getInputAndWorkVariablesAndTheirValuesMap();
-    //String getInputAndWorkVariablesWithValuesDisplay();
+    long getResultValue();
+    String getProgramAfterRun();
+    Set<Variable> getInputVariablesSet();
+    String getVariablesWithValuesSortedString();
 
-    //void extendProgram(int degree);
+
+    //Map<Variable, Long> getInputAndWorkVariablesAndTheirValuesMap();
     //int calculateProgramMaxDegree();
+    //String getExtendedProgramDisplay();
+    //void extendProgram(int degree);
 }

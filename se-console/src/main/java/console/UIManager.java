@@ -1,12 +1,10 @@
 package console;
 
-import console.actions.Expand;
-import console.actions.History;
-import console.actions.LoadFile;
-import console.actions.RunFile;
+import console.actions.*;
 import console.menu.MainMenu;
 import console.menu.MenuItem;
-import dto.ExecutionHistoryDTO;
+import engine.Engine;
+import engine.EngineImpl;
 
 import java.util.Scanner;
 
@@ -15,44 +13,47 @@ public class UIManager {
     private final MenuItem menu;
 
     private final LoadFile loadFile;
-    private final RunFile runFile;
+    private final DisplayProgram displayProgram;
     private final Expand expand;
+    private final RunProgram runProgram;
     private final History history;
     private final Scanner scanner;
 
-    private final ExecutionHistoryDTO executionHistory;
+    private final Engine engine;
 
 
     public UIManager() {
         this.scanner = new Scanner(System.in);
+        engine = new EngineImpl();
 
         this.loadFile = new LoadFile();
-        this.runFile = new RunFile();
+        this.displayProgram = new DisplayProgram();
         this.expand = new Expand();
+        this.runProgram = new RunProgram();
         this.history = new History();
 
         this.menu = buildMenu();
-
-        executionHistory = new ExecutionHistoryDTO();
     }
 
     private MainMenu buildMenu() {
         MainMenu mainMenu = new MainMenu("Menu");
 
         // First submenu
-        MenuItem loadFirstFileItem = new MenuItem("Load New File", "New File Had Loaded Successfully Fully", loadFile, executionHistory);
+        MenuItem loadFirstFileItem = new MenuItem("Load New File", loadFile, this.engine);
 
         // Second submenu
-        MenuItem loadNextFileItem = new MenuItem("Load Next File", loadFile, executionHistory);
-        MenuItem runFileItem      = new MenuItem("Run File", this.runFile, executionHistory);
-        MenuItem expandItem       = new MenuItem("Expand Loaded Program", this.expand, executionHistory);
-        MenuItem historyItem      = new MenuItem("Show History", this.history, executionHistory);
+        MenuItem loadNextFileItem   = new MenuItem("Load Next File", loadFile, engine);
+        MenuItem displayProgramItem = new MenuItem("display Program", this.displayProgram, engine);
+        MenuItem expandItem         = new MenuItem("Expand Loaded Program", this.expand, engine);
+        MenuItem runFileItem        = new MenuItem("Run File", this.runProgram, engine);
+        MenuItem historyItem        = new MenuItem("Show History", this.history, engine);
 
         mainMenu.addSubItem(loadFirstFileItem);
 
         loadFirstFileItem.addSubItem(loadNextFileItem);
-        loadFirstFileItem.addSubItem(runFileItem);
+        loadFirstFileItem.addSubItem(displayProgramItem);
         loadFirstFileItem.addSubItem(expandItem);
+        loadFirstFileItem.addSubItem(runFileItem);
         loadFirstFileItem.addSubItem(historyItem);
 
         return mainMenu;
@@ -60,7 +61,7 @@ public class UIManager {
 
     public void run() {
         try {
-            menu.show(scanner);
+            menu.show(scanner, engine);
         }
         catch (Exception e) {
             // io exception
