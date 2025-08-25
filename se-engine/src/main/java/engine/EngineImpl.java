@@ -15,12 +15,13 @@ public class EngineImpl implements Engine {
 
     private Program program;
     private ProgramExecutor programExecutor;
-    private ExecutionHistory executionHistory = new ExecutionHistoryImpl();;
+    private ExecutionHistory executionHistory;
 
 
     @Override
     public void loadProgram(Path xmlPath) throws EngineLoadException {
         XmlProgramLoader loader = new XmlProgramLoader();
+        executionHistory = new ExecutionHistoryImpl();
         program = loader.load(xmlPath);
         program.validateProgram();
         program.initialize();
@@ -28,9 +29,9 @@ public class EngineImpl implements Engine {
 
     @Override
     public void runProgram(int degree, Long... inputs) {
-        program.expandProgram(degree);
+        Program expandedProgram = program.expandProgram(degree);
 
-        programExecutor = new ProgramExecutorImpl(program);
+        programExecutor = new ProgramExecutorImpl(expandedProgram);
 
         programExecutor.run(degree, inputs);
         executionHistory.addProgramToHistory(programExecutor);
@@ -53,10 +54,17 @@ public class EngineImpl implements Engine {
 
     @Override
     public void displayExpandedProgram(int degree) {
-        // TODO: CALL ANOTHER METHOD
-        program.expandProgram(degree);
 
-        System.out.println(program.getExtendedProgramDisplay());
+        if (degree > 0) {
+            Program expandedProgram = program.expandProgram(degree);
+            System.out.println(expandedProgram.getExtendedProgramDisplay());
+        } else {
+            System.out.println("You chose not to expand the program. Displaying original program: ");
+            System.out.println();
+            System.out.println(program.getProgramDisplay());
+        }
+
+
     }
 
     @Override
@@ -79,7 +87,7 @@ public class EngineImpl implements Engine {
         System.out.println("Result: " + programExecutor.getResultValue());
         System.out.println();
         System.out.println(programExecutor.getVariablesWithValuesSortedString());
-        System.out.println(programExecutor.getTotalCyclesOfProgram());
+        System.out.println("Total Cycles: " + programExecutor.getTotalCyclesOfProgram());
     }
 
     @Override

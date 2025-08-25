@@ -28,13 +28,6 @@ public class MenuItem implements Menu {
         this.engine = engine;
     }
 
-/*    public MenuItem(String CommandLine, String title, MenuActionable action, Engine engine) {
-        this.commandLine = CommandLine;
-        this.title = title;
-        this.actionToExecute = action;
-        this.engine = engine;
-    }*/
-
     @Override
     public boolean isLeaf() {
         return subItems.isEmpty();
