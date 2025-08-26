@@ -10,9 +10,11 @@ import java.util.List;
 public class ExecutionHistoryImpl implements ExecutionHistory {
 
     private final List<ProgramExecutor> programExecutorsHistory = new ArrayList<>();
+
+
     @Override
     public String displayExecutionHistory() {
-        StringBuilder executionHistory = new StringBuilder().append("Execution History:").append(System.lineSeparator());
+        StringBuilder executionHistory = new StringBuilder();
 
         for(int i = 0; i < programExecutorsHistory.size(); i++) {
             ProgramExecutor programExecutor = programExecutorsHistory.get(i);
@@ -27,8 +29,9 @@ public class ExecutionHistoryImpl implements ExecutionHistory {
             }
 
             executionHistory.append("Result: ").append(programExecutor.getResultValue()).append(System.lineSeparator());
-            executionHistory.append("Cycles: ").append(programExecutor.getTotalCyclesOfProgram()).append(System.lineSeparator());
-            executionHistory.append(System.lineSeparator());
+            executionHistory.append("Cycles: ").append(programExecutor.getTotalCyclesOfProgram());
+
+            executionHistory.append(System.lineSeparator()).append(System.lineSeparator());
         }
 
         return executionHistory.toString();
@@ -37,6 +40,11 @@ public class ExecutionHistoryImpl implements ExecutionHistory {
     @Override
     public void addProgramToHistory(ProgramExecutor programExecutor) {
         programExecutorsHistory.add(programExecutor);
+    }
+
+    @Override
+    public boolean hasHistory() {
+        return !programExecutorsHistory.isEmpty();
     }
 
 }

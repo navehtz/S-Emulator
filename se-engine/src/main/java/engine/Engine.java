@@ -19,5 +19,4 @@ public interface Engine {
     int getNumberOfInputVariables();
     void displayProgramAfterRun();
     void displayHistory();
-
 }

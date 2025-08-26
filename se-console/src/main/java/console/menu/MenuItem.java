@@ -13,9 +13,9 @@ public class MenuItem implements Menu {
     public String title;
     public String commandLine;
     private final List<MenuItem> subItems = new ArrayList<>();
-    Scanner scanner;
     private MenuActionable actionToExecute;
     private Engine engine;
+    Scanner scanner;
 
 
     public MenuItem(String title) {
@@ -27,13 +27,6 @@ public class MenuItem implements Menu {
         this.actionToExecute = action;
         this.engine = engine;
     }
-
-/*    public MenuItem(String CommandLine, String title, MenuActionable action, Engine engine) {
-        this.commandLine = CommandLine;
-        this.title = title;
-        this.actionToExecute = action;
-        this.engine = engine;
-    }*/
 
     @Override
     public boolean isLeaf() {
@@ -60,8 +53,8 @@ public class MenuItem implements Menu {
             }
             catch (Exception e) {
                 System.out.println(e.getMessage());
-                System.out.println("Press Enter to try again...");
-                scanner.nextLine();
+/*                System.out.println("Press Enter to try again...");
+                scanner.nextLine();*/
             }
         }
     }
@@ -69,21 +62,25 @@ public class MenuItem implements Menu {
     private int getValidateUserChoice(Scanner scanner) {
         String input = scanner.nextLine();
 
+        if (input.isEmpty()) {
+            throw new IllegalArgumentException("Invalid input. Choice cannot be empty.");
+        }
+
         try {
             int choice = Integer.parseInt(input.trim());
 
             if (choice < 1 || choice > subItems.size() + 1) {
-                throw new IllegalArgumentException("Invalid input.");
+                throw new IllegalArgumentException("Invalid input. Please try again.");
             }
 
             return choice;
 
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid input.");
+            throw new IllegalArgumentException(e);
         }
     }
 
-    private boolean handleChoice(int userChoice) throws EngineLoadException {
+    private boolean handleChoice(int userChoice) {
         boolean backOrExitPressed = false;
         int exitNumber = this.subItems.size() + 1;
 
@@ -102,14 +99,8 @@ public class MenuItem implements Menu {
                 }
             } catch (EngineLoadException e) {
                 System.out.println(e.getMessage());
-                System.out.println("Press Enter to try again...");
-                scanner.nextLine();
             }
         }
-
-  /*      } else {    // never reach hear
-            System.out.println("Invalid input.");
-        }*/
 
         return backOrExitPressed;
     }
@@ -117,21 +108,27 @@ public class MenuItem implements Menu {
     @Override
     public void printCurrentMenu() {
         int numberOfSubItems = this.subItems.size();
+        printTitle("Menu");
 
-        System.out.println("============================================");
         for (int i = 0; i < numberOfSubItems; i++) {
             System.out.printf("%d. %s%n", i + 1, subItems.get(i).commandLine);
         }
 
         System.out.printf("%d. %s%n", numberOfSubItems + 1, "Exit");
-        System.out.printf("Please enter your choice (1-%d) or 0 to Exit", subItems.size());
-        System.out.println(System.lineSeparator());
+        System.out.printf("Please enter your choice (1-%d): ", subItems.size() + 1);
+    }
+
+    public static void printTitle(String title) {
+        if (title == null) title = "";
+        int totalWidth = 60;
+        int inner = Math.max(0, totalWidth - title.length() - 2);
+        int left = inner / 2;
+        int right = inner - left;
+        System.out.printf("%s %s %s%n", "=".repeat(left), title, "=".repeat(right));
     }
 
     private void execute(MenuItem selectedItem) throws EngineLoadException {
         selectedItem.actionToExecute.startAction(scanner, engine);
         System.out.println();
-        System.out.println("Press Enter to continue...");
-        scanner.nextLine();
     }
 }

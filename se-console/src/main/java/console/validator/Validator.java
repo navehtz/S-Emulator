@@ -12,8 +12,12 @@ import java.util.regex.Pattern;
 
 public class Validator {
 
-    public static int getValidateUserPath(Scanner scanner, Engine engine) {
+    public static int getValidateUserInputForDegree(Scanner scanner, Engine engine) {
         String input = scanner.nextLine();
+
+        if (input.isEmpty()) {
+            throw new IllegalArgumentException("Invalid input. Choice cannot be empty.");
+        }
 
         try {
             int degree = Integer.parseInt(input.trim());
@@ -29,7 +33,7 @@ public class Validator {
         }
     }
 
-    public static Path getValidateUserPath(Scanner scanner) {
+    public static Path getValidateUserInputForDegree(Scanner scanner) {
         String input = scanner.nextLine().trim();
 
         if (input.isEmpty()) {
@@ -41,6 +45,8 @@ public class Validator {
             if (!Files.exists(path)) {
                 throw new IllegalArgumentException("Path does not exist: " + path);
             }
+            if (!path.toString().toLowerCase().endsWith(".xml"))
+                throw new IllegalArgumentException("File must end with .xml");
 
             return path;
         }

@@ -5,22 +5,25 @@ import console.validator.Validator;
 import engine.Engine;
 import exceptions.EngineLoadException;
 
-import java.nio.file.Path;
 import java.util.Scanner;
+
+import static console.menu.MenuItem.printTitle;
 
 public class Expand implements MenuActionable {
 
     @Override
     public void startAction(Scanner scanner, Engine engine) throws EngineLoadException {
+        printTitle("Present Expand Program");
+
+        if (engine.getMaxDegree() == 0) {
+            System.out.println("The program cannot be increased because its maximum degree is already 0");
+            return;
+        }
 
         System.out.println("Max degree of loaded program: " + engine.getMaxDegree());
 
-        if (engine.getMaxDegree() == 0) {
-            throw new IllegalStateException("The program cannot be increased because its maximum level is 0.");
-        }
-
         System.out.print("Please enter degree for this run: ");
-        int degree = Validator.getValidateUserPath(scanner, engine);
+        int degree = Validator.getValidateUserInputForDegree(scanner, engine);
 
         engine.displayExpandedProgram(degree);
     }

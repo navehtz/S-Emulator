@@ -20,12 +20,14 @@ public class EngineImpl implements Engine {
     @Override
     public void loadProgram(Path xmlPath) throws EngineLoadException {
         this.xmlPath = xmlPath;
+        Program newProgram;
 
         XmlProgramLoader loader = new XmlProgramLoader();
-        program = loader.load(xmlPath);
-        program.validateProgram();
-        program.initialize();
+        newProgram = loader.load(xmlPath);
+        newProgram.validateProgram();
+        newProgram.initialize();
 
+        program = newProgram;
         executionHistory = new ExecutionHistoryImpl();
     }
 
@@ -61,9 +63,6 @@ public class EngineImpl implements Engine {
         Program deepCopyOfProgram = program.cloneProgram(xmlPath, program.getNextLabelNumber(), program.getNextWorkVariableNumber());
         deepCopyOfProgram.expandProgram(degree);
         System.out.println(deepCopyOfProgram.getExtendedProgramDisplay());
-
-/*        program.expandProgram(degree);
-        System.out.println(program.getExtendedProgramDisplay());*/
     }
 
     @Override
@@ -91,6 +90,10 @@ public class EngineImpl implements Engine {
 
     @Override
     public void displayHistory() {
-        System.out.println(executionHistory.displayExecutionHistory());
+        if (executionHistory.hasHistory()) {
+            System.out.println(executionHistory.displayExecutionHistory());
+        } else {
+            System.out.println("No history has been set in this program. Run the program first.");
+        }
     }
 }

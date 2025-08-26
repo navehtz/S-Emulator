@@ -25,7 +25,7 @@ public class ProgramImpl implements Program {
     private final Map<Label, Instruction> labelToInstruction;
     private final List<Label> labelsInProgram;  // Need it to keep the order of the labels
     private final Set<Label> labelsAddedAfterExtension;  // Need it to keep the order of the labels
-    private final Set<Label> referencedLabels ;
+    private final Set<Label> referencedLabels;
 
     private int nextLabelNumber = 1;
     private int nextWorkVariableNumber = 1;
@@ -143,24 +143,6 @@ public class ProgramImpl implements Program {
     }
 
     @Override
-    public String getProgramDisplay() {
-
-        List<String> variablesInputInProgram = getInputVariableSorted();
-        List<String> labels = getOrderedLabelsExitLast();
-
-        StringBuilder programDisplay = new StringBuilder();
-        programDisplay.append("Program Display:").append(System.lineSeparator());
-        programDisplay.append("Name: ").append(getName()).append(System.lineSeparator());
-        programDisplay.append("Inputs: ").append(String.join(", ", variablesInputInProgram)).append(System.lineSeparator());
-        programDisplay.append("Labels: ").append(String.join(", ", labels)).append(System.lineSeparator());
-        programDisplay.append("Instructions: ").append(System.lineSeparator());
-
-        programDisplay.append(programRepresentation());
-
-        return programDisplay.toString();
-    }
-
-    @Override
     public int getNextLabelNumber() {
         return nextLabelNumber;
     }
@@ -189,12 +171,15 @@ public class ProgramImpl implements Program {
         }
     }
 
+    private static final Comparator<Label> EXIT_LAST_THEN_NUMBER =
+            Comparator.comparing((Label l) -> FixedLabel.EXIT.equals(l))
+                    .thenComparingInt(Label::getNumber);
+
     private List<String> getOrderedLabelsExitLast() {
-        return labelsInProgram.stream()
-                .sorted(
-                        Comparator.comparing((Label l) -> FixedLabel.EXIT.equals(l))
-                                .thenComparingInt(Label::getNumber)
-                )
+        return java.util.stream.Stream
+                .concat(labelsInProgram.stream(), referencedLabels.stream())
+                .distinct()
+                .sorted(EXIT_LAST_THEN_NUMBER)
                 .map(Label::getLabelRepresentation)
                 .toList();
     }
@@ -220,10 +205,31 @@ public class ProgramImpl implements Program {
     }
 
     @Override
+    public String getProgramDisplay() {
+
+        List<String> variablesInputInProgram = getInputVariableSorted();
+        List<String> labels = getOrderedLabelsExitLast();
+
+        StringBuilder programDisplay = new StringBuilder();
+        programDisplay.append("Name: ").append(getName()).append(System.lineSeparator());
+        programDisplay.append("Inputs: ").append(String.join(", ", variablesInputInProgram)).append(System.lineSeparator());
+        programDisplay.append("Labels: ").append(String.join(", ", labels)).append(System.lineSeparator());
+        programDisplay.append("Instructions: ").append(System.lineSeparator());
+
+        programDisplay.append(programRepresentation());
+
+        return programDisplay.toString();
+    }
+
+    @Override
     public String getExtendedProgramDisplay() {
         StringBuilder extendedProgramDisplay = new StringBuilder();
 
         int numberOfInstructionsInProgram = programInstructions.size();
+
+        extendedProgramDisplay.append("Name: ").append(getName()).append(System.lineSeparator());
+        extendedProgramDisplay.append("Inputs: ").append(String.join(", ", getInputVariableSorted())).append(System.lineSeparator());
+        extendedProgramDisplay.append("Labels: ").append(String.join(", ", getOrderedLabelsExitLast())).append(System.lineSeparator());
 
         for(Instruction instruction : programInstructions) {
             extendedProgramDisplay.append(instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram)).append(System.lineSeparator());
@@ -272,7 +278,6 @@ public class ProgramImpl implements Program {
                 getLabelsInProgram().remove(originalLabel);          // Remove the label from the map because we will add it again in line 239
 
                 for (Instruction extendedInstruction : newInstructionsList) {
-                    //totalCycles += extendedInstruction.getCycleOfInstruction();
                     updateVariableAndLabel(extendedInstruction);
                     iterator.add(extendedInstruction);          // Add the extended (inner) instruction to the list
                 }

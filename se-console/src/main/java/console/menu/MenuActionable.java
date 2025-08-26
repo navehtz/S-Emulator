@@ -8,4 +8,5 @@ import java.util.Scanner;
 public interface MenuActionable {
 
     void startAction(Scanner scanner, Engine engine) throws EngineLoadException;
+
 }

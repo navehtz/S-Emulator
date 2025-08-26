@@ -5,19 +5,24 @@ import console.validator.Validator;
 import engine.Engine;
 import exceptions.EngineLoadException;
 
-import java.util.List;
 import java.util.Scanner;
 
+import static console.menu.MenuItem.printTitle;
+
 public class RunProgram implements MenuActionable {
-    Scanner scanner;
-    Engine engine;
 
     @Override
     public void startAction(Scanner scanner, Engine engine) throws EngineLoadException {
+        printTitle("Run Loaded Program");
+        int degree = 0;
 
-        System.out.println("Max degree of loaded program: " + engine.getMaxDegree());
-        System.out.print("Please enter degree for this run: ");
-        int degree = Validator.getValidateUserPath(scanner, engine);
+        if (engine.getMaxDegree() == 0 ) {
+            System.out.println("The program must run on degree zero because its maximum degree is already 0");
+        } else {
+            System.out.println("Max degree of loaded program: " + engine.getMaxDegree());
+            System.out.print("Please enter degree for this run: ");
+            degree = Validator.getValidateUserInputForDegree(scanner, engine);
+        }
 
         Long[] inputs = new Long[0];
         engine.displayUsedInputVariables();
