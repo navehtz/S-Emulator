@@ -4,6 +4,7 @@ import exceptions.EngineLoadException;
 import label.FixedLabel;
 import label.Label;
 import label.LabelImpl;
+import loader.XmlProgramLoader;
 import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;
@@ -11,6 +12,7 @@ import instruction.Instruction;
 import instruction.LabelReferencesInstruction;
 import instruction.SyntheticInstruction;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,6 +39,41 @@ public class ProgramImpl implements Program {
         this.labelsInProgram = new ArrayList<>();
         this.labelsAddedAfterExtension = new LinkedHashSet<>();
         this.referencedLabels  = new LinkedHashSet<>();
+    }
+
+    // TODO:         this.labelsAddedAfterExtension = new LinkedHashSet<>();
+    // TODO: understand the need , delete
+
+
+    @Override
+    public Program cloneProgram(Path xmlPath, int nextLabelNumber, int nextWorkVariableNumber) throws EngineLoadException {
+        XmlProgramLoader loader = new XmlProgramLoader();
+        Program cloned = loader.load(xmlPath);
+        cloned.setNextLabelNumber(nextLabelNumber);
+        cloned.setNextWorkVariableNumber(nextWorkVariableNumber);
+        cloned.initialize();
+
+        return cloned;
+    }
+
+    @Override
+    public void setNextLabelNumber(int nextLabelNumber) {
+        this.nextLabelNumber = nextLabelNumber;
+    }
+
+    @Override
+    public void setNextWorkVariableNumber(int nextWorkVariableNumber) {
+        this.nextLabelNumber = nextWorkVariableNumber;
+    }
+
+    @Override
+    public int getNextLabelNumber() {
+        return nextLabelNumber;
+    }
+
+    @Override
+    public int getNextWorkVariableNumber() {
+        return nextWorkVariableNumber;
     }
 
     @Override
