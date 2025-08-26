@@ -6,7 +6,6 @@ import history.ExecutionHistory;
 import execution.ProgramExecutor;
 import history.ExecutionHistoryImpl;
 import program.Program;
-import variable.Variable;
 import loader.XmlProgramLoader;
 
 import java.nio.file.Path;
@@ -15,7 +14,7 @@ public class EngineImpl implements Engine {
     private Path xmlPath;
     private Program program;
     private ProgramExecutor programExecutor;
-    private ExecutionHistory executionHistory = new ExecutionHistoryImpl();;
+    private ExecutionHistory executionHistory;
 
 
     @Override
@@ -26,6 +25,8 @@ public class EngineImpl implements Engine {
         program = loader.load(xmlPath);
         program.validateProgram();
         program.initialize();
+
+        executionHistory = new ExecutionHistoryImpl();
     }
 
     @Override
@@ -85,7 +86,7 @@ public class EngineImpl implements Engine {
         System.out.println("Result: " + programExecutor.getResultValue());
         System.out.println();
         System.out.println(programExecutor.getVariablesWithValuesSortedString());
-        System.out.println(programExecutor.getTotalCyclesOfProgram());
+        System.out.println("Cycles: " + programExecutor.getTotalCyclesOfProgram());
     }
 
     @Override

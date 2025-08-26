@@ -67,16 +67,18 @@ public class Validator {
                     if (!INT_PATTERN.matcher(s).matches()) {
                         throw new NumberFormatException("Non-numeric value:" + s);
                     }
-                    long v = Long.parseLong(s);
-                    values.add(v);
+                    long numberInput = Long.parseLong(s);
+                    if (numberInput < 0) {
+                        throw new NumberFormatException("Negative value:" + s);
+                    }
+                    values.add(numberInput);
                 }
 
                 return values.toArray(new Long[0]);
 
             } catch (Exception e) {
                 System.out.println("Invalid input: " + e.getMessage());
-                System.out.print("Please try again");
-                System.out.print("Please enter inputs values separated by commas: ");
+                System.out.println("Please try again. Please enter inputs values separated by commas: ");
             }
         }
     }
