@@ -18,7 +18,7 @@ public interface Instruction {
     List<Instruction> getExtendedInstruction();
     int getCycleOfInstruction();
     Instruction getOriginalInstruction();
-    String getInstructionExtendedDisplay(int numberOfInstructionsInProgram);
+    List<String> getInstructionExtendedDisplay(int numberOfInstructionsInProgram);
     String getInstructionRepresentation(int numberOfInstructionsInProgram);
 
     void setProgramOfThisInstruction(Program programOfThisInstruction);

@@ -21,9 +21,7 @@ public interface Program {
     List<Instruction> getInstructionsList();
     Instruction getInstructionByLabel(Label label);
     Set<Variable> getInputVariables();
-    List<String> getInputVariableSorted();
     Set<Variable> getWorkVariables();
-    String getProgramDisplay();
     List<Variable> getInputAndWorkVariablesSortedBySerial();
     List<Label> getLabelsInProgram();
     Map<Label, Instruction> getLabelToInstruction();
@@ -38,6 +36,12 @@ public interface Program {
     Variable generateUniqueVariable();
     void sortVariableSetByNumber(Set<Variable> variables);
     void addInputVariable(Variable variable);
-    String getExtendedProgramDisplay();
+
+    //String getProgramDisplay();
+    List<List<String>> getExpandedProgram();
+
+    List<String> getOrderedLabelsExitLastStr();
+    List<String> getInputVariablesSortedStr();
+    List<String> gerInstructionsAsStringList();
 
 }

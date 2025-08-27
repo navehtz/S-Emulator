@@ -2,9 +2,11 @@ package console.actions;
 
 import console.menu.MenuActionable;
 import console.validator.Validator;
+import dto.ProgramDTO;
 import engine.Engine;
 import exceptions.EngineLoadException;
 
+import java.util.List;
 import java.util.Scanner;
 
 import static console.menu.MenuItem.printTitle;
@@ -25,8 +27,14 @@ public class Expand implements MenuActionable {
         System.out.print("Please enter degree for this run: ");
         int degree = Validator.getValidateUserInputForDegree(scanner, engine);
 
-        engine.displayExpandedProgram(degree);
+        ProgramDTO programDTO = engine.getExpandedProgramToDisplay(degree);
+
+        displayExpandedProgram(programDTO);
     }
 
-
+    private void displayExpandedProgram(ProgramDTO programDTO) {
+        for (List<String> line : programDTO.getExpandedProgram()) {
+            System.out.println(String.join(" <<< ", line));
+        }
+    }
 }

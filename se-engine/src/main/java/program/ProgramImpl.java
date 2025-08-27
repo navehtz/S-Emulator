@@ -63,7 +63,7 @@ public class ProgramImpl implements Program {
 
     @Override
     public void setNextWorkVariableNumber(int nextWorkVariableNumber) {
-        this.nextLabelNumber = nextWorkVariableNumber;
+        this.nextWorkVariableNumber = nextWorkVariableNumber;
     }
 
     @Override
@@ -175,7 +175,8 @@ public class ProgramImpl implements Program {
             Comparator.comparing((Label l) -> FixedLabel.EXIT.equals(l))
                     .thenComparingInt(Label::getNumber);
 
-    private List<String> getOrderedLabelsExitLast() {
+    @Override
+    public List<String> getOrderedLabelsExitLastStr() {
         return java.util.stream.Stream
                 .concat(labelsInProgram.stream(), referencedLabels.stream())
                 .distinct()
@@ -185,14 +186,23 @@ public class ProgramImpl implements Program {
     }
 
     @Override
-    public List<String> getInputVariableSorted() {
+    public List<String> getInputVariablesSortedStr() {
         return inputVariables.stream()
                 .sorted(Comparator.comparingInt(Variable::getNumber))
                 .map(Variable::getRepresentation)
                 .collect(Collectors.toList());
     }
 
-    private String programRepresentation() {
+    @Override
+    public List<String> gerInstructionsAsStringList() {
+        int n = programInstructions.size();
+        return programInstructions.stream()
+                .map(ins -> ins.getInstructionRepresentation(n))
+                .collect(Collectors.toList());
+    }
+
+
+/*    private String programRepresentation() {
         StringBuilder programDisplay = new StringBuilder();
         int numberOfInstructionsInProgram = programInstructions.size();
 
@@ -202,9 +212,9 @@ public class ProgramImpl implements Program {
         }
 
         return programDisplay.toString();
-    }
+    }*/
 
-    @Override
+/*    @Override
     public String getProgramDisplay() {
 
         List<String> variablesInputInProgram = getInputVariableSorted();
@@ -219,9 +229,55 @@ public class ProgramImpl implements Program {
         programDisplay.append(programRepresentation());
 
         return programDisplay.toString();
-    }
+    }*/
+
+/*    @Override
+    public String getProgramDisplay() {
+        List<String> variablesInputInProgram = getInputVariableSorted();
+        List<String> labels = getOrderedLabelsExitLast();
+
+        return String.format(
+                "Name: %s%nInputs: %s%nLabels: %s%nInstructions:%n%s",
+                getName(),
+                String.join(", ", variablesInputInProgram),
+                String.join(", ", labels),
+                programRepresentation()
+        );
+    }*/
 
     @Override
+    public List<List<String>> getExpandedProgram() {
+        int numberOfInstructionsInProgram = programInstructions.size();
+        List<List<String>> expandedProgram = new ArrayList<>();
+
+        for (Instruction instruction : programInstructions) {
+            List<String> chain = instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram);
+            if (chain != null && !chain.isEmpty()) {
+                expandedProgram.add(chain);
+            }
+        }
+
+        return expandedProgram;
+    }
+
+ /*   @Override
+    public String getExtendedProgramDisplay() {
+        int numberOfInstructionsInProgram = programInstructions.size();
+
+        String instructionsDisplay = programInstructions.stream()
+                .map(instruction -> instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram))
+                .collect(Collectors.joining(System.lineSeparator()));
+
+        return String.format(
+                "Name: %s%nInputs: %s%nLabels: %s%n%s",
+                getName(),
+                String.join(", ", getInputVariablesSortedStr()),
+                String.join(", ", getOrderedLabelsExitLastStr()),
+                instructionsDisplay
+        );
+    }*/
+
+/*    @Override
     public String getExtendedProgramDisplay() {
         StringBuilder extendedProgramDisplay = new StringBuilder();
 
@@ -236,7 +292,7 @@ public class ProgramImpl implements Program {
         }
 
         return extendedProgramDisplay.toString();
-    }
+    }*/
 
     @Override
     public int calculateProgramMaxDegree() {
@@ -358,5 +414,23 @@ public class ProgramImpl implements Program {
     @Override
     public Map<Label, Instruction> getLabelToInstruction() {
         return labelToInstruction;
+    }
+
+    public List<String> getProgramInstructionsAsString() {
+        return programInstructions.stream()
+                .map(Instruction::toString) // או מתודה אחרת, אם יש ייצוג מותאם
+                .collect(Collectors.toList());
+    }
+
+    public Set<String> getInputVariablesAsString() {
+        return inputVariables.stream()
+                .map(Variable::toString) // או getName/getLabelRepresentation וכו'
+                .collect(Collectors.toSet());
+    }
+
+    public Set<String> getWorkVariablesAsString() {
+        return workVariables.stream()
+                .map(Variable::toString)
+                .collect(Collectors.toSet());
     }
 }

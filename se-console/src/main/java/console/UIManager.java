@@ -13,7 +13,7 @@ public class UIManager {
     private final MenuItem menu;
 
     private final LoadFile loadFile;
-    private final DisplayProgram displayProgram;
+    private final Display display;
     private final Expand expand;
     private final RunProgram runProgram;
     private final History history;
@@ -27,7 +27,7 @@ public class UIManager {
         engine = new EngineImpl();
 
         this.loadFile = new LoadFile();
-        this.displayProgram = new DisplayProgram();
+        this.display = new Display();
         this.expand = new Expand();
         this.runProgram = new RunProgram();
         this.history = new History();
@@ -43,7 +43,7 @@ public class UIManager {
 
         // Second submenu
         MenuItem loadNextFileItem   = new MenuItem("Load Next File", loadFile, engine);
-        MenuItem displayProgramItem = new MenuItem("display Program", this.displayProgram, engine);
+        MenuItem displayProgramItem = new MenuItem("display Program", this.display, engine);
         MenuItem expandItem         = new MenuItem("Expand Loaded Program", this.expand, engine);
         MenuItem runFileItem        = new MenuItem("Run File", this.runProgram, engine);
         MenuItem historyItem        = new MenuItem("Show History", this.history, engine);

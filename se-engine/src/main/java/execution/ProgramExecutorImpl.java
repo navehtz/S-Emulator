@@ -58,11 +58,6 @@ public class ProgramExecutorImpl implements ProgramExecutor{
     }
 
     @Override
-    public Map<Variable, Long> variableState() {
-        return context.getVariableState();
-    }
-
-    @Override
     public long getVariableValue(Variable variable) {
         return context.getVariableValue(variable);
     }
@@ -76,7 +71,7 @@ public class ProgramExecutorImpl implements ProgramExecutor{
 
 
     @Override
-    public List<Long> getInputsValues() {
+    public List<Long> getInputsValuesOfUser() {
         return inputsValues;
     }
 
@@ -90,10 +85,10 @@ public class ProgramExecutorImpl implements ProgramExecutor{
         return context.getVariableValue(Variable.RESULT);
     }
 
-    @Override
+/*    @Override
     public String getProgramAfterRun() {
         return program.getProgramDisplay();
-    }
+    }*/
 
     @Override
     public Set<Variable> getInputVariablesSet() {
@@ -128,6 +123,17 @@ public class ProgramExecutorImpl implements ProgramExecutor{
         }
 
         return variablesDisplay.toString();
+    }
+
+    @Override
+    public Map<String, Long> getVariablesToValuesSorted() {
+        Map<String, Long> VariablesToValuesSorted = new LinkedHashMap<>();
+
+        for (Variable v : program.getInputAndWorkVariablesSortedBySerial()) {
+            VariablesToValuesSorted.put(v.getRepresentation(), context.getVariableValue(v));
+        }
+
+        return VariablesToValuesSorted;
     }
 
     /*    @Override

@@ -51,33 +51,36 @@ public class MenuItem implements Menu {
                 int userChoice =  getValidateUserChoice(scanner);
                 isExitPressed = handleChoice(userChoice);
             }
-            catch (Exception e) {
+            catch (IllegalArgumentException  e) {
                 System.out.println(e.getMessage());
-/*                System.out.println("Press Enter to try again...");
-                scanner.nextLine();*/
             }
         }
     }
 
     private int getValidateUserChoice(Scanner scanner) {
-        String input = scanner.nextLine();
+        String input = scanner.nextLine().trim();
+        int max = subItems.size() + 1;
 
         if (input.isEmpty()) {
             throw new IllegalArgumentException("Invalid input. Choice cannot be empty.");
         }
 
+        final int choice;
         try {
-            int choice = Integer.parseInt(input.trim());
-
-            if (choice < 1 || choice > subItems.size() + 1) {
-                throw new IllegalArgumentException("Invalid input. Please try again.");
-            }
-
-            return choice;
-
+            choice = Integer.parseInt(input);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(e);
+            throw new IllegalArgumentException(
+                    "Invalid input, numbers only between 1 and " + max + ". Got: " + input
+            );
         }
+
+        if (choice < 1 || choice > max) {
+            throw new IllegalArgumentException(
+                    "Choice out of range, enter a number between 1 and " + max + ". Got: " + choice
+            );
+        }
+
+        return choice;
     }
 
     private boolean handleChoice(int userChoice) {
