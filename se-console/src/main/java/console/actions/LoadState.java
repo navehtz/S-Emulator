@@ -10,17 +10,17 @@ import java.util.Scanner;
 
 import static console.menu.MenuItem.printTitle;
 
-
-public class LoadFile implements MenuActionable {
-
+public class LoadState implements MenuActionable {
     @Override
     public void startAction(Scanner scanner, Engine engine) throws EngineLoadException {
-        printTitle("Load New File");
 
-        System.out.print("Please enter full path to your file: ");
+        printTitle("Load State");
 
-        Path xmlPath = Validator.getValidateDegree(scanner);
-        engine.loadProgram(xmlPath);
-        System.out.println("Successfully loaded the file");
+        System.out.print("Enter the full path from: ");
+        Path file = Validator.getValidateExistingFile(scanner);
+
+        engine.loadState(file);
+
+        System.out.println("State loaded successfully.");
     }
 }

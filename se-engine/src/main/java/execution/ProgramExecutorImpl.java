@@ -6,9 +6,10 @@ import label.Label;
 import program.Program;
 import variable.Variable;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class ProgramExecutorImpl implements ProgramExecutor{
+public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 
     private final Program program;
     private final ExecutionContext context;

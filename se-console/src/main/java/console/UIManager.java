@@ -17,9 +17,11 @@ public class UIManager {
     private final Expand expand;
     private final RunProgram runProgram;
     private final History history;
-    private final Scanner scanner;
+    private final SaveState saveState;
+    private final LoadState loadState;
 
     private final Engine engine;
+    private final Scanner scanner;
 
 
     public UIManager() {
@@ -31,6 +33,8 @@ public class UIManager {
         this.expand = new Expand();
         this.runProgram = new RunProgram();
         this.history = new History();
+        this.saveState = new SaveState();
+        this.loadState = new LoadState();
 
         this.menu = buildMenu();
     }
@@ -47,6 +51,8 @@ public class UIManager {
         MenuItem expandItem         = new MenuItem("Expand Loaded Program", this.expand, engine);
         MenuItem runFileItem        = new MenuItem("Run File", this.runProgram, engine);
         MenuItem historyItem        = new MenuItem("Show History", this.history, engine);
+        MenuItem saveState   = new MenuItem("Save Current State", this.saveState, engine);
+        MenuItem LoadState   = new MenuItem("Load Last State", this.loadState, engine);
 
         mainMenu.addSubItem(loadFirstFileItem);
 
@@ -55,6 +61,8 @@ public class UIManager {
         loadFirstFileItem.addSubItem(expandItem);
         loadFirstFileItem.addSubItem(runFileItem);
         loadFirstFileItem.addSubItem(historyItem);
+        loadFirstFileItem.addSubItem(saveState);
+        loadFirstFileItem.addSubItem(LoadState);
 
         return mainMenu;
     }
@@ -63,7 +71,7 @@ public class UIManager {
         try {
             menu.show(scanner, engine);
         }
-        catch (Exception e) {   // i/o exception. not supose to reach hear
+        catch (Exception e) {   // i/o exception. not suppose to reach hear
             System.err.println("Unexpected error: " + e.getMessage());
             e.printStackTrace();
         }

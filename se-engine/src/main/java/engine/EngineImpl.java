@@ -12,13 +12,14 @@ import program.Program;
 import loader.XmlProgramLoader;
 import variable.Variable;
 
+import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class EngineImpl implements Engine {
-    private Path xmlPath;
+public class EngineImpl implements Engine, Serializable {
+    private transient Path xmlPath;
     private Program program;
     private ProgramExecutor programExecutor;
     private ExecutionHistory executionHistory;
@@ -56,28 +57,12 @@ public class EngineImpl implements Engine {
 
     @Override
     public ProgramDTO getProgramToDisplay() {
-        InstructionsDTO instructionsDTO = new InstructionsDTO(program.gerInstructionsAsStringList());
-
-        return new ProgramDTO(
-                program.getName(),
-                program.getOrderedLabelsExitLastStr(),
-                program.getInputVariablesSortedStr(),
-                instructionsDTO,
-                program.getExpandedProgram()
-        );
+        return buildProgramDTO(program);
     }
 
     @Override
     public ProgramExecutorDTO getProgramToDisplayAfterRun() {
-        InstructionsDTO instructionsDTO = new InstructionsDTO(program.gerInstructionsAsStringList());
-
-        ProgramDTO programDTO = new ProgramDTO(
-                program.getName(),
-                program.getOrderedLabelsExitLastStr(),
-                program.getInputVariablesSortedStr(),
-                instructionsDTO,
-                program.getExpandedProgram()
-        );
+        ProgramDTO programDTO = buildProgramDTO(program);
 
         return new ProgramExecutorDTO(programDTO,
                 programExecutor.getVariablesToValuesSorted(),
@@ -94,15 +79,7 @@ public class EngineImpl implements Engine {
 
         for(ProgramExecutor programExecutor : executionHistory.getProgramsExecutions()) {
 
-            InstructionsDTO instructionsDTO = new InstructionsDTO(program.gerInstructionsAsStringList());
-
-            ProgramDTO programDTO = new ProgramDTO(
-                    program.getName(),
-                    program.getOrderedLabelsExitLastStr(),
-                    program.getInputVariablesSortedStr(),
-                    instructionsDTO,
-                    program.getExpandedProgram()
-            );
+            ProgramDTO programDTO = buildProgramDTO(program);
 
             ProgramExecutorDTO programExecutorDTO = new ProgramExecutorDTO(programDTO,
                     programExecutor.getVariablesToValuesSorted(),
@@ -116,6 +93,17 @@ public class EngineImpl implements Engine {
         }
 
         return res;
+    }
+
+    private ProgramDTO buildProgramDTO(Program p) {
+        InstructionsDTO instructionsDTO = new InstructionsDTO(p.gerInstructionsAsStringList());
+        return new ProgramDTO(
+                p.getName(),
+                p.getOrderedLabelsExitLastStr(),
+                p.getInputVariablesSortedStr(),
+                instructionsDTO,
+                p.getExpandedProgram()
+        );
     }
 
     @Override
@@ -137,5 +125,42 @@ public class EngineImpl implements Engine {
                 instructionsDTO,
                 deepCopyOfProgram.getExpandedProgram()
         );
+    }
+
+    @Override
+    public void saveState(Path path) throws EngineLoadException {
+        try {
+            EngineIO.save(this, path);   // שימוש במתודה הקיימת
+        } catch (IOException e) {
+            throw new EngineLoadException("Failed to save engine state: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void loadState(Path path) throws EngineLoadException {
+        try {
+            EngineImpl loaded = EngineIO.load(path); // שימוש במתודה הקיימת
+
+            this.xmlPath = loaded.xmlPath;
+            this.program = loaded.program;
+            this.programExecutor = loaded.programExecutor;
+            this.executionHistory = loaded.executionHistory;
+        } catch (IOException | ClassNotFoundException e) {
+            throw new EngineLoadException("Failed to load engine state: " + e.getMessage(), e);
+        }
+    }
+
+
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeObject(xmlPath != null ? xmlPath.toString() : null);
+    }
+
+    @Serial
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        String pathStr = (String) in.readObject();
+        this.xmlPath = pathStr != null ? Path.of(pathStr) : null;
     }
 }

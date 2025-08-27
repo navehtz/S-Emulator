@@ -50,7 +50,7 @@ public class RunProgram implements MenuActionable {
 
         if (engine.getNumberOfInputVariables() != 0) {
             System.out.print("Please enter inputs values separated by commas: ");
-            inputs = Validator.getValidateProgramInputs(scanner, engine);
+            inputs = Validator.getValidateProgramInputValues(scanner);
         }
 
         return inputs;
@@ -64,7 +64,7 @@ public class RunProgram implements MenuActionable {
         } else {
             System.out.println("Max degree of loaded program: " + engine.getMaxDegree());
             System.out.print("Please enter degree for this run: ");
-            degree = Validator.getValidateUserInputForDegree(scanner, engine);
+            degree = Validator.getValidateDegree(scanner, engine);
         }
 
         return degree;

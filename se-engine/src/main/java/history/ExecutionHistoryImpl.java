@@ -2,11 +2,12 @@ package history;
 
 import execution.ProgramExecutor;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class ExecutionHistoryImpl implements ExecutionHistory {
+public class ExecutionHistoryImpl implements ExecutionHistory, Serializable {
 
     private final List<ProgramExecutor> programExecutorsHistory = new ArrayList<>();
 

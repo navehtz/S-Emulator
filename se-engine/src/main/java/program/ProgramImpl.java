@@ -12,11 +12,12 @@ import instruction.Instruction;
 import instruction.LabelReferencesInstruction;
 import instruction.SyntheticInstruction;
 
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ProgramImpl implements Program {
+public class ProgramImpl implements Program, Serializable {
 
     private final String programName;
     private final List<Instruction> programInstructions;

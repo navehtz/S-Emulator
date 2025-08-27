@@ -5,11 +5,12 @@ import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
 
-public class ExecutionContextImpl implements ExecutionContext{
+public class ExecutionContextImpl implements ExecutionContext, Serializable {
 
     private final Map<Variable, Long> variableToValue;
 

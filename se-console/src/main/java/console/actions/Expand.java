@@ -18,14 +18,14 @@ public class Expand implements MenuActionable {
         printTitle("Present Expand Program");
 
         if (engine.getMaxDegree() == 0) {
-            System.out.println("The program cannot be increased because its maximum degree is already 0");
+            System.out.println("The program cannot be expand because its maximum degree is already 0");
             return;
         }
 
         System.out.println("Max degree of loaded program: " + engine.getMaxDegree());
 
         System.out.print("Please enter degree for this run: ");
-        int degree = Validator.getValidateUserInputForDegree(scanner, engine);
+        int degree = Validator.getValidateDegree(scanner, engine);
 
         ProgramDTO programDTO = engine.getExpandedProgramToDisplay(degree);
 

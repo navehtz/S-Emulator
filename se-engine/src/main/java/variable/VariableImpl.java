@@ -1,6 +1,8 @@
 package variable;
 
-public class VariableImpl implements Variable {
+import java.io.Serializable;
+
+public class VariableImpl implements Variable, Serializable {
     private final VariableType type;
     private final int number;
 

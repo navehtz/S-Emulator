@@ -19,4 +19,7 @@ public interface Engine {
     int getMaxDegree();
     int getNumberOfInputVariables();
     void runProgram(int degree, Long... inputs) throws EngineLoadException;
+
+    void saveState(Path path) throws EngineLoadException;
+    void loadState(Path path) throws EngineLoadException;
 }

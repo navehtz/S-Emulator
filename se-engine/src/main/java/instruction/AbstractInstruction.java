@@ -5,13 +5,14 @@ import label.FixedLabel;
 import program.Program;
 import variable.Variable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.LongStream;
 
 
-public abstract class AbstractInstruction implements Instruction {
+public abstract class AbstractInstruction implements Instruction, Serializable {
 
     private final InstructionData instructionData;
     private final InstructionType instructionType;
