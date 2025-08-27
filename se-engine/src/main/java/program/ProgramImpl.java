@@ -27,6 +27,8 @@ public class ProgramImpl implements Program {
     private final Set<Label> labelsAddedAfterExtension;  // Need it to keep the order of the labels
     private final Set<Label> referencedLabels;
 
+    // TODO: this.labelsAddedAfterExtension = new LinkedHashSet<>();
+
     private int nextLabelNumber = 1;
     private int nextWorkVariableNumber = 1;
 
@@ -40,10 +42,6 @@ public class ProgramImpl implements Program {
         this.labelsAddedAfterExtension = new LinkedHashSet<>();
         this.referencedLabels  = new LinkedHashSet<>();
     }
-
-    // TODO:         this.labelsAddedAfterExtension = new LinkedHashSet<>();
-    // TODO: understand the need , delete
-
 
     @Override
     public Program cloneProgram(Path xmlPath, int nextLabelNumber, int nextWorkVariableNumber) throws EngineLoadException {
@@ -414,23 +412,5 @@ public class ProgramImpl implements Program {
     @Override
     public Map<Label, Instruction> getLabelToInstruction() {
         return labelToInstruction;
-    }
-
-    public List<String> getProgramInstructionsAsString() {
-        return programInstructions.stream()
-                .map(Instruction::toString) // או מתודה אחרת, אם יש ייצוג מותאם
-                .collect(Collectors.toList());
-    }
-
-    public Set<String> getInputVariablesAsString() {
-        return inputVariables.stream()
-                .map(Variable::toString) // או getName/getLabelRepresentation וכו'
-                .collect(Collectors.toSet());
-    }
-
-    public Set<String> getWorkVariablesAsString() {
-        return workVariables.stream()
-                .map(Variable::toString)
-                .collect(Collectors.toSet());
     }
 }

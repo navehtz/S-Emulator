@@ -39,22 +39,23 @@ public class MenuItem implements Menu {
     }
 
     @Override
-    public void show(Scanner scanner, Engine engine) {
-        boolean isExitPressed = false;
+    public boolean show(Scanner scanner, Engine engine) {
+        boolean exitAll = false;
         this.scanner = scanner;
         this.engine = engine;
 
-        while (!isExitPressed) {
+        while (!exitAll) {
             printCurrentMenu();
 
             try {
                 int userChoice =  getValidateUserChoice(scanner);
-                isExitPressed = handleChoice(userChoice);
+                exitAll = handleChoice(userChoice);
             }
             catch (IllegalArgumentException  e) {
                 System.out.println(e.getMessage());
             }
         }
+        return true;
     }
 
     private int getValidateUserChoice(Scanner scanner) {
@@ -84,12 +85,11 @@ public class MenuItem implements Menu {
     }
 
     private boolean handleChoice(int userChoice) {
-        boolean backOrExitPressed = false;
         int exitNumber = this.subItems.size() + 1;
 
         if (userChoice == exitNumber) {
-            backOrExitPressed = true;
             System.out.println("Good Bye!");
+            return true;    // To get out from all the menus
         }
         else {
             MenuItem selectedItem = subItems.get(userChoice - 1);
@@ -98,14 +98,17 @@ public class MenuItem implements Menu {
                 execute(selectedItem);
 
                 if (!selectedItem.isLeaf()) {
-                    selectedItem.show(scanner, engine);
+                    boolean exitAll = selectedItem.show(scanner, engine);
+                    if (exitAll) {
+                        return true;    // To get out from all the menus
+                    }
                 }
             } catch (EngineLoadException e) {
                 System.out.println(e.getMessage());
             }
         }
 
-        return backOrExitPressed;
+        return false;   // To stay at the current menu
     }
 
     @Override

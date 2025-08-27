@@ -63,8 +63,9 @@ public class UIManager {
         try {
             menu.show(scanner, engine);
         }
-        catch (Exception e) {
-            // io exception
+        catch (Exception e) {   // i/o exception. not supose to reach hear
+            System.err.println("Unexpected error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

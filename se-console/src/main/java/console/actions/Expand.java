@@ -34,7 +34,7 @@ public class Expand implements MenuActionable {
 
     private void displayExpandedProgram(ProgramDTO programDTO) {
         for (List<String> line : programDTO.getExpandedProgram()) {
-            System.out.println(String.join(" <<< ", line));
+            System.out.println(String.join(" >>> ", line));
         }
     }
 }
