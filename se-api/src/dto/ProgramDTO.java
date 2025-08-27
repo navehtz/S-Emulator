@@ -1,14 +1,13 @@
 package dto;
 
 import java.util.List;
-import java.util.Map;
 
 public class ProgramDTO {
-    private String programName;
-    private List<String> LabelsStr;
-    private List<String> inputVariables;
-    private InstructionsDTO instructions;
-    private List<List<String>> expandedProgram;
+    private final String programName;
+    private final List<String> LabelsStr;
+    private final List<String> inputVariables;
+    private final InstructionsDTO instructions;
+    private final List<List<String>> expandedProgram;
 
     public ProgramDTO(
             String programName,

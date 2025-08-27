@@ -3,7 +3,6 @@ package console.menu;
 import engine.Engine;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Scanner;
 
 public interface Menu {

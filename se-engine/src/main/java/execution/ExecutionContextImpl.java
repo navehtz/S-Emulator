@@ -21,27 +21,29 @@ public class ExecutionContextImpl implements ExecutionContext{
     public void initializeVariables(Program program, Long... inputs) {
         program.sortVariableSetByNumber(program.getInputVariables());
 
-        initializeInputVariable(program, inputs);
+        initializeInputVariableFromUserInput(program, inputs);
         initializeWorkVariable(program);
 
         this.updateVariable(Variable.RESULT, 0L);
     }
 
-    private void initializeInputVariable(Program program, Long[] inputs) {
+    private void initializeInputVariableFromUserInput(Program program, Long[] inputs) {
 
         Set<Variable> inputVariables = program.getInputVariables();
 
-        Map<Integer, Variable> byNum = inputVariables.stream()
+        Map<Integer, Variable> serialNumberToVariable = inputVariables.stream()
                 .collect(Collectors.toMap(Variable::getNumber, v -> v));
 
 
         for (int i = 1; i <= inputs.length; i++) {
-            Variable variableSerialI = byNum.get(i);
+            Variable variableSerialI = serialNumberToVariable.get(i);
+
             if (variableSerialI == null) {
                 variableSerialI = new VariableImpl(VariableType.INPUT, i);
                 program.addInputVariable(variableSerialI);   // add to the set of inputs
-                byNum.put(i, variableSerialI);
+                serialNumberToVariable.put(i, variableSerialI);
             }
+
             long value = inputs[i - 1] != null ? inputs[i - 1] : 0L;
             this.updateVariable(variableSerialI, value);
         }
@@ -52,22 +54,6 @@ public class ExecutionContextImpl implements ExecutionContext{
             }
         }
     }
-
-/*    private void initializeInputVariable(Program program, Long[] inputs) {
-        Set<Variable> inputVariables = program.getInputVariables();
-        int i = 0;
-
-        for (Variable currInputVariable : inputVariables){
-            int serialNumberOfCurrInputVariable = currInputVariable.getNumber();
-            long value = 0;
-
-            if (serialNumberOfCurrInputVariable - 1 < inputs.length) {      // the inputs strat from 1 (x1, x2..), not from zero
-                value = inputs[serialNumberOfCurrInputVariable - 1];
-            }
-
-            this.updateVariable(currInputVariable, value);
-        }
-    }*/
 
     private void initializeWorkVariable(Program program) {
         Set<Variable> workVariables = program.getWorkVariables();
@@ -92,9 +78,5 @@ public class ExecutionContextImpl implements ExecutionContext{
             variable = Variable.RESULT;
 
         variableToValue.put(variable, value);
-    }
-
-    public Map<Variable, Long> getVariableState() {
-        return this.variableToValue;
     }
 }

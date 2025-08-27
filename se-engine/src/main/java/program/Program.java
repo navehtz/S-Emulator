@@ -37,7 +37,6 @@ public interface Program {
     void sortVariableSetByNumber(Set<Variable> variables);
     void addInputVariable(Variable variable);
 
-    //String getProgramDisplay();
     List<List<String>> getExpandedProgram();
 
     List<String> getOrderedLabelsExitLastStr();
