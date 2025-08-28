@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<S-Program name="test11" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="S-Emulator-v1.xsd">
+    <S-Instructions>
+
+
+        <S-Instruction type="synthetic" name="GOTO_LABEL">
+            <S-Variable>z1</S-Variable>
+            <S-Label>L50</S-Label>
+            <S-Instruction-Arguments>
+                <S-Instruction-Argument name="gotoLabel" value="EXIT"/>
+            </S-Instruction-Arguments>
+        </S-Instruction>
+
+        <S-Instruction type="basic" name="INCREASE">
+            <S-Variable>y</S-Variable>
+            <S-Label>L60</S-Label>
+        </S-Instruction>
+
+
+    </S-Instructions>
+</S-Program>

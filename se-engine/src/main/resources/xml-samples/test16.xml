@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<S-Program name="test5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="S-Emulator-v1.xsd">
+    <S-Instructions>
+
+
+        <S-Instruction type="basic" name="INCREASE">
+            <S-Variable>y</S-Variable>
+            <S-Label>L51</S-Label>
+        </S-Instruction>
+
+        <S-Instruction type="synthetic" name="JUMP_EQUAL_VARIABLE">
+            <S-Label>L52</S-Label>
+            <S-Variable>y</S-Variable>
+            <S-Instruction-Arguments>
+                <S-Instruction-Argument name="JEVariableLabel" value="EXIT"/>
+                <S-Instruction-Argument name="variableName" value="x1"/>
+            </S-Instruction-Arguments>
+        </S-Instruction>
+
+        <S-Instruction type="basic" name="INCREASE">
+            <S-Variable>y</S-Variable>
+            <S-Label>L53</S-Label>
+        </S-Instruction>
+
+
+    </S-Instructions>
+</S-Program>

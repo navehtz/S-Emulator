@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+increase y by one if y is different than 5
+ -->
+<S-Program name="Sanity-Synthetic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="S-Emulator-v1.xsd">
+	<S-Instructions>
+
+
+        <S-Instruction type="synthetic" name="JUMP_EQUAL_CONSTANT">
+            <S-Variable>y</S-Variable>
+            <S-Label>L4</S-Label>
+            <S-Instruction-Arguments>
+                <S-Instruction-Argument name="JEConstantLabel" value="L5"/>
+                <S-Instruction-Argument name="constantValue" value="1"/>
+            </S-Instruction-Arguments>
+        </S-Instruction>
+
+        <S-Instruction type="basic" name="INCREASE">
+            <S-Variable>y</S-Variable>
+            <S-Label>L5</S-Label>
+        </S-Instruction>
+
+
+	</S-Instructions>
+</S-Program>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<S-Program name="test2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="S-Emulator-v1.xsd">
+    <S-Instructions>
+
+        <S-Instruction type="synthetic" name="JUMP_EQUAL_CONSTANT">
+            <S-Variable>x1</S-Variable>
+            <S-Instruction-Arguments>
+                <S-Instruction-Argument name="JEConstantLabel" value="L2"/>
+                <S-Instruction-Argument name="constantValue" value="5"/>
+            </S-Instruction-Arguments>
+        </S-Instruction>
+
+        <S-Instruction type="synthetic" name="ASSIGNMENT">
+            <S-Variable>y</S-Variable>
+            <S-Label>L1</S-Label>
+            <S-Instruction-Arguments>
+                <S-Instruction-Argument name="assignedVariable" value="x1"/>
+            </S-Instruction-Arguments>
+        </S-Instruction>
+
+        <S-Instruction type="basic" name="NEUTRAL">
+            <S-Label>L2</S-Label>
+            <S-Variable>y</S-Variable>
+        </S-Instruction>
+
+    </S-Instructions>
+</S-Program>
