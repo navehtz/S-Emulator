@@ -200,50 +200,6 @@ public class ProgramImpl implements Program, Serializable {
                 .collect(Collectors.toList());
     }
 
-
-/*    private String programRepresentation() {
-        StringBuilder programDisplay = new StringBuilder();
-        int numberOfInstructionsInProgram = programInstructions.size();
-
-        for (Instruction instruction : programInstructions) {
-            String line = instruction.getInstructionRepresentation(numberOfInstructionsInProgram);
-            programDisplay.append(line).append(System.lineSeparator());
-        }
-
-        return programDisplay.toString();
-    }*/
-
-/*    @Override
-    public String getProgramDisplay() {
-
-        List<String> variablesInputInProgram = getInputVariableSorted();
-        List<String> labels = getOrderedLabelsExitLast();
-
-        StringBuilder programDisplay = new StringBuilder();
-        programDisplay.append("Name: ").append(getName()).append(System.lineSeparator());
-        programDisplay.append("Inputs: ").append(String.join(", ", variablesInputInProgram)).append(System.lineSeparator());
-        programDisplay.append("Labels: ").append(String.join(", ", labels)).append(System.lineSeparator());
-        programDisplay.append("Instructions: ").append(System.lineSeparator());
-
-        programDisplay.append(programRepresentation());
-
-        return programDisplay.toString();
-    }*/
-
-/*    @Override
-    public String getProgramDisplay() {
-        List<String> variablesInputInProgram = getInputVariableSorted();
-        List<String> labels = getOrderedLabelsExitLast();
-
-        return String.format(
-                "Name: %s%nInputs: %s%nLabels: %s%nInstructions:%n%s",
-                getName(),
-                String.join(", ", variablesInputInProgram),
-                String.join(", ", labels),
-                programRepresentation()
-        );
-    }*/
-
     @Override
     public List<List<String>> getExpandedProgram() {
         int numberOfInstructionsInProgram = programInstructions.size();
@@ -259,39 +215,15 @@ public class ProgramImpl implements Program, Serializable {
         return expandedProgram;
     }
 
- /*   @Override
-    public String getExtendedProgramDisplay() {
-        int numberOfInstructionsInProgram = programInstructions.size();
+    @Override
+    public List<Label> getLabelsInProgram() {
+        return labelsInProgram;
+    }
 
-        String instructionsDisplay = programInstructions.stream()
-                .map(instruction -> instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram))
-                .collect(Collectors.joining(System.lineSeparator()));
-
-        return String.format(
-                "Name: %s%nInputs: %s%nLabels: %s%n%s",
-                getName(),
-                String.join(", ", getInputVariablesSortedStr()),
-                String.join(", ", getOrderedLabelsExitLastStr()),
-                instructionsDisplay
-        );
-    }*/
-
-/*    @Override
-    public String getExtendedProgramDisplay() {
-        StringBuilder extendedProgramDisplay = new StringBuilder();
-
-        int numberOfInstructionsInProgram = programInstructions.size();
-
-        extendedProgramDisplay.append("Name: ").append(getName()).append(System.lineSeparator());
-        extendedProgramDisplay.append("Inputs: ").append(String.join(", ", getInputVariableSorted())).append(System.lineSeparator());
-        extendedProgramDisplay.append("Labels: ").append(String.join(", ", getOrderedLabelsExitLast())).append(System.lineSeparator());
-
-        for(Instruction instruction : programInstructions) {
-            extendedProgramDisplay.append(instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram)).append(System.lineSeparator());
-        }
-
-        return extendedProgramDisplay.toString();
-    }*/
+    @Override
+    public Map<Label, Instruction> getLabelToInstruction() {
+        return labelToInstruction;
+    }
 
     @Override
     public int calculateProgramMaxDegree() {
@@ -403,15 +335,5 @@ public class ProgramImpl implements Program, Serializable {
         List<Variable> inputAndWorkVariablesAndTheirValues = new ArrayList<>(inputVariables);
         inputAndWorkVariablesAndTheirValues.addAll(workVariables);
         return inputAndWorkVariablesAndTheirValues;
-    }
-
-    @Override
-    public List<Label> getLabelsInProgram() {
-        return labelsInProgram;
-    }
-
-    @Override
-    public Map<Label, Instruction> getLabelToInstruction() {
-        return labelToInstruction;
     }
 }

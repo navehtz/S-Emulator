@@ -25,6 +25,7 @@ public interface Program {
     List<Variable> getInputAndWorkVariablesSortedBySerial();
     List<Label> getLabelsInProgram();
     Map<Label, Instruction> getLabelToInstruction();
+    List<List<String>> getExpandedProgram();
 
     Program cloneProgram(Path xmlPath, int nextLabelNumber, int nextWorkVariableNumber) throws EngineLoadException;
     void addInstruction(Instruction instruction);
@@ -36,8 +37,6 @@ public interface Program {
     Variable generateUniqueVariable();
     void sortVariableSetByNumber(Set<Variable> variables);
     void addInputVariable(Variable variable);
-
-    List<List<String>> getExpandedProgram();
 
     List<String> getOrderedLabelsExitLastStr();
     List<String> getInputVariablesSortedStr();
