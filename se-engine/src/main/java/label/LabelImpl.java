@@ -1,6 +1,8 @@
 package label;
 
-public class LabelImpl implements Label {
+import java.io.Serializable;
+
+public class LabelImpl implements Label, Serializable {
 
     private final String labelStr;
     private final int number;
@@ -24,9 +26,8 @@ public class LabelImpl implements Label {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof LabelImpl)) return false;
+        if (!(obj instanceof LabelImpl other)) return false;
 
-        LabelImpl other = (LabelImpl) obj;
         return this.labelStr.equals(other.labelStr);
     }
 

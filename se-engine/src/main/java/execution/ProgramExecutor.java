@@ -1,27 +1,20 @@
 package execution;
 
+import program.Program;
 import variable.Variable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public interface ProgramExecutor {
-    long run(int runDegree, Long... inputs);
-    Map<Variable, Long> variableState();        // TODO: ask aviad why needed and delete
+    void run(int runDegree, Long... inputs);
 
+    Program getProgram();
     long getVariableValue(Variable variable);
     int getRunDegree();
-    List<Long> getInputsValues();
+    List<Long> getInputsValuesOfUser();
     int getTotalCyclesOfProgram();
-    long getResultValue();
-    String getProgramAfterRun();
-    Set<Variable> getInputVariablesSet();
-    String getVariablesWithValuesSortedString();
 
+    Map<String, Long> getVariablesToValuesSorted();
 
-    //Map<Variable, Long> getInputAndWorkVariablesAndTheirValuesMap();
-    //int calculateProgramMaxDegree();
-    //String getExtendedProgramDisplay();
-    //void extendProgram(int degree);
 }

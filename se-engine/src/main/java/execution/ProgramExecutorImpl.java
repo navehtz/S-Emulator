@@ -6,9 +6,10 @@ import label.Label;
 import program.Program;
 import variable.Variable;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class ProgramExecutorImpl implements ProgramExecutor{
+public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 
     private final Program program;
     private final ExecutionContext context;
@@ -20,11 +21,11 @@ public class ProgramExecutorImpl implements ProgramExecutor{
     public ProgramExecutorImpl(Program program) {
         this.program = program;
         this.context = new ExecutionContextImpl();
-        this.inputsValues = new ArrayList<Long>();
+        this.inputsValues = new ArrayList<>();
     }
 
     @Override
-    public long run(int runDegree, Long... inputs) {
+    public void run(int runDegree, Long... inputs) {
         Instruction currentInstruction = program.getInstructionsList().getFirst();
         Instruction nextInstruction = null;
         Label nextLabel;
@@ -54,12 +55,12 @@ public class ProgramExecutorImpl implements ProgramExecutor{
 
         } while(nextLabel != FixedLabel.EXIT);
 
-        return context.getVariableValue(Variable.RESULT);
+        context.getVariableValue(Variable.RESULT);
     }
 
     @Override
-    public Map<Variable, Long> variableState() {
-        return context.getVariableState();
+    public Program getProgram() {
+        return program;
     }
 
     @Override
@@ -67,16 +68,13 @@ public class ProgramExecutorImpl implements ProgramExecutor{
         return context.getVariableValue(variable);
     }
 
-
     @Override
     public int getRunDegree() {
         return runDegree;
     }
 
-
-
     @Override
-    public List<Long> getInputsValues() {
+    public List<Long> getInputsValuesOfUser() {
         return inputsValues;
     }
 
@@ -86,72 +84,13 @@ public class ProgramExecutorImpl implements ProgramExecutor{
     }
 
     @Override
-    public long getResultValue() {
-        return context.getVariableValue(Variable.RESULT);
-    }
+    public Map<String, Long> getVariablesToValuesSorted() {
+        Map<String, Long> VariablesToValuesSorted = new LinkedHashMap<>();
 
-    @Override
-    public String getProgramAfterRun() {
-        return program.getProgramDisplay();
-    }
-
-    @Override
-    public Set<Variable> getInputVariablesSet() {
-        return program.getInputVariables();
-    }
-
-    private Map<Variable, Long> getInputAndWorkVariablesAndTheirValuesMap() {
-
-        List<Variable> variableList = program.getInputAndWorkVariablesSortedBySerial();
-        Map<Variable, Long> variableToValue = new LinkedHashMap<Variable, Long>();
-
-        for (Variable variable : variableList) {
-            variableToValue.put(variable, context.getVariableValue(variable));
+        for (Variable v : program.getInputAndWorkVariablesSortedBySerial()) {
+            VariablesToValuesSorted.put(v.getRepresentation(), context.getVariableValue(v));
         }
 
-        return variableToValue;
+        return VariablesToValuesSorted;
     }
-
-    @Override
-    public String getVariablesWithValuesSortedString() {
-        StringBuilder variablesDisplay = new StringBuilder();
-        Map<Variable, Long> variableToValue = getInputAndWorkVariablesAndTheirValuesMap();
-
-        variablesDisplay.append("y").append(" = ").append(getResultValue()).append(System.lineSeparator());
-
-        for (Map.Entry<Variable, Long> entry : variableToValue.entrySet()) {
-            Variable key = entry.getKey();
-            String v = key.getRepresentation();
-            Long value = entry.getValue();
-
-            variablesDisplay.append(v).append(" = ").append(value).append(System.lineSeparator());
-        }
-
-        return variablesDisplay.toString();
-    }
-
-    /*    @Override
-    public void extendProgram(int degree) {
-        if (degree > 0) {
-            runDegree = degree;
-            program.extendProgram(degree);
-        }
-    }*/
-
-    /*    @Override
-    public String getExtendedProgramDisplay() {
-        List<String> extendedDisplay = program.getExtendedProgramDisplay();
-        StringBuilder extendedProgramDisplay = new StringBuilder();
-
-        for(String line : extendedDisplay) {
-            extendedProgramDisplay.append(line).append(System.lineSeparator());
-        }
-
-        return extendedProgramDisplay.toString();
-    }*/
-
-/*    @Override
-    public int calculateProgramMaxDegree() {
-        return program.calculateProgramMaxDegree();
-    }*/
 }

@@ -35,10 +35,10 @@ public class XmlProgramLoader {
         Path abs = path.toAbsolutePath().normalize();
 
         if (!Files.exists(abs) || !Files.isRegularFile(abs))
-            throw new EngineLoadException("File not found at path: " + System.lineSeparator() + abs);
+            throw new EngineLoadException("File not found at path: " + abs);
 
         if (!Files.isReadable(abs))
-            throw new EngineLoadException("File is not readable: ");
+            throw new EngineLoadException("File is not readable: " + abs);
 
         if (!abs.toString().toLowerCase().endsWith(".xml"))
             throw new EngineLoadException("File must end with .xml");

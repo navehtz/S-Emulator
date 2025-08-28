@@ -5,6 +5,7 @@ import instruction.Instruction;
 import label.Label;
 import variable.Variable;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,34 +13,34 @@ import java.util.Set;
 public interface Program {
 
     void setNextLabelNumber(int nextLabelNumber);
-    void setNextWorkVariableNumber(int nextLabelNumber);
-
+    void setNextWorkVariableNumber(int nextWorkVariableNumber);
     int getNextLabelNumber();
     int getNextWorkVariableNumber();
+
+    String getName();
     List<Instruction> getInstructionsList();
     Instruction getInstructionByLabel(Label label);
     Set<Variable> getInputVariables();
-    List<String> getInputVariableSorted();
     Set<Variable> getWorkVariables();
-    String getProgramDisplay();
     List<Variable> getInputAndWorkVariablesSortedBySerial();
-    Set<Label> getLabelsInProgram();
+    List<Label> getLabelsInProgram();
     Map<Label, Instruction> getLabelToInstruction();
-    Set<Label> getReferencedLabels();
-    String getExtendedProgramDisplay();
-    Set<Label> getLabelsAddedAfterExtension();
 
-    String getName();
-    void initialize();
-    void initializeByOtherProgram(Program originalProgram);
+    Program cloneProgram(Path xmlPath, int nextLabelNumber, int nextWorkVariableNumber) throws EngineLoadException;
     void addInstruction(Instruction instruction);
-    void addInputVariable(Variable variable);
     void validateProgram() throws EngineLoadException;
     int calculateProgramMaxDegree();
-    Program expandProgram(int degree);
-    public Program expandByOneDegree(Program originalProgram);
+    void expandProgram(int degree);
+    void initialize();
+    Label generateUniqueLabel();
+    Variable generateUniqueVariable();
     void sortVariableSetByNumber(Set<Variable> variables);
-    Label generateUniqueLabelAndUpdateNextLabelNumber();
-    Variable generateUniqueVariableAndUpdateNextVariableNumber();
+    void addInputVariable(Variable variable);
+
+    List<List<String>> getExpandedProgram();
+
+    List<String> getOrderedLabelsExitLastStr();
+    List<String> getInputVariablesSortedStr();
+    List<String> gerInstructionsAsStringList();
 
 }

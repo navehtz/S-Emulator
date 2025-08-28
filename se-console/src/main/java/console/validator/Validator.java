@@ -12,8 +12,12 @@ import java.util.regex.Pattern;
 
 public class Validator {
 
-    public static int getValidateUserPath(Scanner scanner, Engine engine) {
+    public static int getValidateDegree(Scanner scanner, Engine engine) {
         String input = scanner.nextLine();
+
+        if (input.isEmpty()) {
+            throw new IllegalArgumentException("Invalid input. Choice cannot be empty.");
+        }
 
         try {
             int degree = Integer.parseInt(input.trim());
@@ -29,7 +33,7 @@ public class Validator {
         }
     }
 
-    public static Path getValidateUserPath(Scanner scanner) {
+    public static Path getValidateDegree(Scanner scanner) {
         String input = scanner.nextLine().trim();
 
         if (input.isEmpty()) {
@@ -41,6 +45,8 @@ public class Validator {
             if (!Files.exists(path)) {
                 throw new IllegalArgumentException("Path does not exist: " + path);
             }
+            if (!path.toString().toLowerCase().endsWith(".xml"))
+                throw new IllegalArgumentException("File must end with .xml");
 
             return path;
         }
@@ -49,7 +55,7 @@ public class Validator {
         }
     }
 
-    public static Long[] getValidateProgramInputs(Scanner scanner, Engine engine) {
+    public static Long[] getValidateProgramInputValues(Scanner scanner) {
         final Pattern INT_PATTERN = Pattern.compile("[-+]?\\d+");
 
         while (true) {
@@ -67,17 +73,74 @@ public class Validator {
                     if (!INT_PATTERN.matcher(s).matches()) {
                         throw new NumberFormatException("Non-numeric value:" + s);
                     }
-                    long v = Long.parseLong(s);
-                    values.add(v);
+                    long numberInput = Long.parseLong(s);
+                    if (numberInput < 0) {
+                        throw new NumberFormatException("Negative value:" + s);
+                    }
+                    values.add(numberInput);
                 }
 
                 return values.toArray(new Long[0]);
 
             } catch (Exception e) {
                 System.out.println("Invalid input: " + e.getMessage());
-                System.out.print("Please try again");
-                System.out.print("Please enter inputs values separated by commas: ");
+                System.out.println("Please try again. Please enter inputs values separated by commas: ");
             }
+        }
+    }
+
+    public static Path getValidateExistingDirectory(Scanner scanner) {
+        String input = scanner.nextLine().trim();
+        if (input.isEmpty()) throw new IllegalArgumentException("Directory path is empty.");
+        try {
+            Path dir = Path.of(input).toAbsolutePath().normalize();
+            if (!Files.exists(dir)) {
+                throw new IllegalArgumentException("Directory does not exist: " + dir);
+            }
+            if (!Files.isDirectory(dir)) {
+                throw new IllegalArgumentException("Not a directory: " + dir);
+            }
+            return dir;
+        } catch (InvalidPathException e) {
+            throw new IllegalArgumentException("Invalid directory path syntax: " + input, e);
+        }
+    }
+
+    public static Path getValidateExistingFile(Scanner scanner) {
+        String input = scanner.nextLine().trim();
+        if (input.isEmpty()) throw new IllegalArgumentException("File path is empty.");
+        try {
+            Path file = Path.of(input).toAbsolutePath().normalize();
+            if (!Files.exists(file)) {
+                throw new IllegalArgumentException("File does not exist: " + file);
+            }
+            if (!Files.isRegularFile(file)) {
+                throw new IllegalArgumentException("Not a regular file: " + file);
+            }
+            return file;
+        } catch (InvalidPathException e) {
+            throw new IllegalArgumentException("Invalid file path syntax: " + input, e);
+        }
+    }
+
+    public static String getValidateNewFileName(Scanner scanner) {
+        String fileName = scanner.nextLine().trim();
+
+        if (fileName.isEmpty()) {
+            throw new IllegalArgumentException("File name is empty.");
+        }
+
+        try {
+            String forbidden = "\\/:*?\"<>|";
+            for (char c : forbidden.toCharArray()) {
+                if (fileName.indexOf(c) >= 0) {
+                    throw new IllegalArgumentException("Illegal character in file name: " + c);
+                }
+            }
+
+            return fileName;
+        } catch (InvalidPathException e) {
+            throw new IllegalArgumentException("Invalid path syntax: " + fileName, e);
         }
     }
 }

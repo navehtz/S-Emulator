@@ -13,13 +13,15 @@ public class UIManager {
     private final MenuItem menu;
 
     private final LoadFile loadFile;
-    private final DisplayProgram displayProgram;
+    private final Display display;
     private final Expand expand;
     private final RunProgram runProgram;
     private final History history;
-    private final Scanner scanner;
+    private final SaveState saveState;
+    private final LoadState loadState;
 
     private final Engine engine;
+    private final Scanner scanner;
 
 
     public UIManager() {
@@ -27,10 +29,12 @@ public class UIManager {
         engine = new EngineImpl();
 
         this.loadFile = new LoadFile();
-        this.displayProgram = new DisplayProgram();
+        this.display = new Display();
         this.expand = new Expand();
         this.runProgram = new RunProgram();
         this.history = new History();
+        this.saveState = new SaveState();
+        this.loadState = new LoadState();
 
         this.menu = buildMenu();
     }
@@ -43,10 +47,12 @@ public class UIManager {
 
         // Second submenu
         MenuItem loadNextFileItem   = new MenuItem("Load Next File", loadFile, engine);
-        MenuItem displayProgramItem = new MenuItem("display Program", this.displayProgram, engine);
+        MenuItem displayProgramItem = new MenuItem("display Program", this.display, engine);
         MenuItem expandItem         = new MenuItem("Expand Loaded Program", this.expand, engine);
         MenuItem runFileItem        = new MenuItem("Run File", this.runProgram, engine);
         MenuItem historyItem        = new MenuItem("Show History", this.history, engine);
+        MenuItem saveState   = new MenuItem("Save State", this.saveState, engine);
+        MenuItem LoadState   = new MenuItem("Load State", this.loadState, engine);
 
         mainMenu.addSubItem(loadFirstFileItem);
 
@@ -55,6 +61,8 @@ public class UIManager {
         loadFirstFileItem.addSubItem(expandItem);
         loadFirstFileItem.addSubItem(runFileItem);
         loadFirstFileItem.addSubItem(historyItem);
+        loadFirstFileItem.addSubItem(saveState);
+        loadFirstFileItem.addSubItem(LoadState);
 
         return mainMenu;
     }
@@ -63,8 +71,9 @@ public class UIManager {
         try {
             menu.show(scanner, engine);
         }
-        catch (Exception e) {
-            // io exception
+        catch (Exception e) {   // i/o exception. not suppose to reach hear
+            System.err.println("Unexpected error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

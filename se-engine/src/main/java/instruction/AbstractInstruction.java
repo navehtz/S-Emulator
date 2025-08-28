@@ -5,11 +5,14 @@ import label.FixedLabel;
 import program.Program;
 import variable.Variable;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.LongStream;
 
 
-public abstract class AbstractInstruction implements Instruction {
+public abstract class AbstractInstruction implements Instruction, Serializable {
 
     private final InstructionData instructionData;
     private final InstructionType instructionType;
@@ -124,6 +127,25 @@ public abstract class AbstractInstruction implements Instruction {
     }
 
     @Override
+    public List<String> getInstructionExtendedDisplay(int numberOfInstructionsInProgram) {
+        if (this instanceof OriginOfAllInstruction) {
+            return Collections.emptyList();
+        }
+
+        List<String> ancestors = origin.getInstructionExtendedDisplay(numberOfInstructionsInProgram);
+        String current = getInstructionRepresentation(numberOfInstructionsInProgram);
+
+        if (ancestors == null || ancestors.isEmpty()) {
+            return List.of(current);
+        }
+
+        List<String> chain = new ArrayList<>(1 + ancestors.size());
+        chain.add(current);
+        chain.addAll(ancestors);
+        return chain;
+    }
+
+/*    @Override
     public String getInstructionExtendedDisplay(int numberOfInstructionsInProgram) {
         if(this instanceof OriginOfAllInstruction) {
             return "";
@@ -135,5 +157,5 @@ public abstract class AbstractInstruction implements Instruction {
         return ancestorsDisplay.isEmpty()
                 ? currentDisplay
                 : currentDisplay + "  <<<  " + ancestorsDisplay;
-    }
+    }*/
 }
