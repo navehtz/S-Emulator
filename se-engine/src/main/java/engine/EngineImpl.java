@@ -62,7 +62,7 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public ProgramExecutorDTO getProgramToDisplayAfterRun() {
-        ProgramDTO programDTO = buildProgramDTO(program);
+        ProgramDTO programDTO = buildProgramDTO(programExecutor.getProgram());
 
         return new ProgramExecutorDTO(programDTO,
                 programExecutor.getVariablesToValuesSorted(),

@@ -59,6 +59,11 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
     }
 
     @Override
+    public Program getProgram() {
+        return program;
+    }
+
+    @Override
     public long getVariableValue(Variable variable) {
         return context.getVariableValue(variable);
     }

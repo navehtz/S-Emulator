@@ -51,8 +51,8 @@ public class UIManager {
         MenuItem expandItem         = new MenuItem("Expand Loaded Program", this.expand, engine);
         MenuItem runFileItem        = new MenuItem("Run File", this.runProgram, engine);
         MenuItem historyItem        = new MenuItem("Show History", this.history, engine);
-        MenuItem saveState   = new MenuItem("Save Current State", this.saveState, engine);
-        MenuItem LoadState   = new MenuItem("Load Last State", this.loadState, engine);
+        MenuItem saveState   = new MenuItem("Save State", this.saveState, engine);
+        MenuItem LoadState   = new MenuItem("Load State", this.loadState, engine);
 
         mainMenu.addSubItem(loadFirstFileItem);
 
