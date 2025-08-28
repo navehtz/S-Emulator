@@ -1,6 +1,7 @@
 package console.validator;
 
 import engine.Engine;
+import exceptions.EngineLoadException;
 
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -12,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class Validator {
 
-    public static int getValidateDegree(Scanner scanner, Engine engine) {
+    public static int getValidateDegree(Scanner scanner, Engine engine) throws EngineLoadException {
         String input = scanner.nextLine();
 
         if (input.isEmpty()) {
@@ -28,7 +29,7 @@ public class Validator {
 
             return degree;
 
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | EngineLoadException e) {
             throw new IllegalArgumentException("Invalid input. Please enter a number between 0 and " + (engine.getMaxDegree()));
         }
     }

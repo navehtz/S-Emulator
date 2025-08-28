@@ -56,7 +56,7 @@ public class RunProgram implements MenuActionable {
         return inputs;
     }
 
-    private int getMaxDegree() {
+    private int getMaxDegree() throws EngineLoadException {
         int degree = 0;
 
         if (engine.getMaxDegree() == 0 ) {
