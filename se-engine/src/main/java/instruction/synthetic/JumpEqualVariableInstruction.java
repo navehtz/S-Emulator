@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JumpEqualVariableInstruction extends AbstractInstruction implements LabelReferencesInstruction, SyntheticInstruction {
-
+    private final int MAX_DEGREE = 3;
     private final List<Instruction> innerInstructions = new ArrayList<>();
     private final Label referencesLabel;
     private final Variable sourceVariable;
@@ -76,8 +76,7 @@ public class JumpEqualVariableInstruction extends AbstractInstruction implements
 
     @Override
     public int getMaxDegree() {
-        int maxDegree = 3;
-        return maxDegree;
+        return MAX_DEGREE;
     }
 
     @Override

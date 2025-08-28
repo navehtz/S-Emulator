@@ -6,12 +6,7 @@ import java.nio.file.Path;
 
 public final class EngineIO {
 
-    private EngineIO() {}
-
-
     public static void save(EngineImpl engine, Path file) throws IOException {
-
-
         Path parent = file.getParent();
         if (parent != null) {
             Files.createDirectories(parent);

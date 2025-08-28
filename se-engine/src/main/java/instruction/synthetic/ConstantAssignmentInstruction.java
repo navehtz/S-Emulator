@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConstantAssignmentInstruction extends AbstractInstruction implements SyntheticInstruction {
-
+    private final int MAX_DEGREE = 2;
     private final List<Instruction> innerInstructions = new ArrayList<>();
     private final long constantValue;
 
@@ -56,8 +56,7 @@ public class ConstantAssignmentInstruction extends AbstractInstruction implement
 
     @Override
     public int getMaxDegree() {
-        int maxDegree = 2;
-        return maxDegree;
+        return MAX_DEGREE;
     }
 
 

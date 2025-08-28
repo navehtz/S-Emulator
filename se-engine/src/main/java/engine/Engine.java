@@ -16,7 +16,7 @@ public interface Engine {
     ProgramExecutorDTO getProgramToDisplayAfterRun();
     List<ProgramExecutorDTO> getHistoryToDisplay();
 
-    int getMaxDegree();
+    int getMaxDegree() throws EngineLoadException;
     int getNumberOfInputVariables();
     void runProgram(int degree, Long... inputs) throws EngineLoadException;
 

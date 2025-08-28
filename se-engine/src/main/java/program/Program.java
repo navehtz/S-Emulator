@@ -41,6 +41,6 @@ public interface Program {
 
     List<String> getOrderedLabelsExitLastStr();
     List<String> getInputVariablesSortedStr();
-    List<String> gerInstructionsAsStringList();
+    List<String> getInstructionsAsStringList();
 
 }

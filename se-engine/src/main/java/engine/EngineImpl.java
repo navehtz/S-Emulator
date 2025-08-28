@@ -95,19 +95,12 @@ public class EngineImpl implements Engine, Serializable {
         return res;
     }
 
-    private ProgramDTO buildProgramDTO(Program p) {
-        InstructionsDTO instructionsDTO = new InstructionsDTO(p.gerInstructionsAsStringList());
-        return new ProgramDTO(
-                p.getName(),
-                p.getOrderedLabelsExitLastStr(),
-                p.getInputVariablesSortedStr(),
-                instructionsDTO,
-                p.getExpandedProgram()
-        );
-    }
-
     @Override
-    public int getMaxDegree() {
+    public int getMaxDegree() throws EngineLoadException {
+        if(program == null) {
+            throw new EngineLoadException("Program not loaded before asking for max degree");
+        }
+
         return program.calculateProgramMaxDegree();
     }
 
@@ -116,21 +109,24 @@ public class EngineImpl implements Engine, Serializable {
         Program deepCopyOfProgram = program.cloneProgram(xmlPath, program.getNextLabelNumber(), program.getNextWorkVariableNumber());
         deepCopyOfProgram.expandProgram(degree);
 
-        InstructionsDTO instructionsDTO = new InstructionsDTO(deepCopyOfProgram.gerInstructionsAsStringList());
+        return buildProgramDTO(deepCopyOfProgram);
+    }
 
+    private ProgramDTO buildProgramDTO(Program program) {
+        InstructionsDTO instructionsDTO = new InstructionsDTO(program.getInstructionsAsStringList());
         return new ProgramDTO(
-                deepCopyOfProgram.getName(),
-                deepCopyOfProgram.getOrderedLabelsExitLastStr(),
-                deepCopyOfProgram.getInputVariablesSortedStr(),
+                program.getName(),
+                program.getOrderedLabelsExitLastStr(),
+                program.getInputVariablesSortedStr(),
                 instructionsDTO,
-                deepCopyOfProgram.getExpandedProgram()
+                program.getExpandedProgram()
         );
     }
 
     @Override
     public void saveState(Path path) throws EngineLoadException {
         try {
-            EngineIO.save(this, path);   // שימוש במתודה הקיימת
+            EngineIO.save(this, path);
         } catch (IOException e) {
             throw new EngineLoadException("Failed to save engine state: " + e.getMessage(), e);
         }
@@ -139,7 +135,7 @@ public class EngineImpl implements Engine, Serializable {
     @Override
     public void loadState(Path path) throws EngineLoadException {
         try {
-            EngineImpl loaded = EngineIO.load(path); // שימוש במתודה הקיימת
+            EngineImpl loaded = EngineIO.load(path);
 
             this.xmlPath = loaded.xmlPath;
             this.program = loaded.program;
@@ -149,7 +145,6 @@ public class EngineImpl implements Engine, Serializable {
             throw new EngineLoadException("Failed to load engine state: " + e.getMessage(), e);
         }
     }
-
 
     @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {

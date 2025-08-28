@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GotoLabelInstruction extends AbstractInstruction implements LabelReferencesInstruction, SyntheticInstruction {
-
-    private final List<Instruction> innerInstructions = new ArrayList<>();;
+    private final int MAX_DEGREE = 1;
+    private final List<Instruction> innerInstructions = new ArrayList<>();
     private final Label referencesLabel;
 
     public GotoLabelInstruction(Variable variable, Label referencesLabel, Instruction origin, int instructionNumber) {
@@ -59,8 +59,7 @@ public class GotoLabelInstruction extends AbstractInstruction implements LabelRe
 
     @Override
     public int getMaxDegree() {
-        int maxDegree = 1;
-        return maxDegree;
+        return MAX_DEGREE;
     }
 
     @Override

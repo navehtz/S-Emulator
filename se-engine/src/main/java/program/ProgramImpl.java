@@ -193,7 +193,7 @@ public class ProgramImpl implements Program, Serializable {
     }
 
     @Override
-    public List<String> gerInstructionsAsStringList() {
+    public List<String> getInstructionsAsStringList() {
         int n = programInstructions.size();
         return programInstructions.stream()
                 .map(ins -> ins.getInstructionRepresentation(n))

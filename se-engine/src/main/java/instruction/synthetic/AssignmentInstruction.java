@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AssignmentInstruction extends AbstractInstruction implements SyntheticInstruction {
-
+    private final int MAX_DEGREE = 2;
     private final List<Instruction> innerInstructions = new ArrayList<>();
     private final Variable sourceVariable;
 
@@ -66,8 +66,7 @@ public class AssignmentInstruction extends AbstractInstruction implements Synthe
 
     @Override
     public int getMaxDegree() {
-        int maxDegree = 2;
-        return maxDegree;
+        return MAX_DEGREE;
     }
 
     @Override
