@@ -1,5 +1,6 @@
 package program;
 
+import dto.InstructionDTO;
 import exceptions.EngineLoadException;
 import instruction.Instruction;
 import label.Label;
@@ -25,7 +26,10 @@ public interface Program {
     List<Variable> getInputAndWorkVariablesSortedBySerial();
     List<Label> getLabelsInProgram();
     Map<Label, Instruction> getLabelToInstruction();
-    List<List<String>> getExpandedProgram();
+    List<String> getOrderedLabelsExitLastStr();
+    List<String> getInputVariablesSortedStr();
+    List<List<InstructionDTO>> getExpandedProgram();
+    List<InstructionDTO> getInstructionDtoList();
 
     Program cloneProgram(Path xmlPath, int nextLabelNumber, int nextWorkVariableNumber) throws EngineLoadException;
     void addInstruction(Instruction instruction);
@@ -37,9 +41,4 @@ public interface Program {
     Variable generateUniqueVariable();
     void sortVariableSetByNumber(Set<Variable> variables);
     void addInputVariable(Variable variable);
-
-    List<String> getOrderedLabelsExitLastStr();
-    List<String> getInputVariablesSortedStr();
-    List<String> getInstructionsAsStringList();
-
 }

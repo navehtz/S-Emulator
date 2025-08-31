@@ -1,5 +1,6 @@
 package program;
 
+import dto.InstructionDTO;
 import exceptions.EngineLoadException;
 import label.FixedLabel;
 import label.Label;
@@ -27,8 +28,6 @@ public class ProgramImpl implements Program, Serializable {
     private final List<Label> labelsInProgram;  // Need it to keep the order of the labels
     private final Set<Label> labelsAddedAfterExtension;  // Need it to keep the order of the labels
     private final Set<Label> referencedLabels;
-
-    // TODO: this.labelsAddedAfterExtension = new LinkedHashSet<>();
 
     private int nextLabelNumber = 1;
     private int nextWorkVariableNumber = 1;
@@ -193,20 +192,22 @@ public class ProgramImpl implements Program, Serializable {
     }
 
     @Override
-    public List<String> getInstructionsAsStringList() {
-        int n = programInstructions.size();
-        return programInstructions.stream()
-                .map(ins -> ins.getInstructionRepresentation(n))
-                .collect(Collectors.toList());
+    public List<InstructionDTO> getInstructionDtoList() {
+        List<InstructionDTO> instructionDTOList = new ArrayList<>();
+
+        for(Instruction currInstruction : programInstructions) {
+            instructionDTOList.add(currInstruction.getInstructionDTO());
+        }
+
+        return instructionDTOList;
     }
 
     @Override
-    public List<List<String>> getExpandedProgram() {
-        int numberOfInstructionsInProgram = programInstructions.size();
-        List<List<String>> expandedProgram = new ArrayList<>();
+    public List<List<InstructionDTO>> getExpandedProgram() {
+        List<List<InstructionDTO>> expandedProgram = new ArrayList<>();
 
         for (Instruction instruction : programInstructions) {
-            List<String> chain = instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram);
+            List<InstructionDTO> chain = instruction.getInstructionExtendedList();
             if (chain != null && !chain.isEmpty()) {
                 expandedProgram.add(chain);
             }

@@ -2,6 +2,7 @@ package console.actions;
 
 import console.menu.MenuActionable;
 import console.validator.Validator;
+import dto.InstructionDTO;
 import dto.ProgramDTO;
 import engine.Engine;
 import exceptions.EngineLoadException;
@@ -33,8 +34,19 @@ public class Expand implements MenuActionable {
     }
 
     private void displayExpandedProgram(ProgramDTO programDTO) {
-        for (List<String> line : programDTO.getExpandedProgram()) {
-            System.out.println(String.join(" >>> ", line));
+        List<List<InstructionDTO>> lines = programDTO.getExpandedProgram();
+        if (lines == null || lines.isEmpty()) {
+            System.out.println("(no instructions)");
+            return;
+        }
+
+        int total = lines.size();
+
+        for (List<InstructionDTO> line : lines) {
+            String joined = line.stream()
+                    .map(dto -> Display.getInstructionRepresentation(dto, total))
+                    .collect(java.util.stream.Collectors.joining(" >>> "));
+            System.out.println(joined);
         }
     }
 }

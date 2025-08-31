@@ -1,5 +1,6 @@
 package instruction;
 
+import dto.InstructionDTO;
 import execution.ExecutionContext;
 import label.Label;
 import program.Program;
@@ -7,10 +8,12 @@ import variable.Variable;
 
 import java.util.List;
 
-public interface Instruction {
+public interface Instruction{
 
     String getName();
+    String getInstructionType();
     Label getLabel();
+    Label getReferenceLabel();
     Variable getTargetVariable();
     Variable getSourceVariable();
     int getInstructionNumber();
@@ -18,12 +21,10 @@ public interface Instruction {
     List<Instruction> getExtendedInstruction();
     int getCycleOfInstruction();
     Instruction getOriginalInstruction();
-    List<String> getInstructionExtendedDisplay(int numberOfInstructionsInProgram);
-    String getInstructionRepresentation(int numberOfInstructionsInProgram);
+    InstructionDTO getInstructionDTO();
+    List<InstructionDTO> getInstructionExtendedList();
 
     void setProgramOfThisInstruction(Program programOfThisInstruction);
     Label execute(ExecutionContext context);
     Instruction createInstructionWithInstructionNumber(int instructionNumber);
-    //int calculateInstructionMaxDegree(Program program);
-
 }

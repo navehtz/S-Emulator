@@ -4,20 +4,20 @@ import java.util.List;
 
 public class ProgramDTO {
     private final String programName;
-    private final List<String> LabelsStr;
+    private final List<String> labelsStr;
     private final List<String> inputVariables;
     private final InstructionsDTO instructions;
-    private final List<List<String>> expandedProgram;
+    private final List<List<InstructionDTO>> expandedProgram;
 
     public ProgramDTO(
             String programName,
-            List<String> LabelsStr,
+            List<String> labelsStr,
             List<String> inputVariables,
             InstructionsDTO instructions,
-            List<List<String>> expandedProgram
+            List<List<InstructionDTO>> expandedProgram
     ) {
         this.programName = programName;
-        this.LabelsStr = LabelsStr;
+        this.labelsStr = labelsStr;
         this.inputVariables = inputVariables;
         this.instructions = instructions;
         this.expandedProgram = expandedProgram;
@@ -28,7 +28,7 @@ public class ProgramDTO {
     }
 
     public List<String> getLabelsStr() {
-        return LabelsStr;
+        return labelsStr;
     }
 
     public List<String> getInputVariables() {
@@ -39,7 +39,7 @@ public class ProgramDTO {
         return instructions;
     }
 
-    public List<List<String>> getExpandedProgram() {
+    public List<List<InstructionDTO>> getExpandedProgram() {
         return expandedProgram;
     }
 }

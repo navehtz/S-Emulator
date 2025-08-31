@@ -1,5 +1,6 @@
 package engine;
 
+import dto.InstructionDTO;
 import dto.InstructionsDTO;
 import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
@@ -77,16 +78,16 @@ public class EngineImpl implements Engine, Serializable {
     public List<ProgramExecutorDTO> getHistoryToDisplay() {
         List<ProgramExecutorDTO> res = new ArrayList<>();
 
-        for(ProgramExecutor programExecutor : executionHistory.getProgramsExecutions()) {
+        for(ProgramExecutor programExecutorItem : executionHistory.getProgramsExecutions()) {
 
             ProgramDTO programDTO = buildProgramDTO(program);
 
             ProgramExecutorDTO programExecutorDTO = new ProgramExecutorDTO(programDTO,
-                    programExecutor.getVariablesToValuesSorted(),
-                    programExecutor.getVariableValue(Variable.RESULT),
-                    programExecutor.getTotalCyclesOfProgram(),
-                    programExecutor.getRunDegree(),
-                    programExecutor.getInputsValuesOfUser()
+                    programExecutorItem.getVariablesToValuesSorted(),
+                    programExecutorItem.getVariableValue(Variable.RESULT),
+                    programExecutorItem.getTotalCyclesOfProgram(),
+                    programExecutorItem.getRunDegree(),
+                    programExecutorItem.getInputsValuesOfUser()
             );
 
             res.add(programExecutorDTO);
@@ -113,7 +114,8 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     private ProgramDTO buildProgramDTO(Program program) {
-        InstructionsDTO instructionsDTO = new InstructionsDTO(program.getInstructionsAsStringList());
+        InstructionsDTO instructionsDTO = new InstructionsDTO(program.getInstructionDtoList());
+
         return new ProgramDTO(
                 program.getName(),
                 program.getOrderedLabelsExitLastStr(),

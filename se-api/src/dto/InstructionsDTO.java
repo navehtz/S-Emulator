@@ -1,16 +1,15 @@
 package dto;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class InstructionsDTO {
-    private List<String> programInstructionsStr = new ArrayList<>();
+    private final List<InstructionDTO> programInstructionsDtoList;
 
-    public InstructionsDTO(List<String> programInstructionsStr) {
-        this.programInstructionsStr = programInstructionsStr;
+    public InstructionsDTO(List<InstructionDTO> programInstructionsDtoList) {
+        this.programInstructionsDtoList = programInstructionsDtoList;
     }
 
-    public List<String> getProgramInstructionsStr() {
-        return programInstructionsStr;
+    public List<InstructionDTO> getProgramInstructionsDtoList() {
+        return programInstructionsDtoList;
     }
 }

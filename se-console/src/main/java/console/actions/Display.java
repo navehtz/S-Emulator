@@ -1,12 +1,14 @@
 package console.actions;
 
 import console.menu.MenuActionable;
+import dto.InstructionDTO;
 import dto.InstructionsDTO;
 import dto.ProgramDTO;
 import engine.Engine;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.LongStream;
 
 import static console.menu.MenuItem.printTitle;
 
@@ -14,6 +16,7 @@ public class Display implements MenuActionable {
 
     @Override
     public void startAction(Scanner scanner, Engine engine) {
+
         printTitle("Display Program");
         ProgramDTO programDTO = engine.getProgramToDisplay();
         displayProgram(programDTO);
@@ -35,13 +38,35 @@ public class Display implements MenuActionable {
                 programDTO.getProgramName(),
                 String.join(", ", variablesInputInProgram),
                 labelsDisplay,
-                programRepresentation(programDTO.getInstructions())
+                getProgramInstructionsRepresentation(programDTO.getInstructions())
         );
 
         System.out.println(display);
     }
 
-    public static String programRepresentation(InstructionsDTO instructionsDTO) {
-        return String.join(System.lineSeparator(), instructionsDTO.getProgramInstructionsStr());
+    public static String getProgramInstructionsRepresentation(InstructionsDTO instructionsDTO) {
+        StringBuilder instructionsRepresentation = new StringBuilder();
+        int n = instructionsDTO.getProgramInstructionsDtoList().size();
+
+        for (InstructionDTO instructionDTO : instructionsDTO.getProgramInstructionsDtoList()) {
+            instructionsRepresentation.append(getInstructionRepresentation(instructionDTO, n)).append(System.lineSeparator());
+        }
+
+        return instructionsRepresentation.toString();
+    }
+
+    public static String getInstructionRepresentation(InstructionDTO instructionDTO, int numberOfInstructionsInProgram) {
+        int labelPadding = 3;
+        int numberPadding = numberOfInstructionsInProgram == 0 ? 1
+                : (int) LongStream.iterate(Math.abs(numberOfInstructionsInProgram), x -> x > 0, x -> x / 10).count();
+
+        return String.format(
+                "#%" + numberPadding + "d (%s)[ %-" + labelPadding + "s ] %-" + 5 + "s (%d)",
+                instructionDTO.getInstructionNumber(),
+                instructionDTO.getInstructionTypeStr(),
+                instructionDTO.getLabelStr(),
+                instructionDTO.getCommand(),
+                instructionDTO.getCyclesNumber()
+        );
     }
 }
