@@ -1,6 +1,8 @@
 package label;
 
-public interface Label {
+import java.io.Serializable;
+
+public interface Label extends Serializable {
     String getLabelRepresentation();
     int getNumber();
 }

@@ -1,6 +1,5 @@
 package engine;
 
-import dto.InstructionDTO;
 import dto.InstructionsDTO;
 import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
@@ -40,9 +39,8 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public void runProgram(int degree, Long... inputs) throws EngineLoadException {
-        Program deepCopyOfProgram = program.cloneProgram(xmlPath, program.getNextLabelNumber(), program.getNextWorkVariableNumber());
-
+    public void runProgram(int degree, Long... inputs) {
+        Program deepCopyOfProgram = program.deepClone();
         deepCopyOfProgram.expandProgram(degree);
 
         programExecutor = new ProgramExecutorImpl(deepCopyOfProgram);
@@ -106,8 +104,8 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public ProgramDTO getExpandedProgramToDisplay(int degree) throws EngineLoadException {
-        Program deepCopyOfProgram = program.cloneProgram(xmlPath, program.getNextLabelNumber(), program.getNextWorkVariableNumber());
+    public ProgramDTO getExpandedProgramToDisplay(int degree) {
+        Program deepCopyOfProgram = program.deepClone();
         deepCopyOfProgram.expandProgram(degree);
 
         return buildProgramDTO(deepCopyOfProgram);

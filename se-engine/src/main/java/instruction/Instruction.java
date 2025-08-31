@@ -6,9 +6,10 @@ import label.Label;
 import program.Program;
 import variable.Variable;
 
+import java.io.Serializable;
 import java.util.List;
 
-public interface Instruction{
+public interface Instruction extends Serializable {
 
     String getName();
     String getInstructionType();

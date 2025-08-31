@@ -5,7 +5,6 @@ import exceptions.EngineLoadException;
 import label.FixedLabel;
 import label.Label;
 import label.LabelImpl;
-import loader.XmlProgramLoader;
 import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;
@@ -13,8 +12,7 @@ import instruction.Instruction;
 import instruction.LabelReferencesInstruction;
 import instruction.SyntheticInstruction;
 
-import java.io.Serializable;
-import java.nio.file.Path;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,24 +42,19 @@ public class ProgramImpl implements Program, Serializable {
     }
 
     @Override
-    public Program cloneProgram(Path xmlPath, int nextLabelNumber, int nextWorkVariableNumber) throws EngineLoadException {
-        XmlProgramLoader loader = new XmlProgramLoader();
-        Program cloned = loader.load(xmlPath);
-        cloned.setNextLabelNumber(nextLabelNumber);
-        cloned.setNextWorkVariableNumber(nextWorkVariableNumber);
-        cloned.initialize();
-
-        return cloned;
-    }
-
-    @Override
-    public void setNextLabelNumber(int nextLabelNumber) {
-        this.nextLabelNumber = nextLabelNumber;
-    }
-
-    @Override
-    public void setNextWorkVariableNumber(int nextWorkVariableNumber) {
-        this.nextWorkVariableNumber = nextWorkVariableNumber;
+    public ProgramImpl deepClone() {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            try (ObjectOutputStream out = new ObjectOutputStream(bos)) {
+                out.writeObject(this);
+            }
+            ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+            try (ObjectInputStream in = new ObjectInputStream(bis)) {
+                return (ProgramImpl) in.readObject();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("Failed cloning program", e);
+        }
     }
 
     @Override
@@ -79,8 +72,6 @@ public class ProgramImpl implements Program, Serializable {
     public void addInstruction(Instruction instruction) {
 
         updateVariableAndLabel(instruction);
-
-        //totalCycles += instruction.getCycleOfInstruction();
         programInstructions.add(instruction);
     }
 
@@ -138,16 +129,6 @@ public class ProgramImpl implements Program, Serializable {
     @Override
     public Set<Variable> getWorkVariables() {
         return this.workVariables;
-    }
-
-    @Override
-    public int getNextLabelNumber() {
-        return nextLabelNumber;
-    }
-
-    @Override
-    public int getNextWorkVariableNumber() {
-        return nextWorkVariableNumber;
     }
 
     @Override
@@ -261,7 +242,7 @@ public class ProgramImpl implements Program, Serializable {
                     nextInstructionNumber++;
                 }
 
-                iterator.remove();                              // Remove the old instruction
+                iterator.remove();                                   // Remove the old instruction
                 getLabelToInstruction().remove(originalLabel);       // Remove the label from the map because we will add it again in line 239
                 getLabelsInProgram().remove(originalLabel);          // Remove the label from the map because we will add it again in line 239
 
