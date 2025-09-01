@@ -44,7 +44,7 @@ public class Expand implements MenuActionable {
 
         for (List<InstructionDTO> line : lines) {
             String joined = line.stream()
-                    .map(dto -> Display.getInstructionRepresentation(dto, total))
+                    .map(dto -> Display.getInstructionRepresentation(dto, total, true))
                     .collect(java.util.stream.Collectors.joining(" >>> "));
             System.out.println(joined);
         }

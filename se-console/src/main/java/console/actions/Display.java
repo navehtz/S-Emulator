@@ -49,15 +49,16 @@ public class Display implements MenuActionable {
         int n = instructionsDTO.getProgramInstructionsDtoList().size();
 
         for (InstructionDTO instructionDTO : instructionsDTO.getProgramInstructionsDtoList()) {
-            instructionsRepresentation.append(getInstructionRepresentation(instructionDTO, n)).append(System.lineSeparator());
+            instructionsRepresentation.append(getInstructionRepresentation(instructionDTO, n, false)).append(System.lineSeparator());
         }
 
         return instructionsRepresentation.toString();
     }
 
-    public static String getInstructionRepresentation(InstructionDTO instructionDTO, int numberOfInstructionsInProgram) {
+    public static String getInstructionRepresentation(InstructionDTO instructionDTO, int numberOfInstructionsInProgram, boolean expandView) {
         int labelPadding = 3;
-        int numberPadding = numberOfInstructionsInProgram == 0 ? 1
+        int numberPadding = numberOfInstructionsInProgram == 0 || expandView
+                ? 1
                 : (int) LongStream.iterate(Math.abs(numberOfInstructionsInProgram), x -> x > 0, x -> x / 10).count();
 
         return String.format(
