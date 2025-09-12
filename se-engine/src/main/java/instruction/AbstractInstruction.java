@@ -1,18 +1,16 @@
 package instruction;
 
-import label.Label;
+import dto.InstructionDTO;
 import label.FixedLabel;
-import program.Program;
+import label.Label;
 import variable.Variable;
+import program.Program;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.LongStream;
 
-
-public abstract class AbstractInstruction implements Instruction, Serializable {
+public abstract class AbstractInstruction implements Instruction {
 
     private final InstructionData instructionData;
     private final InstructionType instructionType;
@@ -22,7 +20,7 @@ public abstract class AbstractInstruction implements Instruction, Serializable {
     private final Instruction origin;
     private Program programOfThisInstruction = null;
 
-    public AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable, Instruction origin, int instructionNumber) {
+    protected AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable, Instruction origin, int instructionNumber) {
         this(instructionData, instructionType, targetVariable,FixedLabel.EMPTY, origin, instructionNumber);
     }
 
@@ -37,7 +35,11 @@ public abstract class AbstractInstruction implements Instruction, Serializable {
 
     @Override
     public String getName() {
-        return this.instructionData.getName();
+        return instructionData.getName();
+    }
+
+    public String getInstructionType() {
+        return instructionType.getInstructionType();
     }
 
     @Override
@@ -46,13 +48,11 @@ public abstract class AbstractInstruction implements Instruction, Serializable {
     }
 
     @Override
-    public Variable getTargetVariable() {
-        return this.targetVariable;
-    }
+    public Label getReferenceLabel() { return null; }
 
     @Override
-    public Variable getSourceVariable() {
-        return null;
+    public Variable getTargetVariable() {
+        return this.targetVariable;
     }
 
     @Override
@@ -61,46 +61,15 @@ public abstract class AbstractInstruction implements Instruction, Serializable {
     }
 
     @Override
-    public String getInstructionRepresentation(int numberOfInstructionsInProgram) {
-        int labelPadding = 3;
-        int numberPadding = numberOfInstructionsInProgram == 0 ? 1
-                : (int) LongStream.iterate(Math.abs(numberOfInstructionsInProgram), x -> x > 0, x -> x / 10).count();
-
-        String label = getLabel() == null ? "" : getLabel().getLabelRepresentation();
-
-        return String.format(
-                "#%" + numberPadding + "d (%s)[ %-" + labelPadding + "s ] %-" + 5 + "s (%d)",
-                this.instructionNumber,
-                instructionType.getInstructionType(),
-                label,
-                getCommand(),
-                getCycleOfInstruction()
-        );
-    }
-
-    @Override
     public int getCycleOfInstruction() {
         return instructionData.getCycles();
     }
 
-/*    @Override
-    public int calculateInstructionMaxDegree(Program program) {
 
-        if (this instanceof SyntheticInstruction syntheticInstruction) {
-
-            this.setProgramOfThisInstruction(program);
-            syntheticInstruction.setInnerInstructions();
-
-            int innerMax = 0;
-            for(Instruction innerInstruction : syntheticInstruction.getInnerInstructions()) {
-                  innerMax = Math.max(innerMax, innerInstruction.calculateInstructionMaxDegree(program));
-            }
-
-            return innerMax + 1;
-        }
-
-        return 0;
-    }*/
+    @Override
+    public Variable getSourceVariable() {
+        return null;
+    }
 
     @Override
     public List<Instruction> getExtendedInstruction() {
@@ -127,35 +96,50 @@ public abstract class AbstractInstruction implements Instruction, Serializable {
     }
 
     @Override
-    public List<String> getInstructionExtendedDisplay(int numberOfInstructionsInProgram) {
+    public InstructionDTO getInstructionDTO() {
+        String referenceLabelStr = getReferenceLabel() != null ? getReferenceLabel().getLabelRepresentation() : "no ref label";
+        String sourceVariableStr = getSourceVariable() != null ? getSourceVariable().getRepresentation() : "no source variable";
+
+        InstructionDTO parentDto = null;
+        Instruction originalInstruction = getOriginalInstruction();
+        if (originalInstruction != null && !(originalInstruction instanceof OriginOfAllInstruction)) {
+            parentDto = originalInstruction.getInstructionDTO();
+        }
+
+        return new InstructionDTO(
+                getName(),
+                getInstructionNumber(),
+                getCycleOfInstruction(),
+                getInstructionType(),
+                getLabel().getLabelRepresentation(),
+                referenceLabelStr,
+                getTargetVariable().getRepresentation(),
+                sourceVariableStr,
+                getCommand(),
+                parentDto
+        );
+    }
+
+    @Override
+    public List<InstructionDTO> getInstructionExtendedList() {
         if (this instanceof OriginOfAllInstruction) {
             return Collections.emptyList();
         }
 
-        List<String> ancestors = origin.getInstructionExtendedDisplay(numberOfInstructionsInProgram);
-        String current = getInstructionRepresentation(numberOfInstructionsInProgram);
+        List<InstructionDTO> ancestors =
+                (getOriginalInstruction() != null)
+                        ? getOriginalInstruction().getInstructionExtendedList()
+                        : Collections.emptyList();
 
-        if (ancestors == null || ancestors.isEmpty()) {
+        InstructionDTO current = this.getInstructionDTO();
+
+        if (ancestors.isEmpty()) {
             return List.of(current);
         }
 
-        List<String> chain = new ArrayList<>(1 + ancestors.size());
+        List<InstructionDTO> chain = new ArrayList<>(1 + ancestors.size());
         chain.add(current);
         chain.addAll(ancestors);
         return chain;
     }
-
-/*    @Override
-    public String getInstructionExtendedDisplay(int numberOfInstructionsInProgram) {
-        if(this instanceof OriginOfAllInstruction) {
-            return "";
-        }
-
-        String ancestorsDisplay = origin.getInstructionExtendedDisplay(numberOfInstructionsInProgram);
-        String currentDisplay = getInstructionRepresentation(numberOfInstructionsInProgram);
-
-        return ancestorsDisplay.isEmpty()
-                ? currentDisplay
-                : currentDisplay + "  <<<  " + ancestorsDisplay;
-    }*/
 }

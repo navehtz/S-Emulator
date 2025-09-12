@@ -1,10 +1,10 @@
 package variable;
 
-public interface Variable {
+import java.io.Serializable;
+
+public interface Variable extends Serializable {
     VariableType getType();
     String getRepresentation();
-    int getNumber();
-    // TODO: ask aviad how to convert it to static initializer
+    int getIndex();
     Variable RESULT = new VariableImpl(VariableType.RESULT, 0);
-
 }

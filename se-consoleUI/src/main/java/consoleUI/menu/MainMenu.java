@@ -1,4 +1,4 @@
-package console.menu;
+package consoleUI.menu;
 
 public class MainMenu extends MenuItem{
 

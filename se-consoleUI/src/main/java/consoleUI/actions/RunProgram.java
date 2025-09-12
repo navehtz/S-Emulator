@@ -1,7 +1,7 @@
-package console.actions;
+package consoleUI.actions;
 
-import console.menu.MenuActionable;
-import console.validator.Validator;
+import consoleUI.menu.MenuActionable;
+import consoleUI.validator.Validator;
 import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
 import engine.Engine;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import static console.menu.MenuItem.printTitle;
+import static consoleUI.menu.MenuItem.printTitle;
 
 public class RunProgram implements MenuActionable {
     private Engine engine;
@@ -36,7 +36,7 @@ public class RunProgram implements MenuActionable {
     }
 
     private void displayInputVariables() {
-        List<String> variablesInputInProgram = engine.getProgramToDisplay().getInputVariables();
+        List<String> variablesInputInProgram = engine.getProgramToDisplay().inputVariables();
 
         String displayInputVariables = String.format(
                 "Inputs: %s", String.join(", ", variablesInputInProgram)
@@ -71,23 +71,23 @@ public class RunProgram implements MenuActionable {
     }
 
     private void displayProgramAfterRun(ProgramExecutorDTO programExecutorDTO) {
-        ProgramDTO programDTO = programExecutorDTO.getProgramDTO();
+        ProgramDTO programDTO = programExecutorDTO.programDTO();
 
         Display.displayProgram(programDTO);
         System.out.println();
 
-        System.out.printf("Result: %d%n%n", programExecutorDTO.getResult());
+        System.out.printf("Result: %d%n%n", programExecutorDTO.result());
 
         displayVariablesSorted(programExecutorDTO);
 
-        System.out.printf("Cycles: %d%n%n", programExecutorDTO.getTotalCycles());
+        System.out.printf("Cycles: %d%n%n", programExecutorDTO.totalCycles());
     }
 
     private void displayVariablesSorted(ProgramExecutorDTO programExecutorDTO) {
         System.out.println("Variables:");
-        System.out.printf("y = %d%n", programExecutorDTO.getResult());
+        System.out.printf("y = %d%n", programExecutorDTO.result());
 
-        for (Map.Entry<String, Long> entry : programExecutorDTO.getVariablesToValuesSorted().entrySet()) {
+        for (Map.Entry<String, Long> entry : programExecutorDTO.variablesToValuesSorted().entrySet()) {
             System.out.printf("%s = %d%n", entry.getKey(), entry.getValue());
         }
         System.out.println();

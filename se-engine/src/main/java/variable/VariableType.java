@@ -14,35 +14,9 @@ public enum VariableType {
     }
 
     public String getVariableRepresentation(int number) {
-        return this == RESULT ? prefix : prefix + number;           // y will get only the letter
+        return this == RESULT ? prefix : (prefix + number);           // y will get only the letter
     }
 
     public int rank() { return rank; }
     public String prefix() { return prefix; }
 }
-
-/*
-public enum VariableType {
-    INPUT{
-        public String getVariableRepresentation(int number) {
-            return "x" + number;
-        }
-        public int rank() { return 0; }
-    },
-    WORK{
-        public String getVariableRepresentation(int number) {
-            return "z" + number;
-        }
-        public int rank() { return 1; }
-    },
-    RESULT{
-        public String getVariableRepresentation(int number) {
-            return "y";
-        }
-        public int rank() { return 2; }
-    };
-
-    public abstract String getVariableRepresentation(int number);
-    public abstract int rank();
-}
-*/

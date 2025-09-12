@@ -1,14 +1,15 @@
 package variable;
 
 import java.io.Serializable;
+import java.util.Objects;
 
-public class VariableImpl implements Variable, Serializable {
+public class VariableImpl implements Variable , Serializable {
     private final VariableType type;
-    private final int number;
+    private final int index;
 
-    public VariableImpl(VariableType variableType, int number) {
+    public VariableImpl(VariableType variableType, int index) {
         this.type = variableType;
-        this.number = (type == VariableType.RESULT) ? 0 : number;       // y will always get 0
+        this.index = (type == VariableType.RESULT) ? 0 : index;
     }
 
     @Override
@@ -18,24 +19,23 @@ public class VariableImpl implements Variable, Serializable {
 
     @Override
     public String getRepresentation() {
-        return type.getVariableRepresentation(number);
+        return type.getVariableRepresentation(index);
     }
 
     @Override
-    public int getNumber() {
-        return number;
+    public int getIndex() {
+        return index;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof VariableImpl other)) return false;
-
-        return this.number == other.number && this.type == other.type;
+        return this.index == other.index && this.type == other.type;
     }
 
     @Override
     public int hashCode() {
-        return java.util.Objects.hash(type, number);
+        return Objects.hash(type, index);
     }
 }

@@ -1,10 +1,10 @@
 package program;
 
+import dto.InstructionDTO;
 import exceptions.EngineLoadException;
 import label.FixedLabel;
 import label.Label;
 import label.LabelImpl;
-import loader.XmlProgramLoader;
 import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;
@@ -12,8 +12,7 @@ import instruction.Instruction;
 import instruction.LabelReferencesInstruction;
 import instruction.SyntheticInstruction;
 
-import java.io.Serializable;
-import java.nio.file.Path;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,45 +23,130 @@ public class ProgramImpl implements Program, Serializable {
     private final Set<Variable> inputVariables;
     private final Set<Variable> workVariables;
     private final Map<Label, Instruction> labelToInstruction;
-    private final List<Label> labelsInProgram;  // Need it to keep the order of the labels
-    private final Set<Label> labelsAddedAfterExtension;  // Need it to keep the order of the labels
+    private final List<Label> labelsInProgram;              // keep order
+    private final Set<Label> labelsAddedAfterExtension;     // keep order after expansion
     private final Set<Label> referencedLabels;
-
-    // TODO: this.labelsAddedAfterExtension = new LinkedHashSet<>();
 
     private int nextLabelNumber = 1;
     private int nextWorkVariableNumber = 1;
 
-    public ProgramImpl(String name) {
-        this.programName = name;
+    // Private ctor for Builder
+    private ProgramImpl(Builder builder) {
+        this.programName = (builder.programName == null || builder.programName.isBlank())
+                ? "Unnamed Program" : builder.programName;
+
         this.programInstructions = new ArrayList<>();
-        this.labelToInstruction = new HashMap<>();
+        this.labelToInstruction = new LinkedHashMap<>();
         this.inputVariables = new LinkedHashSet<>();
         this.workVariables = new LinkedHashSet<>();
         this.labelsInProgram = new ArrayList<>();
         this.labelsAddedAfterExtension = new LinkedHashSet<>();
-        this.referencedLabels  = new LinkedHashSet<>();
+        this.referencedLabels = new LinkedHashSet<>();
+
+        // bucket declared variables (even if not used in instructions)
+        for (Variable v : builder.variables) {
+            if (v == null) continue;
+            if (v.getType() == VariableType.INPUT)  inputVariables.add(v);
+            else if (v.getType() == VariableType.WORK) workVariables.add(v);
+        }
+
+        // keep declared labels in order
+        for (Label lbl : builder.labels) {
+            if (lbl != null && lbl != FixedLabel.EMPTY && !labelsInProgram.contains(lbl)) {
+                labelsInProgram.add(lbl);
+            }
+        }
+
+        // add instructions via instance addInstruction to keep maps/sets consistent
+        for (Instruction ins : builder.programInstructions) {
+            if (ins != null) addInstruction(ins);
+        }
+
+        sortVariableSetByNumber(inputVariables);
+        sortVariableSetByNumber(workVariables);
+        initialize();
     }
 
-    @Override
-    public Program cloneProgram(Path xmlPath, int nextLabelNumber, int nextWorkVariableNumber) throws EngineLoadException {
-        XmlProgramLoader loader = new XmlProgramLoader();
-        Program cloned = loader.load(xmlPath);
-        cloned.setNextLabelNumber(nextLabelNumber);
-        cloned.setNextWorkVariableNumber(nextWorkVariableNumber);
-        cloned.initialize();
+    // --------- Builder ----------
+    public static final class Builder {
+        private String programName;
+        private final List<Instruction> programInstructions = new ArrayList<>();
+        private final Set<Variable> variables = new LinkedHashSet<>();
+        private final List<Label> labels = new ArrayList<>();
 
-        return cloned;
+        public Builder withName(String name) {
+            this.programName = name;
+            return this;
+        }
+
+        public Builder withInstructions(Collection<? extends Instruction> newInstructions) {
+            programInstructions.clear();
+            if (newInstructions != null) programInstructions.addAll(newInstructions);
+            return this;
+        }
+
+        public Builder addInstruction(Instruction instruction) {
+            if (instruction != null) programInstructions.add(instruction);
+            return this;
+        }
+
+        public Builder addInstructions(Instruction... instructions) {
+            if (instructions != null) programInstructions.addAll(Arrays.asList(instructions));
+            return this;
+        }
+
+        public Builder withVariables(Collection<? extends Variable> newVariables) {
+            variables.clear();
+            if (newVariables != null) variables.addAll(newVariables);
+            return this;
+        }
+
+        public Builder addVariable(Variable v) {
+            if (v != null) variables.add(v);
+            return this;
+        }
+
+        public Builder addVariables(Variable... vars) {
+            if (vars != null) variables.addAll(Arrays.asList(vars));
+            return this;
+        }
+
+        public Builder withLabels(Collection<? extends Label> newLabels) {
+            labels.clear();
+            if (newLabels != null) labels.addAll(newLabels);
+            return this;
+        }
+
+        public Builder addLabel(Label l) {
+            if (l != null) labels.add(l);
+            return this;
+        }
+
+        public Builder addLabels(Label... ls) {
+            if (ls != null) labels.addAll(Arrays.asList(ls));
+            return this;
+        }
+
+        public ProgramImpl build() {
+            return new ProgramImpl(this);
+        }
     }
 
+    // --------- cloning ----------
     @Override
-    public void setNextLabelNumber(int nextLabelNumber) {
-        this.nextLabelNumber = nextLabelNumber;
-    }
-
-    @Override
-    public void setNextWorkVariableNumber(int nextWorkVariableNumber) {
-        this.nextWorkVariableNumber = nextWorkVariableNumber;
+    public ProgramImpl deepClone() {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            try (ObjectOutputStream out = new ObjectOutputStream(bos)) {
+                out.writeObject(this);
+            }
+            ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+            try (ObjectInputStream in = new ObjectInputStream(bis)) {
+                return (ProgramImpl) in.readObject();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("Failed cloning program", e);
+        }
     }
 
     @Override
@@ -71,6 +155,7 @@ public class ProgramImpl implements Program, Serializable {
         initNextWorkVariableNumber();
     }
 
+    // --------- Program API ----------
     @Override
     public String getName() {
         return this.programName;
@@ -78,14 +163,12 @@ public class ProgramImpl implements Program, Serializable {
 
     @Override
     public void addInstruction(Instruction instruction) {
-
         updateVariableAndLabel(instruction);
-
-        //totalCycles += instruction.getCycleOfInstruction();
         programInstructions.add(instruction);
     }
 
     private void updateVariableAndLabel(Instruction instruction) {
+        if (instruction == null) return;
         Label currentLabel = instruction.getLabel();
 
         bucketLabel(instruction, currentLabel);
@@ -94,14 +177,16 @@ public class ProgramImpl implements Program, Serializable {
     }
 
     private void bucketLabel(Instruction instruction, Label currentLabel) {
-        if(currentLabel != FixedLabel.EMPTY) {                    // Add label and its instruction to map
+        if (currentLabel != FixedLabel.EMPTY) {
             if (!labelToInstruction.containsKey(currentLabel)) {
                 labelsInProgram.add(currentLabel);
                 labelToInstruction.put(currentLabel, instruction);
             } else {
                 throw new IllegalArgumentException(
-                        "Duplicate label " + currentLabel.getLabelRepresentation() + " at instructions: " +
-                                labelToInstruction.get(currentLabel).getName() + " and " + instruction.getName()
+                        "Duplicate label " + currentLabel.getLabelRepresentation() +
+                                " at instructions: " +
+                                labelToInstruction.get(currentLabel).getName() +
+                                " and " + instruction.getName()
                 );
             }
         }
@@ -114,10 +199,10 @@ public class ProgramImpl implements Program, Serializable {
 
     private void bucketVariable(Variable variable) {
         if (variable == null) return;
-
         switch (variable.getType()) {
             case INPUT -> inputVariables.add(variable);
             case WORK  -> workVariables.add(variable);
+            default -> {}
         }
     }
 
@@ -142,22 +227,12 @@ public class ProgramImpl implements Program, Serializable {
     }
 
     @Override
-    public int getNextLabelNumber() {
-        return nextLabelNumber;
-    }
-
-    @Override
-    public int getNextWorkVariableNumber() {
-        return nextWorkVariableNumber;
-    }
-
-    @Override
     public void validateProgram() throws EngineLoadException {
         validateLabelReferencesExist();
     }
 
     private void validateLabelReferencesExist() throws EngineLoadException {
-        Set<Label> undefined = new java.util.LinkedHashSet<>(referencedLabels);
+        Set<Label> undefined = new LinkedHashSet<>(referencedLabels);
         undefined.removeAll(labelToInstruction.keySet());
         undefined.remove(FixedLabel.EXIT);
 
@@ -165,14 +240,14 @@ public class ProgramImpl implements Program, Serializable {
             String names = undefined.stream()
                     .filter(lbl -> lbl != FixedLabel.EMPTY && lbl != FixedLabel.EXIT)
                     .map(Label::getLabelRepresentation)
-                    .collect(java.util.stream.Collectors.joining(", "));
+                    .collect(Collectors.joining(", "));
             throw new EngineLoadException("Undefined label reference(s) in the program: " + names);
         }
     }
 
     private static final Comparator<Label> EXIT_LAST_THEN_NUMBER =
             Comparator.comparing((Label l) -> FixedLabel.EXIT.equals(l))
-                    .thenComparingInt(Label::getNumber);
+                    .thenComparingInt(Label::getIndex);
 
     @Override
     public List<String> getOrderedLabelsExitLastStr() {
@@ -187,118 +262,46 @@ public class ProgramImpl implements Program, Serializable {
     @Override
     public List<String> getInputVariablesSortedStr() {
         return inputVariables.stream()
-                .sorted(Comparator.comparingInt(Variable::getNumber))
+                .sorted(Comparator.comparingInt(Variable::getIndex))
                 .map(Variable::getRepresentation)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<String> getInstructionsAsStringList() {
-        int n = programInstructions.size();
-        return programInstructions.stream()
-                .map(ins -> ins.getInstructionRepresentation(n))
-                .collect(Collectors.toList());
+    public List<InstructionDTO> getInstructionDTOList() {
+        List<InstructionDTO> instructionDTOList = new ArrayList<>();
+        for (Instruction currInstruction : programInstructions) {
+            instructionDTOList.add(currInstruction.getInstructionDTO());
+        }
+        return instructionDTOList;
     }
 
-
-/*    private String programRepresentation() {
-        StringBuilder programDisplay = new StringBuilder();
-        int numberOfInstructionsInProgram = programInstructions.size();
-
-        for (Instruction instruction : programInstructions) {
-            String line = instruction.getInstructionRepresentation(numberOfInstructionsInProgram);
-            programDisplay.append(line).append(System.lineSeparator());
-        }
-
-        return programDisplay.toString();
-    }*/
-
-/*    @Override
-    public String getProgramDisplay() {
-
-        List<String> variablesInputInProgram = getInputVariableSorted();
-        List<String> labels = getOrderedLabelsExitLast();
-
-        StringBuilder programDisplay = new StringBuilder();
-        programDisplay.append("Name: ").append(getName()).append(System.lineSeparator());
-        programDisplay.append("Inputs: ").append(String.join(", ", variablesInputInProgram)).append(System.lineSeparator());
-        programDisplay.append("Labels: ").append(String.join(", ", labels)).append(System.lineSeparator());
-        programDisplay.append("Instructions: ").append(System.lineSeparator());
-
-        programDisplay.append(programRepresentation());
-
-        return programDisplay.toString();
-    }*/
-
-/*    @Override
-    public String getProgramDisplay() {
-        List<String> variablesInputInProgram = getInputVariableSorted();
-        List<String> labels = getOrderedLabelsExitLast();
-
-        return String.format(
-                "Name: %s%nInputs: %s%nLabels: %s%nInstructions:%n%s",
-                getName(),
-                String.join(", ", variablesInputInProgram),
-                String.join(", ", labels),
-                programRepresentation()
-        );
-    }*/
-
     @Override
-    public List<List<String>> getExpandedProgram() {
-        int numberOfInstructionsInProgram = programInstructions.size();
-        List<List<String>> expandedProgram = new ArrayList<>();
-
+    public List<List<InstructionDTO>> getExpandedProgram() {
+        List<List<InstructionDTO>> expandedProgram = new ArrayList<>();
         for (Instruction instruction : programInstructions) {
-            List<String> chain = instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram);
-            if (chain != null && !chain.isEmpty()) {
-                expandedProgram.add(chain);
-            }
+            List<InstructionDTO> chain = instruction.getInstructionExtendedList();
+            if (chain != null && !chain.isEmpty()) expandedProgram.add(chain);
         }
-
         return expandedProgram;
     }
 
- /*   @Override
-    public String getExtendedProgramDisplay() {
-        int numberOfInstructionsInProgram = programInstructions.size();
+    @Override
+    public List<Label> getLabelsInProgram() {
+        return labelsInProgram;
+    }
 
-        String instructionsDisplay = programInstructions.stream()
-                .map(instruction -> instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram))
-                .collect(Collectors.joining(System.lineSeparator()));
-
-        return String.format(
-                "Name: %s%nInputs: %s%nLabels: %s%n%s",
-                getName(),
-                String.join(", ", getInputVariablesSortedStr()),
-                String.join(", ", getOrderedLabelsExitLastStr()),
-                instructionsDisplay
-        );
-    }*/
-
-/*    @Override
-    public String getExtendedProgramDisplay() {
-        StringBuilder extendedProgramDisplay = new StringBuilder();
-
-        int numberOfInstructionsInProgram = programInstructions.size();
-
-        extendedProgramDisplay.append("Name: ").append(getName()).append(System.lineSeparator());
-        extendedProgramDisplay.append("Inputs: ").append(String.join(", ", getInputVariableSorted())).append(System.lineSeparator());
-        extendedProgramDisplay.append("Labels: ").append(String.join(", ", getOrderedLabelsExitLast())).append(System.lineSeparator());
-
-        for(Instruction instruction : programInstructions) {
-            extendedProgramDisplay.append(instruction.getInstructionExtendedDisplay(numberOfInstructionsInProgram)).append(System.lineSeparator());
-        }
-
-        return extendedProgramDisplay.toString();
-    }*/
+    @Override
+    public Map<Label, Instruction> getLabelToInstruction() {
+        return labelToInstruction;
+    }
 
     @Override
     public int calculateProgramMaxDegree() {
         int maxDegree = 0;
 
         for (Instruction instruction : programInstructions) {
-            if(instruction instanceof SyntheticInstruction syntheticInstruction) {
+            if (instruction instanceof SyntheticInstruction syntheticInstruction) {
                 maxDegree = Math.max(maxDegree, syntheticInstruction.getMaxDegree());
             }
         }
@@ -328,13 +331,13 @@ public class ProgramImpl implements Program, Serializable {
                     nextInstructionNumber++;
                 }
 
-                iterator.remove();                              // Remove the old instruction
-                getLabelToInstruction().remove(originalLabel);       // Remove the label from the map because we will add it again in line 239
-                getLabelsInProgram().remove(originalLabel);          // Remove the label from the map because we will add it again in line 239
+                iterator.remove();
+                getLabelToInstruction().remove(originalLabel);
+                getLabelsInProgram().remove(originalLabel);
 
                 for (Instruction extendedInstruction : newInstructionsList) {
                     updateVariableAndLabel(extendedInstruction);
-                    iterator.add(extendedInstruction);          // Add the extended (inner) instruction to the list
+                    iterator.add(extendedInstruction);
                 }
             }
         }
@@ -351,10 +354,9 @@ public class ProgramImpl implements Program, Serializable {
     @Override
     public Label generateUniqueLabel() {
         Label uniqueLabel = new LabelImpl(nextLabelNumber++);
-
         if (labelsAddedAfterExtension.contains(uniqueLabel)) {
             throw new IllegalStateException(
-                    "Attempted to add duplicate labels after extention: " + uniqueLabel.getLabelRepresentation()
+                    "Attempted to add duplicate labels after extension: " + uniqueLabel.getLabelRepresentation()
             );
         }
         labelsAddedAfterExtension.add(uniqueLabel);
@@ -383,7 +385,7 @@ public class ProgramImpl implements Program, Serializable {
     @Override
     public void sortVariableSetByNumber(Set<Variable> variablesSet) {
         var sorted = variablesSet.stream()
-                .sorted(Comparator.comparingInt(Variable::getNumber))
+                .sorted(Comparator.comparingInt(Variable::getIndex))
                 .toList();
 
         variablesSet.clear();
@@ -392,7 +394,7 @@ public class ProgramImpl implements Program, Serializable {
 
     @Override
     public void addInputVariable(Variable variable) {
-        inputVariables.add(variable);
+        if (variable != null) inputVariables.add(variable);
     }
 
     @Override
@@ -403,15 +405,5 @@ public class ProgramImpl implements Program, Serializable {
         List<Variable> inputAndWorkVariablesAndTheirValues = new ArrayList<>(inputVariables);
         inputAndWorkVariablesAndTheirValues.addAll(workVariables);
         return inputAndWorkVariablesAndTheirValues;
-    }
-
-    @Override
-    public List<Label> getLabelsInProgram() {
-        return labelsInProgram;
-    }
-
-    @Override
-    public Map<Label, Instruction> getLabelToInstruction() {
-        return labelToInstruction;
     }
 }

@@ -1,14 +1,14 @@
-package console;
+package consoleUI;
 
-import console.actions.*;
-import console.menu.MainMenu;
-import console.menu.MenuItem;
+import consoleUI.actions.*;
+import consoleUI.menu.MainMenu;
+import consoleUI.menu.MenuItem;
 import engine.Engine;
 import engine.EngineImpl;
 
 import java.util.Scanner;
 
-public class UIManager {
+public class ConsoleUI {
 
     private final MenuItem menu;
 
@@ -20,14 +20,10 @@ public class UIManager {
     private final SaveState saveState;
     private final LoadState loadState;
 
-    private final Engine engine;
-    private final Scanner scanner;
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final Engine engine = new EngineImpl();
 
-
-    public UIManager() {
-        this.scanner = new Scanner(System.in);
-        engine = new EngineImpl();
-
+    public ConsoleUI() {
         this.loadFile = new LoadFile();
         this.display = new Display();
         this.expand = new Expand();
@@ -43,7 +39,7 @@ public class UIManager {
         MainMenu mainMenu = new MainMenu("Menu");
 
         // First submenu
-        MenuItem loadFirstFileItem = new MenuItem("Load New File", loadFile, this.engine);
+        MenuItem loadFirstFileItem = new MenuItem("Load New File", loadFile, engine);
 
         // Second submenu
         MenuItem loadNextFileItem   = new MenuItem("Load Next File", loadFile, engine);
@@ -67,6 +63,7 @@ public class UIManager {
         return mainMenu;
     }
 
+
     public void run() {
         try {
             menu.show(scanner, engine);
@@ -76,5 +73,6 @@ public class UIManager {
             e.printStackTrace();
         }
     }
-
 }
+
+

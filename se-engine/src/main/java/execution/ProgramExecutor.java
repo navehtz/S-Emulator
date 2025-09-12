@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ProgramExecutor {
+
     void run(int runDegree, Long... inputs);
 
     Program getProgram();
@@ -14,7 +15,5 @@ public interface ProgramExecutor {
     int getRunDegree();
     List<Long> getInputsValuesOfUser();
     int getTotalCyclesOfProgram();
-
     Map<String, Long> getVariablesToValuesSorted();
-
 }

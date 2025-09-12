@@ -8,4 +8,3 @@ public interface SyntheticInstruction {
 
     int setInnerInstructionsAndReturnTheNextOne(int startNumber);
 }
-

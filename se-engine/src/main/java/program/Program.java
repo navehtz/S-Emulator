@@ -1,21 +1,17 @@
 package program;
 
+import dto.InstructionDTO;
 import exceptions.EngineLoadException;
 import instruction.Instruction;
 import label.Label;
 import variable.Variable;
 
-import java.nio.file.Path;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface Program {
-
-    void setNextLabelNumber(int nextLabelNumber);
-    void setNextWorkVariableNumber(int nextWorkVariableNumber);
-    int getNextLabelNumber();
-    int getNextWorkVariableNumber();
+public interface Program extends Serializable {
 
     String getName();
     List<Instruction> getInstructionsList();
@@ -25,8 +21,12 @@ public interface Program {
     List<Variable> getInputAndWorkVariablesSortedBySerial();
     List<Label> getLabelsInProgram();
     Map<Label, Instruction> getLabelToInstruction();
+    List<String> getOrderedLabelsExitLastStr();
+    List<String> getInputVariablesSortedStr();
+    List<List<InstructionDTO>> getExpandedProgram();
+    List<InstructionDTO> getInstructionDTOList();
 
-    Program cloneProgram(Path xmlPath, int nextLabelNumber, int nextWorkVariableNumber) throws EngineLoadException;
+    Program deepClone();
     void addInstruction(Instruction instruction);
     void validateProgram() throws EngineLoadException;
     int calculateProgramMaxDegree();
@@ -36,11 +36,4 @@ public interface Program {
     Variable generateUniqueVariable();
     void sortVariableSetByNumber(Set<Variable> variables);
     void addInputVariable(Variable variable);
-
-    List<List<String>> getExpandedProgram();
-
-    List<String> getOrderedLabelsExitLastStr();
-    List<String> getInputVariablesSortedStr();
-    List<String> getInstructionsAsStringList();
-
 }

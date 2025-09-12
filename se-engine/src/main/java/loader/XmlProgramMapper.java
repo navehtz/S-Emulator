@@ -20,45 +20,82 @@ import instruction.basic.JumpNotZeroInstruction;
 import instruction.basic.NoOpInstruction;
 import instruction.synthetic.*;
 
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 final class XmlProgramMapper {
 
     private XmlProgramMapper() {}
 
     static Program map(SProgram sProgram) {
+        // ---- name ----
         String programName = safeTrim(sProgram.getName());
-        ProgramImpl targetProgram = new ProgramImpl(programName != null ? programName : "Unnamed");
+        if (programName == null || programName.isEmpty()) {
+            programName = "Unnamed";
+        }
 
-        List<SInstruction> sInstructions = sProgram.getSInstructions().getSInstruction();
+        // ---- collect mapped instructions, variables, labels ----
+        final List<Instruction> code = new ArrayList<>();
+        final Set<Variable> vars = new LinkedHashSet<>();
+        final List<Label> labels = new ArrayList<>();
 
+        List<SInstruction> sInstructions = sProgram.getInstructions();
         if (sInstructions == null || sInstructions.isEmpty()) {
-            return targetProgram;
+            // Build an empty program consistently via Builder
+            return new ProgramImpl.Builder()
+                    .withName(programName)
+                    .withInstructions(code)
+                    .withVariables(vars)
+                    .withLabels(labels)
+                    .build();
         }
 
         for (int i = 0; i < sInstructions.size(); i++) {
             SInstruction sInstruction = sInstructions.get(i);
             Instruction mapped = mapSingleInstruction(sInstruction, i + 1);
-            targetProgram.addInstruction(mapped);
+
+            // collect instruction
+            code.add(mapped);
+
+            // collect label used on the instruction line (if any)
+            Label lbl = mapped.getLabel();
+            if (lbl != null && lbl != FixedLabel.EMPTY && !labels.contains(lbl)) {
+                labels.add(lbl);
+            }
+
+            // collect variables visible on the instruction
+            if (mapped.getTargetVariable() != null) vars.add(mapped.getTargetVariable());
+            if (mapped.getSourceVariable() != null) vars.add(mapped.getSourceVariable());
         }
 
-        return targetProgram;
+        // ---- build ProgramImpl via Builder (so bucketing happens in ProgramImpl’s ctor) ----
+        return new ProgramImpl.Builder()
+                .withName(programName)
+                .withInstructions(code)
+                .withVariables(vars)
+                .withLabels(labels)
+                .build();
     }
 
     private static Instruction mapSingleInstruction(SInstruction sInstruction, int ordinal) {
         try {
             String instructionName = toUpperSafe(sInstruction.getName());
-            Label instructionLabel = parseLabel(sInstruction.getSLabel(), instructionName, ordinal);
-            Variable targetVariable = parseVariable(sInstruction.getSVariable(), instructionName, ordinal);
-            List<SInstructionArgument> sInstructionArguments = (sInstruction.getSInstructionArguments() != null) ?
-                    sInstruction.getSInstructionArguments().getSInstructionArgument() :
-                    null;
+
+            Label instructionLabel   = parseLabel(sInstruction.getLabel(), instructionName, ordinal);
+            Variable targetVariable  = parseVariable(sInstruction.getVariable(), instructionName, ordinal);
+
+            List<SInstructionArgument> sInstructionArguments = sInstruction.getArguments();
             Instruction originInstruction = new OriginOfAllInstruction();
-            return createNewInstruction(instructionName, instructionLabel, targetVariable, sInstructionArguments, ordinal, originInstruction);
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
+
+            return createNewInstruction(
+                    instructionName,
+                    instructionLabel,
+                    targetVariable,
+                    sInstructionArguments != null ? sInstructionArguments : List.of(),
+                    ordinal,
+                    originInstruction
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed mapping instruction at #" + ordinal + ": " + e.getMessage(), e);
         }
     }
 
@@ -162,18 +199,15 @@ final class XmlProgramMapper {
         Label label;
         if (trimmed.equalsIgnoreCase(FixedLabel.EXIT.getLabelRepresentation())) {
             label = FixedLabel.EXIT;
-        }
-
-        else if (trimmed.matches("L\\d+")) {
+        } else if (trimmed.matches("L\\d+")) {
             String numberPart = trimmed.substring(1);
             int labelNumber = Integer.parseInt(numberPart);
             label = new LabelImpl(labelNumber);
-        }
-        else {
+        } else {
             throw new IllegalArgumentException(
                     "Problem creating the label: " + raw + System.lineSeparator() +
                             "Instruction number: " + ordinal + System.lineSeparator() +
-                                "Instruction name: " + where
+                            "Instruction name: " + where
             );
         }
 
@@ -196,21 +230,20 @@ final class XmlProgramMapper {
             int number = Integer.parseInt(matcher.group(2));
 
             VariableType variableType;
-            if(prefix.equalsIgnoreCase("x")) variableType = VariableType.INPUT;
-            else if(prefix.equalsIgnoreCase("z")) variableType = VariableType.WORK;
+            if (prefix.equalsIgnoreCase("x")) variableType = VariableType.INPUT;
+            else if (prefix.equalsIgnoreCase("z")) variableType = VariableType.WORK;
             else throw new IllegalArgumentException(
-                    "Unsupported variable type: " + prefix + "for " + where + " at instruction number " + ordinal);
+                        "Unsupported variable type: " + prefix + " for " + where + " at instruction number " + ordinal);
 
             return new VariableImpl(variableType, number);
         }
 
         throw new IllegalArgumentException(
                 "Problem creating the variable: " + trimmed + ". expected x / y / z" + System.lineSeparator() +
-                        "The problem accour at instruction number: " + ordinal + " named: " + where
+                        "The problem occurred at instruction number: " + ordinal + " named: " + where
         );
     }
 
-    private static String safeTrim(String s) { return s == null ? null : s.trim().toUpperCase(Locale.ROOT); }
-
+    private static String safeTrim(String s) { return s == null ? null : s.trim(); }
     private static String toUpperSafe(String s) { return s == null ? null : s.trim().toUpperCase(Locale.ROOT); }
 }

@@ -1,14 +1,14 @@
-package console.actions;
+package consoleUI.actions;
 
-import console.menu.MenuActionable;
-import console.validator.Validator;
+import consoleUI.menu.MenuActionable;
+import consoleUI.validator.Validator;
 import engine.Engine;
 import exceptions.EngineLoadException;
 
 import java.nio.file.Path;
 import java.util.Scanner;
 
-import static console.menu.MenuItem.printTitle;
+import static consoleUI.menu.MenuItem.printTitle;
 
 public class SaveState implements MenuActionable {
     @Override

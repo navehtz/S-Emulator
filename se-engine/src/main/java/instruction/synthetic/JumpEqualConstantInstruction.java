@@ -80,11 +80,11 @@ public class JumpEqualConstantInstruction extends AbstractInstruction implements
         Label newLabel2 = super.getProgramOfThisInstruction().generateUniqueLabel();
         int instructionNumber = startNumber;
 
-        innerInstructions.add(new AssignmentInstruction(workVariable1, newLabel1 ,super.getTargetVariable(), super.getOriginalInstruction(), instructionNumber++));
+        innerInstructions.add(new AssignmentInstruction(workVariable1, newLabel1 ,super.getTargetVariable(), this, instructionNumber++));
 
         for(int i = 0 ; i < constantValue ; i++) {
-            innerInstructions.add(new JumpZeroInstruction(workVariable1, newLabel2, super.getOriginalInstruction(), instructionNumber++));
-            innerInstructions.add(new DecreaseInstruction(workVariable1, super.getOriginalInstruction(), instructionNumber++));
+            innerInstructions.add(new JumpZeroInstruction(workVariable1, newLabel2, this, instructionNumber++));
+            innerInstructions.add(new DecreaseInstruction(workVariable1, this, instructionNumber++));
         }
 
         innerInstructions.add(new JumpNotZeroInstruction(workVariable1, newLabel2, this, instructionNumber++));

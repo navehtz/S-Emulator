@@ -1,7 +1,8 @@
-package console.actions;
+package consoleUI.actions;
 
-import console.menu.MenuActionable;
-import console.validator.Validator;
+import consoleUI.menu.MenuActionable;
+import consoleUI.validator.Validator;
+import dto.InstructionDTO;
 import dto.ProgramDTO;
 import engine.Engine;
 import exceptions.EngineLoadException;
@@ -9,7 +10,7 @@ import exceptions.EngineLoadException;
 import java.util.List;
 import java.util.Scanner;
 
-import static console.menu.MenuItem.printTitle;
+import static consoleUI.menu.MenuItem.printTitle;
 
 public class Expand implements MenuActionable {
 
@@ -33,8 +34,19 @@ public class Expand implements MenuActionable {
     }
 
     private void displayExpandedProgram(ProgramDTO programDTO) {
-        for (List<String> line : programDTO.getExpandedProgram()) {
-            System.out.println(String.join(" >>> ", line));
+        List<List<InstructionDTO>> lines = programDTO.expandedProgram();
+        if (lines == null || lines.isEmpty()) {
+            System.out.println("(no instructions)");
+            return;
+        }
+
+        int total = lines.size();
+
+        for (List<InstructionDTO> line : lines) {
+            String joined = line.stream()
+                    .map(dto -> Display.getInstructionRepresentation(dto, total, true))
+                    .collect(java.util.stream.Collectors.joining(" >>> "));
+            System.out.println(joined);
         }
     }
 }

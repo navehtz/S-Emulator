@@ -19,7 +19,7 @@ public class LabelImpl implements Label, Serializable {
     }
 
     @Override
-    public int getNumber() {
+    public int getIndex() {
         return number;
     }
 

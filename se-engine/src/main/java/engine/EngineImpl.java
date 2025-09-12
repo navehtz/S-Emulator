@@ -24,6 +24,7 @@ public class EngineImpl implements Engine, Serializable {
     private ProgramExecutor programExecutor;
     private ExecutionHistory executionHistory;
 
+
     @Override
     public void loadProgram(Path xmlPath) throws EngineLoadException {
         this.xmlPath = xmlPath;
@@ -39,9 +40,8 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public void runProgram(int degree, Long... inputs) throws EngineLoadException {
-        Program deepCopyOfProgram = program.cloneProgram(xmlPath, program.getNextLabelNumber(), program.getNextWorkVariableNumber());
-
+    public void runProgram(int degree, Long... inputs) {
+        Program deepCopyOfProgram = program.deepClone();
         deepCopyOfProgram.expandProgram(degree);
 
         programExecutor = new ProgramExecutorImpl(deepCopyOfProgram);
@@ -75,24 +75,24 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public List<ProgramExecutorDTO> getHistoryToDisplay() {
-        List<ProgramExecutorDTO> res = new ArrayList<>();
+        List<ProgramExecutorDTO> historyToDisplay = new ArrayList<>();
 
-        for(ProgramExecutor programExecutor : executionHistory.getProgramsExecutions()) {
+        for(ProgramExecutor programExecutorItem : executionHistory.getProgramsExecutions()) {
 
             ProgramDTO programDTO = buildProgramDTO(program);
 
             ProgramExecutorDTO programExecutorDTO = new ProgramExecutorDTO(programDTO,
-                    programExecutor.getVariablesToValuesSorted(),
-                    programExecutor.getVariableValue(Variable.RESULT),
-                    programExecutor.getTotalCyclesOfProgram(),
-                    programExecutor.getRunDegree(),
-                    programExecutor.getInputsValuesOfUser()
+                    programExecutorItem.getVariablesToValuesSorted(),
+                    programExecutorItem.getVariableValue(Variable.RESULT),
+                    programExecutorItem.getTotalCyclesOfProgram(),
+                    programExecutorItem.getRunDegree(),
+                    programExecutorItem.getInputsValuesOfUser()
             );
 
-            res.add(programExecutorDTO);
+            historyToDisplay.add(programExecutorDTO);
         }
 
-        return res;
+        return historyToDisplay;
     }
 
     @Override
@@ -105,15 +105,16 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public ProgramDTO getExpandedProgramToDisplay(int degree) throws EngineLoadException {
-        Program deepCopyOfProgram = program.cloneProgram(xmlPath, program.getNextLabelNumber(), program.getNextWorkVariableNumber());
+    public ProgramDTO getExpandedProgramToDisplay(int degree) {
+        Program deepCopyOfProgram = program.deepClone();
         deepCopyOfProgram.expandProgram(degree);
 
         return buildProgramDTO(deepCopyOfProgram);
     }
 
     private ProgramDTO buildProgramDTO(Program program) {
-        InstructionsDTO instructionsDTO = new InstructionsDTO(program.getInstructionsAsStringList());
+        InstructionsDTO instructionsDTO = new InstructionsDTO(program.getInstructionDTOList());
+
         return new ProgramDTO(
                 program.getName(),
                 program.getOrderedLabelsExitLastStr(),

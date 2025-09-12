@@ -1,4 +1,4 @@
-package console.menu;
+package consoleUI.menu;
 
 import engine.Engine;
 import exceptions.EngineLoadException;
