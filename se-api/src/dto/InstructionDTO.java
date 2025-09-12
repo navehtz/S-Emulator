@@ -1,79 +1,17 @@
 package dto;
 
-public class InstructionDTO {
-    private final String instructionName;
-    private final int instructionNumber;
-    private final int cycleNumber;
-    private final String instructionTypeStr;
-    private final String labelStr;
-    private final String referenceLabelStr;
-    private final String targetVariableStr;
-    private final String sourceVariableStr;
-    private final String command;
-    private final InstructionDTO origin;
+public record InstructionDTO(
+    String instructionName,
+    int instructionNumber,
+    int cycleNumber,
+    String instructionTypeStr,
+    String labelStr,
+    String referenceLabelStr,
+    String targetVariableStr,
+    String sourceVariableStr,
+    String command,
+    InstructionDTO origin
+) {}
 
-    public InstructionDTO(String instructionName,
-                          int instructionNumber,
-                          int cyclesNumber,
-                          String instructionType,
-                          String labelStr,
-                          String referenceLabelStr,
-                          String targetVariableStr,
-                          String sourceVariableStr,
-                          String command,
-                          InstructionDTO origin
-    ) {
-        this.instructionName = instructionName;
-        this.instructionNumber = instructionNumber;
-        this.cycleNumber = cyclesNumber;
-        this.instructionTypeStr = instructionType;
-        this.labelStr = labelStr;
-        this.referenceLabelStr = referenceLabelStr;
-        this.targetVariableStr = targetVariableStr;
-        this.sourceVariableStr = sourceVariableStr;
-        this.command = command;
-        this.origin = origin;
-    }
-
-    public String getInstructionName() {
-        return instructionName;
-    }
-
-    public int getInstructionNumber() {
-        return instructionNumber;
-    }
-
-    public int getCyclesNumber() {
-        return cycleNumber;
-    }
-
-    public String getInstructionTypeStr() {
-        return instructionTypeStr;
-    }
-
-    public String getLabelStr() {
-        return labelStr;
-    }
-
-    public String getReferenceLabelStr() {
-        return referenceLabelStr;
-    }
-
-    public String getTargetVariableStr() {
-        return targetVariableStr;
-    }
-
-    public String getSourceVariableStr() {
-        return sourceVariableStr;
-    }
-
-    public String getCommand() {
-        return command;
-    }
-
-    public InstructionDTO getOrigin() {
-        return origin;
-    }
-}
 
 

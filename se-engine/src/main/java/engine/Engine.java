@@ -9,16 +9,16 @@ import java.util.List;
 
 public interface Engine {
 
-    void loadProgram(Path path) throws EngineLoadException;
+    void loadProgram(Path Path) throws EngineLoadException;
 
-    ProgramDTO getProgramToDisplay();
+    ProgramDTO getProgramToDisplay();  // throws if no program loaded
     ProgramDTO getExpandedProgramToDisplay(int degree);
     ProgramExecutorDTO getProgramToDisplayAfterRun();
     List<ProgramExecutorDTO> getHistoryToDisplay();
 
-    int getMaxDegree() throws EngineLoadException;
+    int getMaxDegree() throws EngineLoadException;  // per current program
     int getNumberOfInputVariables();
-    void runProgram(int degree, Long... inputs);
+    void runProgram(int expandLevel, Long... inputs);
 
     void saveState(Path path) throws EngineLoadException;
     void loadState(Path path) throws EngineLoadException;

@@ -8,7 +8,6 @@ import label.FixedLabel;
 import label.Label;
 import variable.Variable;
 
-
 import java.util.ArrayList;
 import java.util.List;
 

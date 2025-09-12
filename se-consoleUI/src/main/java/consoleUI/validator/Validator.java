@@ -1,4 +1,4 @@
-package console.validator;
+package consoleUI.validator;
 
 import engine.Engine;
 import exceptions.EngineLoadException;

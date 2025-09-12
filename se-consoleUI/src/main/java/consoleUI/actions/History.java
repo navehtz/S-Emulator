@@ -1,13 +1,13 @@
-package console.actions;
+package consoleUI.actions;
 
-import console.menu.MenuActionable;
+import consoleUI.menu.MenuActionable;
 import dto.ProgramExecutorDTO;
 import engine.Engine;
 
 import java.util.List;
 import java.util.Scanner;
 
-import static console.menu.MenuItem.printTitle;
+import static consoleUI.menu.MenuItem.printTitle;
 
 public class History implements MenuActionable {
     @Override
@@ -28,9 +28,9 @@ public class History implements MenuActionable {
 
         for (ProgramExecutorDTO programExecutorDTO : programExecutorDTOList) {
             System.out.println("#" + i);
-            System.out.println("Run degree: " + programExecutorDTO.getDegree());
+            System.out.println("Run degree: " + programExecutorDTO.degree());
 
-            var inputs = programExecutorDTO.getInputsValuesOfUser();
+            var inputs = programExecutorDTO.inputsValuesOfUser();
             String inputsDisplay = (inputs == null || inputs.isEmpty())
                     ? "no input from user"
                     : inputs.stream()
@@ -38,8 +38,8 @@ public class History implements MenuActionable {
                     .collect(java.util.stream.Collectors.joining(", "));
 
             System.out.println("Inputs values: " + inputsDisplay);
-            System.out.println("Result: " + programExecutorDTO.getResult());
-            System.out.println("Cycles: " + programExecutorDTO.getTotalCycles());
+            System.out.println("Result: " + programExecutorDTO.result());
+            System.out.println("Cycles: " + programExecutorDTO.totalCycles());
             System.out.println();
 
             i++;

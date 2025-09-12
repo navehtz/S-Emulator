@@ -1,18 +1,16 @@
 package instruction;
 
 import dto.InstructionDTO;
-import label.Label;
 import label.FixedLabel;
-import program.Program;
+import label.Label;
 import variable.Variable;
+import program.Program;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-
-public abstract class AbstractInstruction implements Instruction, Serializable {
+public abstract class AbstractInstruction implements Instruction {
 
     private final InstructionData instructionData;
     private final InstructionType instructionType;
@@ -22,12 +20,11 @@ public abstract class AbstractInstruction implements Instruction, Serializable {
     private final Instruction origin;
     private Program programOfThisInstruction = null;
 
-
     protected AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable, Instruction origin, int instructionNumber) {
         this(instructionData, instructionType, targetVariable,FixedLabel.EMPTY, origin, instructionNumber);
     }
 
-    protected AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable, Label label, Instruction origin, int instructionNumber) {
+    public AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable, Label label, Instruction origin, int instructionNumber) {
         this.instructionData = instructionData;
         this.instructionType = instructionType;
         this.targetVariable = targetVariable;
@@ -38,7 +35,7 @@ public abstract class AbstractInstruction implements Instruction, Serializable {
 
     @Override
     public String getName() {
-        return this.instructionData.getName();
+        return instructionData.getName();
     }
 
     public String getInstructionType() {
@@ -59,11 +56,6 @@ public abstract class AbstractInstruction implements Instruction, Serializable {
     }
 
     @Override
-    public Variable getSourceVariable() {
-        return null;
-    }
-
-    @Override
     public int getInstructionNumber() {
         return this.instructionNumber;
     }
@@ -71,6 +63,12 @@ public abstract class AbstractInstruction implements Instruction, Serializable {
     @Override
     public int getCycleOfInstruction() {
         return instructionData.getCycles();
+    }
+
+
+    @Override
+    public Variable getSourceVariable() {
+        return null;
     }
 
     @Override

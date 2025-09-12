@@ -16,5 +16,4 @@ public interface ProgramExecutor {
     List<Long> getInputsValuesOfUser();
     int getTotalCyclesOfProgram();
     Map<String, Long> getVariablesToValuesSorted();
-
 }

@@ -1,6 +1,6 @@
-package console.actions;
+package consoleUI.actions;
 
-import console.menu.MenuActionable;
+import consoleUI.menu.MenuActionable;
 import dto.InstructionDTO;
 import dto.InstructionsDTO;
 import dto.ProgramDTO;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.stream.LongStream;
 
-import static console.menu.MenuItem.printTitle;
+import static consoleUI.menu.MenuItem.printTitle;
 
 public class Display implements MenuActionable {
 
@@ -23,8 +23,8 @@ public class Display implements MenuActionable {
     }
 
     public static void displayProgram(ProgramDTO programDTO) {
-        List<String> variablesInputInProgram = programDTO.getInputVariables();
-        List<String> labels = java.util.Optional.ofNullable(programDTO.getLabelsStr()).orElse(java.util.List.of());
+        List<String> variablesInputInProgram = programDTO.inputVariables();
+        List<String> labels = java.util.Optional.ofNullable(programDTO.labelsStr()).orElse(List.of());
 
         String labelsDisplay = labels.isEmpty()
                 ? "no labels in program"
@@ -35,10 +35,10 @@ public class Display implements MenuActionable {
                 "Inputs: %s%n" +
                 "Labels: %s%n" +
                 "Instructions:%n%s",
-                programDTO.getProgramName(),
+                programDTO.programName(),
                 String.join(", ", variablesInputInProgram),
                 labelsDisplay,
-                getProgramInstructionsRepresentation(programDTO.getInstructions())
+                getProgramInstructionsRepresentation(programDTO.instructions())
         );
 
         System.out.println(display);
@@ -46,9 +46,9 @@ public class Display implements MenuActionable {
 
     public static String getProgramInstructionsRepresentation(InstructionsDTO instructionsDTO) {
         StringBuilder instructionsRepresentation = new StringBuilder();
-        int n = instructionsDTO.getProgramInstructionsDtoList().size();
+        int n = instructionsDTO.programInstructionsDtoList().size();
 
-        for (InstructionDTO instructionDTO : instructionsDTO.getProgramInstructionsDtoList()) {
+        for (InstructionDTO instructionDTO : instructionsDTO.programInstructionsDtoList()) {
             instructionsRepresentation.append(getInstructionRepresentation(instructionDTO, n, false)).append(System.lineSeparator());
         }
 
@@ -63,11 +63,11 @@ public class Display implements MenuActionable {
 
         return String.format(
                 "#%" + numberPadding + "d (%s)[ %-" + labelPadding + "s ] %-" + 5 + "s (%d)",
-                instructionDTO.getInstructionNumber(),
-                instructionDTO.getInstructionTypeStr(),
-                instructionDTO.getLabelStr(),
-                instructionDTO.getCommand(),
-                instructionDTO.getCyclesNumber()
+                instructionDTO.instructionNumber(),
+                instructionDTO.instructionTypeStr(),
+                instructionDTO.labelStr(),
+                instructionDTO.command(),
+                instructionDTO.cycleNumber()
         );
     }
 }

@@ -17,11 +17,13 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class EngineImpl implements Engine, Serializable {
     private transient Path xmlPath;
     private Program program;
     private ProgramExecutor programExecutor;
     private ExecutionHistory executionHistory;
+
 
     @Override
     public void loadProgram(Path xmlPath) throws EngineLoadException {
@@ -73,7 +75,7 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public List<ProgramExecutorDTO> getHistoryToDisplay() {
-        List<ProgramExecutorDTO> res = new ArrayList<>();
+        List<ProgramExecutorDTO> historyToDisplay = new ArrayList<>();
 
         for(ProgramExecutor programExecutorItem : executionHistory.getProgramsExecutions()) {
 
@@ -87,10 +89,10 @@ public class EngineImpl implements Engine, Serializable {
                     programExecutorItem.getInputsValuesOfUser()
             );
 
-            res.add(programExecutorDTO);
+            historyToDisplay.add(programExecutorDTO);
         }
 
-        return res;
+        return historyToDisplay;
     }
 
     @Override
@@ -111,7 +113,7 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     private ProgramDTO buildProgramDTO(Program program) {
-        InstructionsDTO instructionsDTO = new InstructionsDTO(program.getInstructionDtoList());
+        InstructionsDTO instructionsDTO = new InstructionsDTO(program.getInstructionDTOList());
 
         return new ProgramDTO(
                 program.getName(),

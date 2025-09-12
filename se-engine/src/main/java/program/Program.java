@@ -24,7 +24,7 @@ public interface Program extends Serializable {
     List<String> getOrderedLabelsExitLastStr();
     List<String> getInputVariablesSortedStr();
     List<List<InstructionDTO>> getExpandedProgram();
-    List<InstructionDTO> getInstructionDtoList();
+    List<InstructionDTO> getInstructionDTOList();
 
     Program deepClone();
     void addInstruction(Instruction instruction);

@@ -35,23 +35,23 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
         this.runDegree = runDegree;
 
         do {
-                nextLabel = currentInstruction.execute(context);
-                totalCycles += currentInstruction.getCycleOfInstruction();
+            nextLabel = currentInstruction.execute(context);
+            totalCycles += currentInstruction.getCycleOfInstruction();
 
-                if (nextLabel == FixedLabel.EMPTY) {
-                    int indexOfNextInstruction = program.getInstructionsList().indexOf(currentInstruction) + 1;
+            if (nextLabel == FixedLabel.EMPTY) {
+                int indexOfNextInstruction = program.getInstructionsList().indexOf(currentInstruction) + 1;
 
-                    // If there is more instructions, else Exit
-                    if (indexOfNextInstruction < program.getInstructionsList().size()) {
-                        nextInstruction = program.getInstructionsList().get(indexOfNextInstruction);
-                    } else {
-                        nextLabel = FixedLabel.EXIT;
-                    }
-                } else if (nextLabel != FixedLabel.EXIT) {
-                        nextInstruction = program.getInstructionByLabel(nextLabel);
+                // If there are more instructions, else Exit
+                if (indexOfNextInstruction < program.getInstructionsList().size()) {
+                    nextInstruction = program.getInstructionsList().get(indexOfNextInstruction);
+                } else {
+                    nextLabel = FixedLabel.EXIT;
                 }
+            } else if (nextLabel != FixedLabel.EXIT) {
+                nextInstruction = program.getInstructionByLabel(nextLabel);
+            }
 
-                currentInstruction = nextInstruction;
+            currentInstruction = nextInstruction;
 
         } while(nextLabel != FixedLabel.EXIT);
 
