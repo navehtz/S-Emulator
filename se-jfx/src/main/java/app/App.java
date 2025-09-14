@@ -11,8 +11,8 @@ import java.util.Objects;
 public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ui/MainView.fxml"));
-        Parent root = fxmlLoader.load();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/MainView.fxml"));
+        Parent root = loader.load();
         Scene scene = new Scene(root);
         //scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/ui/styles.css")).toExternalForm());
         stage.setTitle("S-Emulator");

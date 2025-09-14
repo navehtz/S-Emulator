@@ -1,15 +1,15 @@
 package dto;
 
 public record InstructionDTO(
-    String instructionName,
     int instructionNumber,
-    int cycleNumber,
     String instructionTypeStr,
     String labelStr,
+    String command,
+    int cycleNumber,
+    String instructionName,
     String referenceLabelStr,
     String targetVariableStr,
     String sourceVariableStr,
-    String command,
     InstructionDTO origin
 ) {}
 

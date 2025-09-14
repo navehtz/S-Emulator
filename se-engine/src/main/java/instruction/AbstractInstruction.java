@@ -107,15 +107,15 @@ public abstract class AbstractInstruction implements Instruction {
         }
 
         return new InstructionDTO(
-                getName(),
                 getInstructionNumber(),
-                getCycleOfInstruction(),
                 getInstructionType(),
                 getLabel().getLabelRepresentation(),
+                getCommand(),
+                getCycleOfInstruction(),
+                getName(),
                 referenceLabelStr,
                 getTargetVariable().getRepresentation(),
                 sourceVariableStr,
-                getCommand(),
                 parentDto
         );
     }
