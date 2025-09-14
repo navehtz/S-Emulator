@@ -1,6 +1,7 @@
 // src/main/java/ui/MainController.java
 package ui;
 
+import dto.InstructionDTO;
 import dto.ProgramDTO;
 import engine.Engine;
 import engine.EngineImpl;
@@ -19,6 +20,7 @@ import ui.components.VariablesTableController;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.List;
 
 public class MainController {
 
@@ -31,13 +33,40 @@ public class MainController {
 
     // Top-bar buttons/controls may also be referenced by fx:id in FXML (optional)
      @FXML private Label programNameLabel;
-     @FXML private ComboBox<?> contextSelector; // etc.
+     @FXML private ComboBox<String> contextSelector;
+     @FXML private ComboBox<Integer> degreeSelector;
+     @FXML private ComboBox<String> highlightSelector;
+
 
     private final Engine engine = new EngineImpl();
+    private ProgramDTO currentProgramDTO;
 
     @FXML
     private void initialize() {
+        mainInstrTableController.getTable().getSelectionModel()
+                .selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
+                    int i = (newIdx == null) ? -1 : newIdx.intValue();
+                    if (i >= 0 && currentProgramDTO != null &&
+                            i < currentProgramDTO.expandedProgram().size()) {
 
+                        List<InstructionDTO> chain = currentProgramDTO.expandedProgram().get(i).reversed();
+                        historyInstrTableController.setItems(chain);
+                    } else {
+                        historyInstrTableController.setItems(java.util.Collections.emptyList());
+                    }
+                });
+
+        degreeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                ProgramDTO expanded = engine.getExpandedProgramToDisplay(newVal);
+                updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
+            }
+        });
+    }
+
+    private void updateCurrentProgramAndMainInstrTable(ProgramDTO dto) {
+        this.currentProgramDTO = dto;
+        mainInstrTableController.setItems(dto.instructions().programInstructionsDtoList());
     }
 
     // ===== Handlers used in MainView.fxml =====
@@ -53,21 +82,27 @@ public class MainController {
         Window window = contextSelector.getScene().getWindow();
         File selectedFile = fileChooser.showOpenDialog(window);
 
-        if (selectedFile != null && selectedFile.getName().endsWith(".xml") ) {
-            programNameLabel .setText(selectedFile.getAbsolutePath());
-            engine.loadProgram(Path.of(selectedFile.getAbsolutePath()));
-        } else {
+        if (selectedFile == null || !selectedFile.getName().endsWith(".xml") ) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.initOwner(window);
             alert.setTitle("No File Selected");
             alert.setHeaderText(null);
             alert.setContentText("No file was selected. Please choose an XML file.\n");
             alert.showAndWait();
+            return;
         }
 
-        ProgramDTO program = engine.getProgramToDisplay();
+        programNameLabel.setText(selectedFile.getAbsolutePath());
+        engine.loadProgram(Path.of(selectedFile.getAbsolutePath()));
 
-        mainInstrTableController.setItems(program.instructions().programInstructionsDtoList());
+        ProgramDTO baseProgram = engine.getProgramToDisplay();
+        updateCurrentProgramAndMainInstrTable(baseProgram);
+
+        int maxDegree = engine.getMaxDegree();
+        degreeSelector.getItems().setAll(
+                java.util.stream.IntStream.rangeClosed(0, maxDegree).boxed().toList()
+        );
+        degreeSelector.getSelectionModel().selectFirst();
     }
 
     @FXML private void onRun(ActionEvent e)        { System.out.println("Run"); }

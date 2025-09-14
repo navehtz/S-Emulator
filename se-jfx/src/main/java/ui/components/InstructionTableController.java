@@ -11,17 +11,6 @@ import javafx.scene.control.TableView;
 
 public class InstructionTableController {
 
-    /*public static class InstructionRow {
-        public final int idx;           // 1-based
-        public final String type;       // "B"/"S"
-        public final String label;      // null or "EXIT" or "L2"
-        public final String command;    // display text
-        public final int cycles;
-
-        public InstructionRow(int idx, String type, String label, String command, int cycles) {
-            this.idx = idx; this.type = type; this.label = label; this.command = command; this.cycles = cycles;
-        }
-    }*/
 
     @FXML private TableView<InstructionDTO> table;
     @FXML private TableColumn<InstructionDTO, Number> colIdx;
@@ -41,13 +30,6 @@ public class InstructionTableController {
         colCycles.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().cycleNumber()));
         table.setItems(rows);
     }
-
-    /*private String box(String label) {
-        if (label == null || label.isBlank()) return "[     ]";
-        String s = " " + label + "  ";
-        String inside = s.length() > 5 ? s.substring(0,5) : String.format("%-5s", s);
-        return "[" + inside + "]";
-    }*/
 
     public void setItems(Iterable<InstructionDTO> items) {
         rows.clear();

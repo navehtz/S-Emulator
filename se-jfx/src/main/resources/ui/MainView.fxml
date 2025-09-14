@@ -70,7 +70,7 @@
                                                       <children>
       
                                                          <!-- Summary line -->
-                                                         <Label fx:id="summaryLabel" alignment="CENTER" layoutY="115.0" prefHeight="40.0" prefWidth="674.0" style="-fx-background-color:#e5e5e5; -fx-padding:6;" text="Summary line" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                         <Label fx:id="summaryLabel" layoutY="115.0" prefHeight="40.0" prefWidth="674.0" style="-fx-background-color:#e5e5e5; -fx-padding:6;" text="Summary line" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                                       </children>
                                                    </AnchorPane>
                                                 </children>
