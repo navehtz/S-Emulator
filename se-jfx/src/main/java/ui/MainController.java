@@ -23,6 +23,7 @@ import variable.Variable;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,8 @@ public class MainController {
 
     public ProgramDTO getCurrentProgram() { return currentProgramDTO.get(); }
     public void setCurrentProgram(ProgramDTO p) { currentProgramDTO.set(p); }
+    private int numOfRuns = 0;
+    private List<ProgramExecutorDTO> historyOfRuns = new ArrayList<>();
 
     @FXML
     private void initialize() {
@@ -131,6 +134,7 @@ public class MainController {
         programNameLabel.setText(selectedFile.getAbsolutePath());
         engine.loadProgram(Path.of(selectedFile.getAbsolutePath()));
         clearExecutionData();
+        runsPaneController.clearHistory();
 
         ProgramDTO baseProgram = engine.getProgramToDisplay();
         updateCurrentProgramAndMainInstrTable(baseProgram);
@@ -146,9 +150,6 @@ public class MainController {
     @FXML private void onRun(ActionEvent e) {
         if (getCurrentProgram() == null || runInProgress.get()) return;
         runCoordinator.executeForRun(getCurrentProgram());
-
-
-
 
     }
     @FXML private void onDebug(ActionEvent e)      {  }
@@ -211,8 +212,17 @@ public class MainController {
 
                 updateInputsPane(programExecutorDTO);
 
+
                 // 3) History aggregation (program name + degree + inputs + outputs + cycles)
-                //runsPaneController.append(result.toHistoryEntry());
+
+                appendRunToHistory(++numOfRuns,
+                        programExecutorDTO.degree(),
+                        programExecutorDTO.inputsValuesOfUser(),
+                        programExecutorDTO.result(),
+                        programExecutorDTO.totalCycles() );
+
+                historyOfRuns.add(programExecutorDTO);
+
             } finally {
                 runInProgress.set(false);
             }
@@ -226,6 +236,25 @@ public class MainController {
             alert.showAndWait();
         }
     }
+
+    private void appendRunToHistory(int runNumber, int degree, List<Long> inputs, long result, int cycles) {
+        String inputsFormatted = inputs.stream()
+                .map(String::valueOf)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+
+        RunHistoryTableController.RunRow runRow = new RunHistoryTableController.RunRow(
+                runNumber,
+                degree,
+                inputsFormatted,
+                result,
+                cycles
+        );
+
+        // Append the new RunRow to the table
+        runsPaneController.appendRow(runRow);
+    }
+
 
     // ===== Ordering helper (kept local for cohesion; replace with your existing util if you prefer) =====
     private static final Pattern XI = Pattern.compile("x(\\d+)");

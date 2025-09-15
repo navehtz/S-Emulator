@@ -12,12 +12,13 @@
                   <padding>
                   <Insets bottom="6" left="6" right="6" top="6" />
                </padding>
-                  <TableView fx:id="table" prefHeight="238.0" prefWidth="285.0" VBox.vgrow="ALWAYS">
+                  <TableView fx:id="table" prefHeight="238.0" prefWidth="310.0" VBox.vgrow="ALWAYS">
                       <columns>
-                          <TableColumn fx:id="colRunNum" prefWidth="59.0" text="Run #" />
-                          <TableColumn fx:id="colInputs" prefWidth="74.0" text="Inputs" />
-                          <TableColumn fx:id="colY" prefWidth="68.0" text="y" />
-                          <TableColumn fx:id="colCycles" prefWidth="82.0" text="Cycles" />
+                          <TableColumn fx:id="colRunNum" prefWidth="60.0" text="Run #" />
+                          <TableColumn fx:id="colDegree" prefWidth="60.0" text="Degree" />
+                          <TableColumn fx:id="colInputs" prefWidth="60.0" text="Inputs" />
+                          <TableColumn fx:id="colResult" prefWidth="60.0" text="Result" />
+                          <TableColumn fx:id="colCycles" prefWidth="60.0" text="Cycles" />
                       </columns>
                   </TableView>
                   <HBox spacing="8">
