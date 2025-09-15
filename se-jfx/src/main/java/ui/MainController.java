@@ -9,25 +9,25 @@ import engine.EngineImpl;
 import exceptions.EngineLoadException;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ObjectPropertyBase;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
-import ui.components.DynamicInputsController;
-import ui.components.InstructionTableController;
-import ui.components.RunHistoryTableController;
-import ui.components.VariablesTableController;
+import ui.components.*;
+import ui.run.RunCoordinator;
+import ui.run.RunResultPresenter;
+import variable.Variable;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class MainController {
 
@@ -48,11 +48,18 @@ public class MainController {
      @FXML private Button btnResume;
      @FXML private Button btnStepOver;
      @FXML private Button btnDebug;
+     @FXML private Label cyclesLabel;
 
 
     private final Engine engine = new EngineImpl();
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
     public ReadOnlyObjectProperty<ProgramDTO> currentProgramProperty() { return currentProgramDTO; }
+    private final BooleanProperty runInProgress = new SimpleBooleanProperty(false);
+    public BooleanProperty runInProgressProperty() { return runInProgress; }
+    private RunCoordinator runCoordinator;
+
+    public ProgramDTO getCurrentProgram() { return currentProgramDTO.get(); }
+    public void setCurrentProgram(ProgramDTO p) { currentProgramDTO.set(p); }
 
     @FXML
     private void initialize() {
@@ -72,12 +79,30 @@ public class MainController {
             if (newVal != null) {
                 ProgramDTO expanded = engine.getExpandedProgramToDisplay(newVal);
                 updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
+                clearExecutionData();
             }
         });
 
         btnRun.disableProperty().bind(
                 currentProgramProperty().isNull()
+                        .or(runInProgressProperty())
         );
+
+        btnRun.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) return;
+            Window owner = newScene.getWindow();
+            runCoordinator = new RunCoordinator(
+                    engine,
+                    owner,
+                    this::getSelectedDegree,
+                    new UiRunPresenter()
+            );
+        });
+    }
+
+    private int getSelectedDegree() {
+        if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
+        return degreeSelector.getValue();
     }
 
     private void updateCurrentProgramAndMainInstrTable(ProgramDTO dto) {
@@ -99,17 +124,13 @@ public class MainController {
         File selectedFile = fileChooser.showOpenDialog(window);
 
         if (selectedFile == null || !selectedFile.getName().endsWith(".xml") ) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.initOwner(window);
-            alert.setTitle("No File Selected");
-            alert.setHeaderText(null);
-            alert.setContentText("No file was selected. Please choose an XML file.\n");
-            alert.showAndWait();
+            showAlert(Alert.AlertType.WARNING, "No Program Loaded", "Please load a program file before running.");
             return;
         }
 
         programNameLabel.setText(selectedFile.getAbsolutePath());
         engine.loadProgram(Path.of(selectedFile.getAbsolutePath()));
+        clearExecutionData();
 
         ProgramDTO baseProgram = engine.getProgramToDisplay();
         updateCurrentProgramAndMainInstrTable(baseProgram);
@@ -123,6 +144,10 @@ public class MainController {
     }
 
     @FXML private void onRun(ActionEvent e) {
+        if (getCurrentProgram() == null || runInProgress.get()) return;
+        runCoordinator.executeForRun(getCurrentProgram());
+
+
 
 
     }
@@ -141,5 +166,72 @@ public class MainController {
         btnStepOver.setDisable(false);
     }*/
 
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void clearExecutionData() {
+        inputsPaneController.clearInputs();
+        varsPaneController.clearVariables();
+    }
+
+
+    @FXML private void updateInputsPane(ProgramExecutorDTO programExecutorDTO) {
+        List<Long> inputsValues = programExecutorDTO.inputsValuesOfUser();
+        inputsPaneController.setInputsValuesOfUser(inputsValues);
+    }
+
+    private final class UiRunPresenter implements RunResultPresenter {
+        @Override public void onRunStarted() {
+            runInProgress.set(true);
+            // Optional: show a tiny busy indicator
+        }
+        @Override public void onRunSucceeded(ProgramExecutorDTO programExecutorDTO) {
+            try {
+                // 1) Variables: y, then Xi asc, then Zi asc + cycles
+                Map<String, Long> sorted = new LinkedHashMap<>();
+                sorted.put("y", programExecutorDTO.result());
+                sorted.putAll((Map<? extends String, ? extends Long>) programExecutorDTO.variablesToValuesSorted().entrySet().stream()
+                                // Filter out variables that start with "x" or "X"
+                                .filter(entry -> !entry.getKey().toLowerCase().startsWith("x"))
+                                // Collect the remaining entries into a sorted LinkedHashMap
+                                .collect(Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        Map.Entry::getValue,
+                                        (oldValue, newValue) -> oldValue,
+                                        LinkedHashMap::new
+                                )));
+
+                        varsPaneController.setVariables(sorted);
+                cyclesLabel.setText(String.valueOf(programExecutorDTO.totalCycles()));
+
+                updateInputsPane(programExecutorDTO);
+
+                // 3) History aggregation (program name + degree + inputs + outputs + cycles)
+                //runsPaneController.append(result.toHistoryEntry());
+            } finally {
+                runInProgress.set(false);
+            }
+        }
+        @Override public void onRunFailed(String message) {
+            runInProgress.set(false);
+            var alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Run failed");
+            alert.setHeaderText("Run failed");
+            alert.setContentText(message != null ? message : "Unknown error");
+            alert.showAndWait();
+        }
+    }
+
+    // ===== Ordering helper (kept local for cohesion; replace with your existing util if you prefer) =====
+    private static final Pattern XI = Pattern.compile("x(\\d+)");
+    private static final Pattern ZI = Pattern.compile("z(\\d+)");
+
 
 }
+
+

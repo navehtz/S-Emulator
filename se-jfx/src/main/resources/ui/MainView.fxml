@@ -119,12 +119,12 @@
                                     </TitledPane>
                                     <AnchorPane prefHeight="200.0" prefWidth="200.0">
                                        <children>
-                        
+
                                           <!-- Variables + Dynamic Inputs -->
                                           <HBox prefWidth="193.0" spacing="8" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <!-- Variables (component) -->
                                              <fx:include fx:id="varsPane" source="components/VariablesTable.fxml" />
-                        
+
                                              <!-- Dynamic Inputs (component builds only relevant x_i) -->
                                              <fx:include fx:id="inputsPane" source="components/DynamicInputsPane.fxml" HBox.hgrow="ALWAYS" />
                                           </HBox>

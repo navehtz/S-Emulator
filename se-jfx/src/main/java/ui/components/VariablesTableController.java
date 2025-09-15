@@ -1,6 +1,7 @@
 package ui.components;
 
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -9,16 +10,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class VariablesTableController {
 
-    public static class VarRow {
-        public final String name;
-        public final int value;
-        public VarRow(String name, int value){ this.name=name; this.value=value; }
+    public record VarRow(String name, Long value) {
     }
 
     @FXML private TableView<VarRow> table;
@@ -30,15 +27,15 @@ public class VariablesTableController {
     @FXML
     private void initialize() {
         colName.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().name));
-        colValue.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().value));
+        colValue.setCellValueFactory(d -> new SimpleLongProperty(d.getValue().value));
         table.setItems(rows);
     }
 
     /** expects a map like {y=3, x1=0, x2=4, z1=7} */
-    public void setVariables(Map<String,Integer> vars) {
+    public void setVariables(Map<String,Long> vars) {
         rows.clear();
         // order: y, x1..xn, z1..zn (stable)
-        Map<String,Integer> sorted = new TreeMap<>(new VarOrder());
+        Map<String,Long> sorted = new TreeMap<>(new VarOrder());
         sorted.putAll(vars);
         for (var e : sorted.entrySet()) rows.add(new VarRow(e.getKey(), e.getValue()));
     }
@@ -56,4 +53,9 @@ public class VariablesTableController {
         private static int num(String t){ try { return Integer.parseInt(t); } catch(Exception e){ return 9999; } }
         private static String pad(int n){ return String.format("%05d", n); }
     }
+
+    public void clearVariables() {
+        rows.clear();
+    }
+
 }
