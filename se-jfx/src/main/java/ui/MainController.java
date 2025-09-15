@@ -3,14 +3,20 @@ package ui;
 
 import dto.InstructionDTO;
 import dto.ProgramDTO;
+import dto.ProgramExecutorDTO;
 import engine.Engine;
 import engine.EngineImpl;
 import exceptions.EngineLoadException;
+import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ObjectPropertyBase;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import ui.components.DynamicInputsController;
@@ -21,6 +27,7 @@ import ui.components.VariablesTableController;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 public class MainController {
 
@@ -36,20 +43,25 @@ public class MainController {
      @FXML private ComboBox<String> contextSelector;
      @FXML private ComboBox<Integer> degreeSelector;
      @FXML private ComboBox<String> highlightSelector;
+     @FXML private Button btnRun;
+     @FXML private Button btnStop;
+     @FXML private Button btnResume;
+     @FXML private Button btnStepOver;
+     @FXML private Button btnDebug;
 
 
     private final Engine engine = new EngineImpl();
-    private ProgramDTO currentProgramDTO;
+    private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
+    public ReadOnlyObjectProperty<ProgramDTO> currentProgramProperty() { return currentProgramDTO; }
 
     @FXML
     private void initialize() {
         mainInstrTableController.getTable().getSelectionModel()
                 .selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
                     int i = (newIdx == null) ? -1 : newIdx.intValue();
-                    if (i >= 0 && currentProgramDTO != null &&
-                            i < currentProgramDTO.expandedProgram().size()) {
+                    if (i >= 0 && i < currentProgramDTO.get().expandedProgram().size()) {
 
-                        List<InstructionDTO> chain = currentProgramDTO.expandedProgram().get(i).reversed();
+                        List<InstructionDTO> chain = currentProgramDTO.get().expandedProgram().get(i);
                         historyInstrTableController.setItems(chain);
                     } else {
                         historyInstrTableController.setItems(java.util.Collections.emptyList());
@@ -62,10 +74,14 @@ public class MainController {
                 updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
             }
         });
+
+        btnRun.disableProperty().bind(
+                currentProgramProperty().isNull()
+        );
     }
 
     private void updateCurrentProgramAndMainInstrTable(ProgramDTO dto) {
-        this.currentProgramDTO = dto;
+        this.currentProgramDTO.set(dto);
         mainInstrTableController.setItems(dto.instructions().programInstructionsDtoList());
     }
 
@@ -103,13 +119,27 @@ public class MainController {
                 java.util.stream.IntStream.rangeClosed(0, maxDegree).boxed().toList()
         );
         degreeSelector.getSelectionModel().selectFirst();
+        //activateButtons();
     }
 
-    @FXML private void onRun(ActionEvent e)        { System.out.println("Run"); }
-    @FXML private void onDebug(ActionEvent e)      { System.out.println("Debug"); }
-    @FXML private void onStop(ActionEvent e)       { System.out.println("Stop"); }
-    @FXML private void onResume(ActionEvent e)     { System.out.println("Resume"); }
-    @FXML private void onStepOver(ActionEvent e)   { System.out.println("Step Over"); }
+    @FXML private void onRun(ActionEvent e) {
+
+
+    }
+    @FXML private void onDebug(ActionEvent e)      {  }
+    @FXML private void onStop(ActionEvent e)       {  }
+    @FXML private void onResume(ActionEvent e)     {  }
+    @FXML private void onStepOver(ActionEvent e)   {  }
 
     // If your toolbar has other onAction handlers, add them here too.
+
+  /*  private void activateButtons() {
+        btnRun.setDisable(false);
+        btnDebug.setDisable(false);
+        btnStop.setDisable(true);
+        btnResume.setDisable(true);
+        btnStepOver.setDisable(false);
+    }*/
+
+
 }
