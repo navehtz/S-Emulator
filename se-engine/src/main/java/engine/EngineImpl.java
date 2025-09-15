@@ -114,13 +114,16 @@ public class EngineImpl implements Engine, Serializable {
 
     private ProgramDTO buildProgramDTO(Program program) {
         InstructionsDTO instructionsDTO = new InstructionsDTO(program.getInstructionDTOList());
+        List<String> allInputsWithSerial = new ArrayList<>(program.getInputAndWorkVariablesSortedBySerial().stream().map(Variable::getRepresentation).toList());
+        allInputsWithSerial.addFirst(Variable.RESULT.getRepresentation());
 
         return new ProgramDTO(
                 program.getName(),
                 program.getOrderedLabelsExitLastStr(),
                 program.getInputVariablesSortedStr(),
                 instructionsDTO,
-                program.getExpandedProgram()
+                program.getExpandedProgram(),
+                allInputsWithSerial
         );
     }
 

@@ -14,7 +14,7 @@ public class App extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/MainView.fxml"));
         Parent root = loader.load();
         Scene scene = new Scene(root);
-        //scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/ui/styles.css")).toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/ui/styles/vars.css")).toExternalForm());
         stage.setTitle("S-Emulator");
         stage.setScene(scene);
         stage.setMinWidth(300);

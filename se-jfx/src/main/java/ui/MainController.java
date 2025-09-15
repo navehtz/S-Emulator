@@ -7,20 +7,21 @@ import dto.ProgramExecutorDTO;
 import engine.Engine;
 import engine.EngineImpl;
 import exceptions.EngineLoadException;
-import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import javafx.beans.value.ChangeListener;
+import javafx.scene.control.TableRow;
+
 import ui.components.*;
 import ui.run.RunCoordinator;
 import ui.run.RunResultPresenter;
-import variable.Variable;
 
+import java.util.regex.Matcher;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -62,7 +63,10 @@ public class MainController {
     public ProgramDTO getCurrentProgram() { return currentProgramDTO.get(); }
     public void setCurrentProgram(ProgramDTO p) { currentProgramDTO.set(p); }
     private int numOfRuns = 0;
-    private List<ProgramExecutorDTO> historyOfRuns = new ArrayList<>();
+    private final List<ProgramExecutorDTO> historyOfRuns = new ArrayList<>();
+
+    private static final String HIGHLIGHT_CLASS_NAME = "var-highlight";
+    private static final PseudoClass HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("var-highlight");
 
     @FXML
     private void initialize() {
@@ -83,6 +87,7 @@ public class MainController {
                 ProgramDTO expanded = engine.getExpandedProgramToDisplay(newVal);
                 updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
                 clearExecutionData();
+                highlightSelector.getItems().setAll(currentProgramDTO.get().allVariables());
             }
         });
 
@@ -101,6 +106,8 @@ public class MainController {
                     new UiRunPresenter()
             );
         });
+
+        setupMainTableHighlighting();
     }
 
     private int getSelectedDegree() {
@@ -144,6 +151,7 @@ public class MainController {
                 java.util.stream.IntStream.rangeClosed(0, maxDegree).boxed().toList()
         );
         degreeSelector.getSelectionModel().selectFirst();
+        highlightSelector.getItems().setAll(baseProgram.allVariables());
         //activateButtons();
     }
 
@@ -260,6 +268,45 @@ public class MainController {
     private static final Pattern XI = Pattern.compile("x(\\d+)");
     private static final Pattern ZI = Pattern.compile("z(\\d+)");
 
+    private void setupMainTableHighlighting() {
+        var tv = mainInstrTableController.getTable();
+
+        tv.setRowFactory(_tv -> {
+            TableRow<InstructionDTO> row = new TableRow<>();
+
+            // Re-apply when row item changes, row selection changes, or selector changes
+            ChangeListener<Object> applier = (obs, o, n) -> applyVarHighlight(row);
+            row.itemProperty().addListener(applier);
+            row.selectedProperty().addListener(applier);
+            highlightSelector.valueProperty().addListener(applier);
+
+            return row;
+        });
+
+        // When items list is replaced (degree/load), refresh to re-evaluate
+        tv.itemsProperty().addListener((obs, o, n) -> tv.refresh());
+    }
+
+    private void applyVarHighlight(TableRow<InstructionDTO> row) {
+        InstructionDTO instructionFromRow = row.getItem();
+        String chosenVariable = highlightSelector.getValue();
+
+        boolean isRowChosen = chosenVariable != null && !chosenVariable.isBlank();
+        boolean isMatchedRows = isRowChosen && instructionFromRow != null
+                && containsVariable(mainInstrTableController.commandTextOf(instructionFromRow), chosenVariable);
+
+        boolean apply = isMatchedRows && !row.isSelected();
+
+        applyPseudoClassHighlight(apply, row);
+    }
+
+    private boolean containsVariable(String command, String variable) {
+        return command.contains(variable);
+    }
+
+    private void applyPseudoClassHighlight(boolean apply, TableRow<InstructionDTO> row) {
+        row.pseudoClassStateChanged(HIGHLIGHTED_PSEUDO_CLASS, apply);
+    }
 
 }
 

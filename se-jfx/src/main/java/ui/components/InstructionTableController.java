@@ -38,4 +38,10 @@ public class InstructionTableController {
 
     public TableView<InstructionDTO> getTable() { return table; }
     public InstructionDTO getSelected() { return table.getSelectionModel().getSelectedItem(); }
+
+    public String commandTextOf(InstructionDTO item) {
+        if (item == null) return "";
+        var ov = colCommand.getCellObservableValue(item);
+        return ov == null || ov.getValue() == null ? "" : String.valueOf(ov.getValue());
+    }
 }
