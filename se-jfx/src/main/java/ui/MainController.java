@@ -21,7 +21,6 @@ import ui.components.*;
 import ui.run.RunCoordinator;
 import ui.run.RunResultPresenter;
 
-import java.util.regex.Matcher;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -33,91 +32,102 @@ import java.util.stream.Collectors;
 
 public class MainController {
 
-    // These are injected because of <fx:include fx:id="...">
     @FXML private InstructionTableController mainInstrTableController;
     @FXML private InstructionTableController historyInstrTableController;
     @FXML private VariablesTableController   varsPaneController;
     @FXML private DynamicInputsController    inputsPaneController;
     @FXML private RunHistoryTableController  runsPaneController;
 
-    // Top-bar buttons/controls may also be referenced by fx:id in FXML (optional)
      @FXML private Label programNameLabel;
      @FXML private ComboBox<String> contextSelector;
      @FXML private ComboBox<Integer> degreeSelector;
      @FXML private ComboBox<String> highlightSelector;
      @FXML private Button btnRun;
+     @FXML private Button btnDebug;
      @FXML private Button btnStop;
      @FXML private Button btnResume;
      @FXML private Button btnStepOver;
-     @FXML private Button btnDebug;
      @FXML private Label cyclesLabel;
-
 
     private final Engine engine = new EngineImpl();
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
-    public ReadOnlyObjectProperty<ProgramDTO> currentProgramProperty() { return currentProgramDTO; }
-    private final BooleanProperty runInProgress = new SimpleBooleanProperty(false);
-    public BooleanProperty runInProgressProperty() { return runInProgress; }
     private RunCoordinator runCoordinator;
+    private final BooleanProperty isRunInProgress = new SimpleBooleanProperty(false);
 
+    public ReadOnlyObjectProperty<ProgramDTO> currentProgramProperty() { return currentProgramDTO; }
+    public BooleanProperty isRunInProgressProperty() { return isRunInProgress; }
     public ProgramDTO getCurrentProgram() { return currentProgramDTO.get(); }
-    public void setCurrentProgram(ProgramDTO p) { currentProgramDTO.set(p); }
+    //public void setCurrentProgram(ProgramDTO p) { currentProgramDTO.set(p); }
+
     private int numOfRuns = 0;
     private final List<ProgramExecutorDTO> historyOfRuns = new ArrayList<>();
 
-    private static final String HIGHLIGHT_CLASS_NAME = "var-highlight";
     private static final PseudoClass HIGHLIGHTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("var-highlight");
 
     @FXML
     private void initialize() {
-        mainInstrTableController.getTable().getSelectionModel()
-                .selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
-                    int i = (newIdx == null) ? -1 : newIdx.intValue();
-                    if (i >= 0 && i < currentProgramDTO.get().expandedProgram().size()) {
+        initUiWiring();
+        setupMainTableHighlighting();
+    }
 
-                        List<InstructionDTO> chain = currentProgramDTO.get().expandedProgram().get(i);
-                        historyInstrTableController.setItems(chain);
-                    } else {
-                        historyInstrTableController.setItems(java.util.Collections.emptyList());
-                    }
-                });
+    private void initUiWiring() {
+        initDegreeSelectorHandler();
+        initRunButtonHandler();
+        mainInstrTableController.bindHistoryTable(currentProgramDTO::get, historyInstrTableController);
+    }
 
+    private void initRunButtonHandler() {
+        btnRun.setOnAction(e -> handleRunClick());
+        initRunButtonDisableBinding();
+    }
+
+    private void handleRunClick() {
+        if (runCoordinator == null) {
+            Window owner = getOwnerWindowOrNull();
+            if (owner == null) {
+                new Alert(Alert.AlertType.WARNING, "Window not ready yet. Try again.").show();
+                return;
+            }
+            runCoordinator = new RunCoordinator(
+                    engine,
+                    owner,
+                    this::getSelectedDegree,   // your supplier for the selected degree
+                    new UiRunPresenter()
+            );
+        }
+
+        runCoordinator.executeForRun(getCurrentProgram());
+    }
+
+    private Window getOwnerWindowOrNull() {
+        return (btnRun.getScene() != null) ? btnRun.getScene().getWindow() : null;
+    }
+
+    private void initDegreeSelectorHandler() {
         degreeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 ProgramDTO expanded = engine.getExpandedProgramToDisplay(newVal);
                 updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
                 clearExecutionData();
-                highlightSelector.getItems().setAll(currentProgramDTO.get().allVariables());
+                populateHighlightSelectorFromCurrentProgram();
             }
         });
+    }
 
+    private void populateHighlightSelectorFromCurrentProgram() {
+        ProgramDTO currentProgram = getCurrentProgram();
+        if (currentProgram == null) {
+            highlightSelector.getItems().clear();
+        } else {
+            highlightSelector.getItems().setAll(currentProgram.allVariables());
+        }
+    }
+
+    private void initRunButtonDisableBinding() {
         btnRun.disableProperty().bind(
                 currentProgramProperty().isNull()
-                        .or(runInProgressProperty())
+                        .or(isRunInProgressProperty())
         );
-
-        btnRun.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene == null) return;
-            Window owner = newScene.getWindow();
-            runCoordinator = new RunCoordinator(
-                    engine,
-                    owner,
-                    this::getSelectedDegree,
-                    new UiRunPresenter()
-            );
-        });
-
-        setupMainTableHighlighting();
-    }
-
-    private int getSelectedDegree() {
-        if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
-        return degreeSelector.getValue();
-    }
-
-    private void updateCurrentProgramAndMainInstrTable(ProgramDTO dto) {
-        this.currentProgramDTO.set(dto);
-        mainInstrTableController.setItems(dto.instructions().programInstructionsDtoList());
     }
 
     // ===== Handlers used in MainView.fxml =====
@@ -156,24 +166,23 @@ public class MainController {
     }
 
     @FXML private void onRun(ActionEvent e) {
-        if (getCurrentProgram() == null || runInProgress.get()) return;
+        if (getCurrentProgram() == null || isRunInProgress.get()) return;
         runCoordinator.executeForRun(getCurrentProgram());
-
     }
     @FXML private void onDebug(ActionEvent e)      {  }
     @FXML private void onStop(ActionEvent e)       {  }
     @FXML private void onResume(ActionEvent e)     {  }
     @FXML private void onStepOver(ActionEvent e)   {  }
 
-    // If your toolbar has other onAction handlers, add them here too.
+    private int getSelectedDegree() {
+        if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
+        return degreeSelector.getValue();
+    }
 
-  /*  private void activateButtons() {
-        btnRun.setDisable(false);
-        btnDebug.setDisable(false);
-        btnStop.setDisable(true);
-        btnResume.setDisable(true);
-        btnStepOver.setDisable(false);
-    }*/
+    private void updateCurrentProgramAndMainInstrTable(ProgramDTO dto) {
+        this.currentProgramDTO.set(dto);
+        mainInstrTableController.setItems(dto.instructions().programInstructionsDTOList());
+    }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
@@ -196,15 +205,15 @@ public class MainController {
 
     private final class UiRunPresenter implements RunResultPresenter {
         @Override public void onRunStarted() {
-            runInProgress.set(true);
-            // Optional: show a tiny busy indicator
+            isRunInProgress.set(true);
+            //  show a busy indicator
         }
         @Override public void onRunSucceeded(ProgramExecutorDTO programExecutorDTO) {
             try {
                 // 1) Variables: y, then Xi asc, then Zi asc + cycles
-                Map<String, Long> sorted = new LinkedHashMap<>();
-                sorted.put("y", programExecutorDTO.result());
-                sorted.putAll((Map<? extends String, ? extends Long>) programExecutorDTO.variablesToValuesSorted().entrySet().stream()
+                Map<String, Long> sortedVariables = new LinkedHashMap<>();
+                sortedVariables.put("y", programExecutorDTO.result());
+                sortedVariables.putAll((Map<? extends String, ? extends Long>) programExecutorDTO.variablesToValuesSorted().entrySet().stream()
                                 // Filter out variables that start with "x" or "X"
                                 .filter(entry -> !entry.getKey().toLowerCase().startsWith("x"))
                                 // Collect the remaining entries into a sorted LinkedHashMap
@@ -215,7 +224,7 @@ public class MainController {
                                         LinkedHashMap::new
                                 )));
 
-                        varsPaneController.setVariables(sorted);
+                        varsPaneController.setVariables(sortedVariables);
                 cyclesLabel.setText(String.valueOf(programExecutorDTO.totalCycles()));
 
                 updateInputsPane(programExecutorDTO);
@@ -232,11 +241,11 @@ public class MainController {
                 historyOfRuns.add(programExecutorDTO);
 
             } finally {
-                runInProgress.set(false);
+                isRunInProgress.set(false);
             }
         }
         @Override public void onRunFailed(String message) {
-            runInProgress.set(false);
+            isRunInProgress.set(false);
             var alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Run failed");
             alert.setHeaderText("Run failed");
@@ -262,11 +271,6 @@ public class MainController {
         // Append the new RunRow to the table
         runsPaneController.appendRow(runRow);
     }
-
-
-    // ===== Ordering helper (kept local for cohesion; replace with your existing util if you prefer) =====
-    private static final Pattern XI = Pattern.compile("x(\\d+)");
-    private static final Pattern ZI = Pattern.compile("z(\\d+)");
 
     private void setupMainTableHighlighting() {
         var tv = mainInstrTableController.getTable();

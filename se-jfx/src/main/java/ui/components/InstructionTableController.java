@@ -1,6 +1,7 @@
 package ui.components;
 
 import dto.InstructionDTO;
+import dto.ProgramDTO;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -8,6 +9,9 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+
+import java.util.List;
+import java.util.function.Supplier;
 
 public class InstructionTableController {
 
@@ -43,5 +47,23 @@ public class InstructionTableController {
         if (item == null) return "";
         var ov = colCommand.getCellObservableValue(item);
         return ov == null || ov.getValue() == null ? "" : String.valueOf(ov.getValue());
+    }
+
+    public void bindHistoryTable(Supplier<ProgramDTO> currentProgramSupplier, InstructionTableController historyInstrTableController) {
+        getTable().getSelectionModel()
+                .selectedIndexProperty()
+                .addListener((obs, oldIdx, newIdx) -> {
+                    int i = (newIdx == null) ? -1 : newIdx.intValue();
+                    ProgramDTO currentProgramDTO = currentProgramSupplier.get();
+
+                    if (currentProgramDTO != null &&
+                            i >= 0 &&
+                            i < currentProgramDTO.expandedProgram().size()) {
+                        List<InstructionDTO> chain = currentProgramDTO.expandedProgram().get(i);
+                        historyInstrTableController.setItems(chain);
+                    } else {
+                        historyInstrTableController.setItems(java.util.Collections.emptyList());
+                    }
+                });
     }
 }

@@ -46,9 +46,9 @@ public class Display implements MenuActionable {
 
     public static String getProgramInstructionsRepresentation(InstructionsDTO instructionsDTO) {
         StringBuilder instructionsRepresentation = new StringBuilder();
-        int n = instructionsDTO.programInstructionsDtoList().size();
+        int n = instructionsDTO.programInstructionsDTOList().size();
 
-        for (InstructionDTO instructionDTO : instructionsDTO.programInstructionsDtoList()) {
+        for (InstructionDTO instructionDTO : instructionsDTO.programInstructionsDTOList()) {
             instructionsRepresentation.append(getInstructionRepresentation(instructionDTO, n, false)).append(System.lineSeparator());
         }
 

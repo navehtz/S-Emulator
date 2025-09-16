@@ -17,7 +17,7 @@ public final class RunCoordinator {
     private final IntSupplier expansionDegreeSupplier;
     private final RunResultPresenter resultPresenter;
 
-    private final Map<String, Map<String, Integer>> lastInputsByProgram = new HashMap<>();
+    private final Map<String, Map<String, Double>> lastInputsByProgram = new HashMap<>();
 
     public RunCoordinator(  Engine engine,
                             Window ownerWindow,
@@ -34,19 +34,19 @@ public final class RunCoordinator {
         if (program == null) return;
 
         List<String> requiredInputs = engine.getProgramToDisplay().inputVariables();
-        Map<String, Integer> prefill = lastInputsByProgram.getOrDefault(program.programName(), Collections.emptyMap());
+        Map<String, Double> prefill = lastInputsByProgram.getOrDefault(program.programName(), Collections.emptyMap());
         RunInputsDialog dialog = new RunInputsDialog(ownerWindow, requiredInputs, prefill);
-        Optional<Map<String, Integer>> userValues = dialog.showAndWait();
+        Optional<Map<String, Double>> userValues = dialog.showAndWait();
         if (userValues.isEmpty()) return; // user canceled
 
-        Map<String, Integer> provided = userValues.get();
+        Map<String, Double> provided = userValues.get();
         // remember for next time
         lastInputsByProgram.put(program.programName(), new LinkedHashMap<>(provided));
 
-        Map<String, Integer> inputsForRun = new LinkedHashMap<>();
+        /*Map<String, Double> inputsForRun = new LinkedHashMap<>();
         for (String xi : requiredInputs) {
-            inputsForRun.put(xi, provided.getOrDefault(xi, 0));
-        }
+            inputsForRun.put(xi, provided.getOrDefault(xi, 0.0));
+        }*/
 
         resultPresenter.onRunStarted();
 
@@ -55,10 +55,10 @@ public final class RunCoordinator {
         Task<ProgramExecutorDTO> task = new Task<>() {
             @Override
             protected ProgramExecutorDTO call() throws Exception {
-                engine.runProgram(degree, provided.values()
-                        .stream()
-                        .map(Long::valueOf)
+                engine.runProgram(degree, provided.values().stream()
+                        .map(Double::longValue)
                         .toArray(Long[]::new));
+
                 return engine.getProgramToDisplayAfterRun();
             }
         };

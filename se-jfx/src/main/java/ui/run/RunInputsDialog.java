@@ -8,13 +8,13 @@ import javafx.scene.layout.GridPane;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RunInputsDialog extends Dialog<Map<String, Integer>> {
-    private final Map<String, Spinner<Integer>> inputSpinners = new LinkedHashMap<>();
+public class RunInputsDialog extends Dialog<Map<String, Double>> {
+    private final Map<String, Spinner<Double>> inputSpinners = new LinkedHashMap<>();
 
     public RunInputsDialog(
             javafx.stage.Window ownerWindow,
             List<String> requiredInputs,
-            Map<String, Integer> prefill // may be null
+            Map<String, Double> prefill // may be null
     ) {
         setTitle("Run Inputs");
         setHeaderText("Enter values for the required inputs");
@@ -29,17 +29,27 @@ public class RunInputsDialog extends Dialog<Map<String, Integer>> {
         int row = 0;
         for (String name : requiredInputs) {
             Label label = new Label(name + ":");
-            Spinner<Integer> spinner = new Spinner<>(Integer.MIN_VALUE, Integer.MAX_VALUE, 0, 1);
+            Spinner<Double> spinner = new Spinner<>(0.0, Double.MAX_VALUE, 0, 1);
             spinner.setEditable(true);
 
             // prefill if provided, else zero
-            Integer initial = (prefill != null && prefill.containsKey(name)) ? prefill.get(name) : 0;
+            Double initial = (prefill != null && prefill.containsKey(name)) ? prefill.get(name) : 0L;
             spinner.getValueFactory().setValue(initial);
+            spinner.getEditor().setOnMouseClicked(event -> {
+                        if (!spinner.getEditor().isFocused()) {
+                            spinner.getEditor().requestFocus();
+                        }
+                        spinner.getEditor().selectAll();
+                    });
 
             // commit typed value when focus leaves
-            spinner.focusedProperty().addListener((o, was, isNow) -> {
-                if (!isNow) {
-                    try { spinner.increment(0); } catch (Exception ignore) {}
+            spinner.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal) {
+                    spinner.getEditor().selectAll();
+                } else {
+                    try {
+                        spinner.increment(0); }
+                    catch (Exception ignore) {}
                 }
             });
 
@@ -55,10 +65,10 @@ public class RunInputsDialog extends Dialog<Map<String, Integer>> {
                 inputSpinners.values().forEach(s -> super.bind(s.getEditor().textProperty()));
             }
             @Override protected boolean computeValue() {
-                for (Spinner<Integer> s : inputSpinners.values()) {
+                for (Spinner<Double> s : inputSpinners.values()) {
                     String t = s.getEditor().getText();
                     if (t == null || t.isBlank()) continue; // blank → treat as 0, allowed
-                    try { Integer.parseInt(t.trim()); } catch (NumberFormatException e) { return true; }
+                    try { Long.parseLong(t.trim()); } catch (NumberFormatException e) { return true; }
                 }
                 return false;
             }
