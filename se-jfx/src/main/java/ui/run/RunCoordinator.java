@@ -43,11 +43,6 @@ public final class RunCoordinator {
         // remember for next time
         lastInputsByProgram.put(program.programName(), new LinkedHashMap<>(provided));
 
-        /*Map<String, Double> inputsForRun = new LinkedHashMap<>();
-        for (String xi : requiredInputs) {
-            inputsForRun.put(xi, provided.getOrDefault(xi, 0.0));
-        }*/
-
         resultPresenter.onRunStarted();
 
         int degree = expansionDegreeSupplier.getAsInt();
