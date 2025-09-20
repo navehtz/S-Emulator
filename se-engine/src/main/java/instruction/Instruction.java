@@ -3,6 +3,7 @@ package instruction;
 import dto.InstructionDTO;
 import execution.ExecutionContext;
 import label.Label;
+import operation.Operation;
 import program.Program;
 import variable.Variable;
 
@@ -25,7 +26,7 @@ public interface Instruction extends Serializable {
     InstructionDTO getInstructionDTO();
     List<InstructionDTO> getInstructionExtendedList();
 
-    void setProgramOfThisInstruction(Program programOfThisInstruction);
+    void setProgramOfThisInstruction(Operation operationOfThisInstruction);
     Label execute(ExecutionContext context);
     Instruction createInstructionWithInstructionNumber(int instructionNumber);
 }

@@ -6,6 +6,7 @@ import instruction.OriginOfAllInstruction;
 import label.FixedLabel;
 import label.Label;
 import label.LabelImpl;
+import operation.Operation;
 import program.Program;
 import program.ProgramImpl;
 import variable.Variable;
@@ -26,7 +27,7 @@ final class XmlProgramMapper {
 
     private XmlProgramMapper() {}
 
-    static Program map(SProgram sProgram) {
+    static Operation map(SProgram sProgram) {
         // ---- name ----
         String programName = safeTrim(sProgram.getName());
         if (programName == null || programName.isEmpty()) {
@@ -46,6 +47,7 @@ final class XmlProgramMapper {
                     .withInstructions(code)
                     .withVariables(vars)
                     .withLabels(labels)
+                    .withEntry(FixedLabel.EMPTY)
                     .build();
         }
 
@@ -73,6 +75,7 @@ final class XmlProgramMapper {
                 .withInstructions(code)
                 .withVariables(vars)
                 .withLabels(labels)
+                .withEntry(labels.isEmpty() ? FixedLabel.EMPTY : labels.getFirst())
                 .build();
     }
 
@@ -181,6 +184,10 @@ final class XmlProgramMapper {
                         .orElseThrow(() -> new IllegalArgumentException("variableName not found"));
 
                 return new JumpEqualVariableInstruction(targetVariable, instructionLabel, sourceVariable, addedLabel, originInstruction, ordinal);
+            }
+
+            case "QUOTE": {
+
             }
 
             default:

@@ -3,6 +3,7 @@ package instruction;
 import dto.InstructionDTO;
 import label.FixedLabel;
 import label.Label;
+import operation.Operation;
 import variable.Variable;
 import program.Program;
 
@@ -18,7 +19,7 @@ public abstract class AbstractInstruction implements Instruction {
     private final Label label;
     private final Variable targetVariable;
     private final Instruction origin;
-    private Program programOfThisInstruction = null;
+    private Operation programOfThisInstruction = null;
 
     protected AbstractInstruction(InstructionData instructionData, InstructionType instructionType, Variable targetVariable, Instruction origin, int instructionNumber) {
         this(instructionData, instructionType, targetVariable,FixedLabel.EMPTY, origin, instructionNumber);
@@ -81,12 +82,12 @@ public abstract class AbstractInstruction implements Instruction {
         return List.of(this);   // Basic instruction -> keep as it is
     }
 
-    public Program getProgramOfThisInstruction() {
+    public Operation getProgramOfThisInstruction() {
         return programOfThisInstruction;
     }
 
     @Override
-    public void setProgramOfThisInstruction(Program programOfThisInstruction) {
+    public void setProgramOfThisInstruction(Operation programOfThisInstruction) {
         this.programOfThisInstruction = programOfThisInstruction;
     }
 

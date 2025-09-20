@@ -1,6 +1,8 @@
 package loader;
 
 import exceptions.EngineLoadException;
+import generatedFromXml.SFunction;
+import operation.Operation;
 import program.Program;
 import generatedFromXml.SProgram;
 import jakarta.xml.bind.*;
@@ -20,14 +22,15 @@ public class XmlProgramLoader {
             JAXB_CTX = JAXBContext.newInstance(
                     SProgram.class,
                     SInstruction.class,
-                    SInstructionArgument.class
+                    SInstructionArgument.class,
+                    SFunction.class
             );
         } catch (JAXBException e) {
             throw new ExceptionInInitializerError(e);
         }
     }
 
-    public Program load(Path xmlPath) throws EngineLoadException {
+    public Operation load(Path xmlPath) throws EngineLoadException {
         validatePath(xmlPath);
         SProgram sProgram = unmarshal(xmlPath);
         return XmlProgramMapper.map(sProgram);

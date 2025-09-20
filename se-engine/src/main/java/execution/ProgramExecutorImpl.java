@@ -3,7 +3,7 @@ package execution;
 import instruction.Instruction;
 import label.FixedLabel;
 import label.Label;
-import program.Program;
+import operation.Operation;
 import variable.Variable;
 
 import java.io.Serializable;
@@ -11,14 +11,14 @@ import java.util.*;
 
 public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 
-    private final Program program;
+    private final Operation program;
     private final ExecutionContext context;
     private List<Long> inputsValues;
     private int runDegree = 0;
     private int totalCycles = 0;
 
 
-    public ProgramExecutorImpl(Program program) {
+    public ProgramExecutorImpl(Operation program) {
         this.program = program;
         this.context = new ExecutionContextImpl();
         this.inputsValues = new ArrayList<>();
@@ -59,7 +59,7 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
     }
 
     @Override
-    public Program getProgram() {
+    public Operation getProgram() {
         return program;
     }
 

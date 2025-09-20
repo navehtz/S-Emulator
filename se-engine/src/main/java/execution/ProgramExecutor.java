@@ -1,5 +1,6 @@
 package execution;
 
+import operation.Operation;
 import program.Program;
 import variable.Variable;
 
@@ -10,7 +11,7 @@ public interface ProgramExecutor {
 
     void run(int runDegree, Long... inputs);
 
-    Program getProgram();
+    Operation getProgram();
     long getVariableValue(Variable variable);
     int getRunDegree();
     List<Long> getInputsValuesOfUser();

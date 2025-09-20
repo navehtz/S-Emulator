@@ -8,6 +8,7 @@ import execution.ProgramExecutorImpl;
 import history.ExecutionHistory;
 import execution.ProgramExecutor;
 import history.ExecutionHistoryImpl;
+import operation.Operation;
 import program.Program;
 import loader.XmlProgramLoader;
 import variable.Variable;
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class EngineImpl implements Engine, Serializable {
     private transient Path xmlPath;
-    private Program program;
+    private Operation program;
     private ProgramExecutor programExecutor;
     private ExecutionHistory executionHistory;
 
@@ -28,7 +29,7 @@ public class EngineImpl implements Engine, Serializable {
     @Override
     public void loadProgram(Path xmlPath) throws EngineLoadException {
         this.xmlPath = xmlPath;
-        Program newProgram;
+        Operation newProgram;
 
         XmlProgramLoader loader = new XmlProgramLoader();
         newProgram = loader.load(xmlPath);
@@ -41,7 +42,7 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public void runProgram(int degree, Long... inputs) {
-        Program deepCopyOfProgram = program.deepClone();
+        Operation deepCopyOfProgram = program.deepClone();
         deepCopyOfProgram.expandProgram(degree);
 
         programExecutor = new ProgramExecutorImpl(deepCopyOfProgram);
@@ -106,13 +107,13 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public ProgramDTO getExpandedProgramToDisplay(int degree) {
-        Program deepCopyOfProgram = program.deepClone();
+        Operation deepCopyOfProgram = program.deepClone();
         deepCopyOfProgram.expandProgram(degree);
 
         return buildProgramDTO(deepCopyOfProgram);
     }
 
-    private ProgramDTO buildProgramDTO(Program program) {
+    private ProgramDTO buildProgramDTO(Operation program) {
         InstructionsDTO instructionsDTO = new InstructionsDTO(program.getInstructionDTOList());
         List<String> allInputsWithSerial = new ArrayList<>(program.getInputAndWorkVariablesSortedBySerial().stream().map(Variable::getRepresentation).toList());
         allInputsWithSerial.addFirst(Variable.RESULT.getRepresentation());

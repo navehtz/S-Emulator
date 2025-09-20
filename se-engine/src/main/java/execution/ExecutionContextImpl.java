@@ -1,5 +1,6 @@
 package execution;
 
+import operation.Operation;
 import program.Program;
 import variable.Variable;
 import variable.VariableImpl;
@@ -19,7 +20,7 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
     }
 
     @Override
-    public void initializeVariables(Program program, Long... inputs) {
+    public void initializeVariables(Operation program, Long... inputs) {
         program.sortVariableSetByNumber(program.getInputVariables());
 
         initializeInputVariableFromUserInput(program, inputs);
@@ -28,7 +29,7 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
         this.updateVariable(Variable.RESULT, 0L);
     }
 
-    private void initializeInputVariableFromUserInput(Program program, Long[] inputs) {
+    private void initializeInputVariableFromUserInput(Operation program, Long[] inputs) {
 
         Set<Variable> inputVariables = program.getInputVariables();
 
@@ -56,7 +57,7 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
         }
     }
 
-    private void initializeWorkVariable(Program program) {
+    private void initializeWorkVariable(Operation program) {
         Set<Variable> workVariables = program.getWorkVariables();
 
         for (Variable currWorkVariable : workVariables){
@@ -79,5 +80,10 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
             variable = Variable.RESULT;
 
         variableToValue.put(variable, value);
+    }
+
+    @Override
+    public long getOperationResult(operation.Operation operation) {
+        return variableToValue.get(Variable.RESULT);
     }
 }
