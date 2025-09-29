@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Main-Class: app.App
+Class-Path: se-engine.jar se-api.jar
+    lib/javafx/javafx.base.jar
+    lib/javafx/javafx.controls.jar
+    lib/javafx/javafx.fxml.jar
+    lib/javafx/javafx.graphics.jar
+    lib/javafx/javafx.media.jar
+    lib/javafx/javafx.swing.jar
+    lib/javafx/javafx.web.jar
+    lib/javafx/javafx-swt.jar
+    lib/jaxb/angus-activation.jar
+    lib/jaxb/jakarta.activation-api.jar
+    lib/jaxb/jakarta.xml.bind-api.jar
+    lib/jaxb/jaxb-core.jar
+    lib/jaxb/jaxb-impl.jar
+    lib/jaxb/jaxb-jxc.jar
+    lib/jaxb/jaxb-xjc.jar

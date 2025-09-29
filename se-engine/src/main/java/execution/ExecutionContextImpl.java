@@ -1,6 +1,8 @@
 package execution;
 
+import engine.ProgramRegistry;
 import operation.Operation;
+import operation.OperationInvoker;
 import program.Program;
 import variable.Variable;
 import variable.VariableImpl;
@@ -15,8 +17,13 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
 
     private final Map<Variable, Long> variableToValue;
 
-    public ExecutionContextImpl() {
+    private final ProgramRegistry registry;
+    private final OperationInvoker invoker;
+
+    public ExecutionContextImpl(ProgramRegistry registry, OperationInvoker invoker) {
         this.variableToValue = new HashMap<>();
+        this.registry = registry;
+        this.invoker = invoker;
     }
 
     @Override
@@ -58,11 +65,8 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
     }
 
     private void initializeWorkVariable(Operation program) {
-        Set<Variable> workVariables = program.getWorkVariables();
-
-        for (Variable currWorkVariable : workVariables){
-            long value = 0L;
-            this.updateVariable(currWorkVariable, value);
+        for (Variable currWorkVariable : program.getWorkVariables()) {
+            this.updateVariable(currWorkVariable, 0L);
         }
     }
 
@@ -83,7 +87,27 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
     }
 
     @Override
-    public long getOperationResult(operation.Operation operation) {
-        return variableToValue.get(Variable.RESULT);
+    public long getOperationResult() {
+        return variableToValue.getOrDefault(Variable.RESULT, 0L);
     }
+
+    @Override
+    public long invokeOperation(String name, long... args) {
+        if (registry == null) {
+            throw new IllegalStateException("No ProgramRegistry bound to ExecutionContext");
+        }
+
+        Operation op = registry.getByName(name);
+        return invokeOperation(op, args);
+    }
+
+    @Override
+    public long invokeOperation(Operation op, long... args) {
+        if (registry == null) {
+            throw new IllegalStateException("No ProgramRegistry bound to ExecutionContext");
+        }
+
+        return invoker.invokeOperation(op, args);
+    }
+
 }

@@ -1,5 +1,6 @@
 package execution;
 
+import engine.ProgramRegistry;
 import instruction.Instruction;
 import label.FixedLabel;
 import label.Label;
@@ -12,16 +13,42 @@ import java.util.*;
 public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 
     private final Operation program;
+    private final ProgramRegistry programRegistry;
     private final ExecutionContext context;
     private List<Long> inputsValues;
     private int runDegree = 0;
     private int totalCycles = 0;
 
-
-    public ProgramExecutorImpl(Operation program) {
+    public ProgramExecutorImpl(Operation program, ProgramRegistry registry) {
         this.program = program;
-        this.context = new ExecutionContextImpl();
+        this.programRegistry = Objects.requireNonNull(registry, "Program registry cannot be null");
+        this.context = new ExecutionContextImpl(
+                registry,
+                this::invokeCallee
+        );
         this.inputsValues = new ArrayList<>();
+    }
+
+//    @Deprecated
+//    public ProgramExecutorImpl(Operation program) {
+//        this.program = program;
+//        this.context = new ExecutionContextImpl();
+//        this.inputsValues = new ArrayList<>();
+//    }
+
+    // Called by the invoker the context holds, to execute a callee Operation.
+    private long invokeCallee(Operation callee, long... args) {
+        ProgramExecutorImpl nestedExecutor = new ProgramExecutorImpl(callee, programRegistry);
+        nestedExecutor.runDegree = this.runDegree;
+
+        Long[] boxedArgs = Arrays.stream(args).boxed().toArray(Long[]::new);
+        nestedExecutor.run(runDegree, boxedArgs);
+
+        return nestedExecutor.getExecutionContext().getOperationResult();
+    }
+
+    public ExecutionContext getExecutionContext() {
+        return context;
     }
 
     @Override

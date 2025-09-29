@@ -46,6 +46,6 @@ public class JumpNotZeroInstruction extends AbstractInstruction implements Label
 
     @Override
     public Label getReferenceLabel() {
-        return referencesLabel;
+        return referencesLabel == null ? FixedLabel.EMPTY : referencesLabel;
     }
 }

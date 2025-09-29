@@ -5,10 +5,10 @@ import exceptions.EngineLoadException;
 import instruction.Instruction;
 import instruction.LabelReferencesInstruction;
 import instruction.SyntheticInstruction;
+import instruction.synthetic.QuoteInstruction;
 import label.FixedLabel;
 import label.Label;
 import label.LabelImpl;
-import program.ProgramImpl;
 import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;
@@ -19,17 +19,19 @@ import java.util.stream.Collectors;
 
 public abstract class Operation implements OperationView, Serializable {
 
-    private final String operationName;
-    private final List<Instruction> operationInstructions;
-    private final Set<Variable> inputVariables;
-    private final Set<Variable> workVariables;
-    private final Map<Label, Instruction> labelToInstruction;
-    private final List<Label> labelsInOperation;              // keep order
-    private final Set<Label> labelsAddedAfterExtension;     // keep order after expansion
-    private final Set<Label> referencedLabels;
+    protected final String operationName;
+    protected final List<Instruction> operationInstructions;
+    protected final Set<Variable> inputVariables;
+    protected final Set<Variable> workVariables;
+    protected final Map<Label, Instruction> labelToInstruction;
+    protected final List<Label> labelsInOperation;              // keep order
+    protected final Set<Label> labelsAddedAfterExtension;     // keep order after expansion
+    protected final Set<Label> referencedLabels;
+    protected Label entry;
 
-    private int nextLabelNumber = 1;
-    private int nextWorkVariableNumber = 1;
+
+    protected int nextLabelNumber = 1;
+    protected int nextWorkVariableNumber = 1;
 
     // protected ctor for Builder
     protected Operation(Builder<?,?> builder) {
@@ -43,6 +45,7 @@ public abstract class Operation implements OperationView, Serializable {
         this.labelsInOperation = new ArrayList<>();
         this.labelsAddedAfterExtension = new LinkedHashSet<>();
         this.referencedLabels = new LinkedHashSet<>();
+
 
         // bucket declared variables (even if not used in instructions)
         for (Variable v : builder.variables) {
@@ -68,12 +71,20 @@ public abstract class Operation implements OperationView, Serializable {
         initialize();
     }
 
+    public Optional<Label> getEntry() { return Optional.ofNullable(entry); }
+
+    public Label firstLabeledInstruction() {
+        return labelsInOperation.isEmpty() ? FixedLabel.EMPTY : labelsInOperation.getFirst();
+    }
+
     // --------- Builder ----------
     public static abstract class Builder<B extends  Builder<B,T>, T extends Operation> {
         protected String operationName;
         protected final List<Instruction> operationInstructions = new ArrayList<>();
         protected final Set<Variable> variables = new LinkedHashSet<>();
         protected final List<Label> labels = new ArrayList<>();
+        protected final Set<Label> referencedLabels = new LinkedHashSet<>();
+        protected Label entry;
 
         protected abstract B self();
         public abstract T build();
@@ -128,6 +139,11 @@ public abstract class Operation implements OperationView, Serializable {
 
         public B addLabels(Label... ls) {
             if (ls != null) labels.addAll(Arrays.asList(ls));
+            return self();
+        }
+
+        public B withEntry(Label entry) {
+            this.entry = entry;
             return self();
         }
     }
@@ -189,8 +205,10 @@ public abstract class Operation implements OperationView, Serializable {
         }
 
         if (instruction instanceof LabelReferencesInstruction labelReferencesInstruction) {
-            Label addedLabel = labelReferencesInstruction.getReferenceLabel();
-            referencedLabels.add(addedLabel);
+            Label referenceLabel = labelReferencesInstruction.getReferenceLabel();
+            if (referenceLabel != null && referenceLabel != FixedLabel.EMPTY) {
+                referencedLabels.add(referenceLabel);
+            }
         }
     }
 
@@ -298,6 +316,9 @@ public abstract class Operation implements OperationView, Serializable {
         int maxDegree = 0;
 
         for (Instruction instruction : operationInstructions) {
+            if (instruction instanceof QuoteInstruction quoteInstruction) {
+
+            }
             if (instruction instanceof SyntheticInstruction syntheticInstruction) {
                 maxDegree = Math.max(maxDegree, syntheticInstruction.getMaxDegree());
             }

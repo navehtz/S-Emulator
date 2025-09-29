@@ -18,22 +18,33 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public final class ProgramImpl extends Operation implements Program {
-    private final Label entry;
 
     private ProgramImpl(Builder b) {
         super(b);
-        this.entry = Objects.requireNonNull(b.entry, "entry");
+        //Objects.requireNonNull(this.entry, "Program entry is required");
     }
 
-    @Override public Label entry() { return entry; }
+    @Override
+    public Label entry() {
+        return entry;
+    }
 
     public static final class Builder extends Operation.Builder<Builder, ProgramImpl> {
-        private Label entry;
 
-        @Override protected Builder self() { return this; }
-        public Builder withEntry(Label entry) { this.entry = entry; return this; }
+        @Override
+        protected Builder self() {
+            return this;
+        }
 
-        @Override public ProgramImpl build() { return new ProgramImpl(this); }
+        public Builder withEntry(Label entry) {
+            this.entry = entry;
+            return this;
+        }
+
+        @Override
+        public ProgramImpl build() {
+            return new ProgramImpl(this);
+        }
     }
 }
 

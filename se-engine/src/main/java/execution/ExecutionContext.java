@@ -7,6 +7,9 @@ import variable.Variable;
 public interface ExecutionContext {
     void initializeVariables(Operation program, Long... inputs);
     long getVariableValue(Variable v);
-    long getOperationResult(Operation operation);
+    long getOperationResult();
     void updateVariable(Variable v, long value);
+
+    long invokeOperation(String name, long... args);
+    long invokeOperation(Operation operation, long... args);
 }

@@ -49,7 +49,7 @@ public class GotoLabelInstruction extends AbstractInstruction implements LabelRe
 
     @Override
     public Label getReferenceLabel() {
-        return referencesLabel;
+        return referencesLabel == null ? FixedLabel.EMPTY : referencesLabel;
     }
 
     @Override

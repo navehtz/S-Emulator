@@ -5,50 +5,86 @@ import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
 import exceptions.EngineLoadException;
 import execution.ProgramExecutorImpl;
+import function.FunctionDisplayResolver;
 import history.ExecutionHistory;
 import execution.ProgramExecutor;
 import history.ExecutionHistoryImpl;
 import operation.Operation;
-import program.Program;
 import loader.XmlProgramLoader;
 import variable.Variable;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class EngineImpl implements Engine, Serializable {
-    private transient Path xmlPath;
+    private final ProgramRegistry registry = new ProgramRegistry();
+    private Map<String, Operation> loadedOperations = new HashMap<>();
     private Operation program;
     private ProgramExecutor programExecutor;
     private ExecutionHistory executionHistory;
+    private transient Path xmlPath;
 
 
     @Override
     public void loadProgram(Path xmlPath) throws EngineLoadException {
         this.xmlPath = xmlPath;
-        Operation newProgram;
+        //Operation newProgram;
 
         XmlProgramLoader loader = new XmlProgramLoader();
-        newProgram = loader.load(xmlPath);
-        newProgram.validateProgram();
-        newProgram.initialize();
+        LoadResult loadResult = loader.loadAll(xmlPath);
 
-        program = newProgram;
+//        newProgram = loader.load(xmlPath);
+//        newProgram.validateProgram();
+//        newProgram.initialize();
+        for (Operation operation : loadResult.allOperationsByName.values()) {
+            operation.validateProgram();
+            operation.initialize();
+        }
+
+        this.program = loadResult.getMainProgram();
+        this.registry.clear();
+        //loadResult.getAllByName().values().forEach(registry::register);
+        this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+        this.registry.registerAll(loadResult.allOperationsByName);
+
+        FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
+
         executionHistory = new ExecutionHistoryImpl();
     }
 
     @Override
     public void runProgram(int degree, Long... inputs) {
-        Operation deepCopyOfProgram = program.deepClone();
-        deepCopyOfProgram.expandProgram(degree);
+        Map<String, Operation> clonedOperations = new HashMap<>();
+        for (Map.Entry<String, Operation> entry : loadedOperations.entrySet()) {
+            clonedOperations.put(entry.getKey(), entry.getValue().deepClone());
+        }
 
-        programExecutor = new ProgramExecutorImpl(deepCopyOfProgram);
+        for (Operation operation : clonedOperations.values()) {
+            operation.expandProgram(degree);
+        }
+
+        ProgramRegistry runRegistry = new ProgramRegistry();
+        runRegistry.registerAll(clonedOperations);
+
+        Operation mainClone = clonedOperations.get(program.getName());
+
+        programExecutor = new ProgramExecutorImpl(mainClone, runRegistry);
 
         programExecutor.run(degree, inputs);
         executionHistory.addProgramToHistory(programExecutor);
+
+//        Operation deepCopyOfProgram = program.deepClone();
+//        deepCopyOfProgram.expandProgram(degree);
+//
+//        programExecutor = new ProgramExecutorImpl(deepCopyOfProgram);
+//
+//        programExecutor.run(degree, inputs);
+//        executionHistory.addProgramToHistory(programExecutor);
     }
 
     @Override

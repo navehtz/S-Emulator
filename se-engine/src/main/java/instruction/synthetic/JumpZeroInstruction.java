@@ -52,7 +52,7 @@ public class JumpZeroInstruction extends AbstractInstruction implements LabelRef
 
     @Override
     public Label getReferenceLabel() {
-        return referencesLabel;
+        return referencesLabel == null ? FixedLabel.EMPTY : referencesLabel;
     }
 
     @Override

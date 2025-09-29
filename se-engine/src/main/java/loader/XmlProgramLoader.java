@@ -1,9 +1,9 @@
 package loader;
 
+import engine.LoadResult;
 import exceptions.EngineLoadException;
 import generatedFromXml.SFunction;
 import operation.Operation;
-import program.Program;
 import generatedFromXml.SProgram;
 import jakarta.xml.bind.*;
 import generatedFromXml.SInstruction;
@@ -13,6 +13,10 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class XmlProgramLoader {
 
@@ -34,6 +38,43 @@ public class XmlProgramLoader {
         validatePath(xmlPath);
         SProgram sProgram = unmarshal(xmlPath);
         return XmlProgramMapper.map(sProgram);
+    }
+
+    public LoadResult loadAll(Path xmlPath) throws EngineLoadException {
+        validatePath(xmlPath);
+        SProgram sProgram = unmarshal(xmlPath);
+        Operation mainProgram = XmlProgramMapper.map(sProgram);
+
+        Map<String, Operation> allOperationsByName = new HashMap<>();
+        putUnique(allOperationsByName, mainProgram);
+
+        List<SFunction> sFunctions = sProgram.getFunctions();
+
+        if(sFunctions != null) {
+            /*for (SFunction sFunction : sFunctions) {
+                if(sFunction == null) continue;
+                XmlProgramMapper.registerFunctionNameToUserString(sFunction.getName(), sFunction.getUserString());
+            }*/
+
+            for (SFunction sFunction : sFunctions) {
+                if(sFunction == null) continue;
+                Operation functionOperation = XmlProgramMapper.map(sFunction);
+                putUnique(allOperationsByName, functionOperation);
+            }
+        }
+
+        return new LoadResult(mainProgram, Collections.unmodifiableMap(allOperationsByName));
+    }
+
+    private static void putUnique(Map<String, Operation> map, Operation op) throws EngineLoadException {
+        String name = op.getName();
+        if (name == null || name.isBlank()) {
+            throw new EngineLoadException("Program/function has no name");
+        }
+        if (map.containsKey(name)) {
+            throw new EngineLoadException("Duplicate program/function name: " + name);
+        }
+        map.put(name, op);
     }
 
     private void validatePath(Path path) throws EngineLoadException {
