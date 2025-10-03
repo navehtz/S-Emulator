@@ -6,12 +6,14 @@ import instruction.basic.DecreaseInstruction;
 import instruction.basic.NoOpInstruction;
 import label.FixedLabel;
 import label.Label;
+import operation.Operation;
 import variable.Variable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class JumpEqualVariableInstruction extends AbstractInstruction implements LabelReferencesInstruction, SyntheticInstruction {
+public class JumpEqualVariableInstruction extends AbstractInstruction implements LabelReferencesInstruction, SyntheticInstruction, SourceVariableInstruction {
     private final int MAX_DEGREE = 3;
     private final List<Instruction> innerInstructions = new ArrayList<>();
     private final Label referencesLabel;
@@ -79,7 +81,7 @@ public class JumpEqualVariableInstruction extends AbstractInstruction implements
     }
 
     @Override
-    public int setInnerInstructionsAndReturnTheNextOne(int startNumber) {
+    public int expandInstruction(int startNumber) {
         int instructionNumber = startNumber;
         Variable workVariable1 = super.getProgramOfThisInstruction().generateUniqueVariable();
         Variable workVariable2 = super.getProgramOfThisInstruction().generateUniqueVariable();
@@ -100,5 +102,17 @@ public class JumpEqualVariableInstruction extends AbstractInstruction implements
         innerInstructions.add(new NoOpInstruction(Variable.RESULT, newLabel2, this, instructionNumber++));
 
         return instructionNumber;
+    }
+
+    @Override
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, Operation mainProgram) {
+        Variable tgtLbl = RemapUtils.mapVar(varMap, getTargetVariable());
+        Label referenceLabel = RemapUtils.mapLbl(labelMap, getReferenceLabel());
+        Variable newSrcVar = RemapUtils.mapVar(varMap, getSourceVariable());
+        Label newLbl = RemapUtils.mapLbl(labelMap, getLabel());
+
+        Instruction clonedInstruction = new JumpEqualVariableInstruction(tgtLbl, newLbl, newSrcVar, referenceLabel, origin, newInstructionNumber);
+        clonedInstruction.setProgramOfThisInstruction(mainProgram);
+        return clonedInstruction;
     }
 }

@@ -1,6 +1,7 @@
 package engine;
 
 import operation.Operation;
+import operation.OperationView;
 
 import java.util.Map;
 import java.util.Objects;
@@ -8,9 +9,9 @@ import java.util.Objects;
 public class LoadResult {
 
     private final Operation mainProgram;               // or Operation
-    final Map<String, Operation> allOperationsByName; // name -> program/function
+    final Map<String, OperationView> allOperationsByName; // name -> program/function
 
-    public LoadResult(Operation mainProgram, Map<String, Operation> allByName) {
+    public LoadResult(Operation mainProgram, Map<String, OperationView> allByName) {
         this.mainProgram = Objects.requireNonNull(mainProgram, "main");
         this.allOperationsByName = Objects.requireNonNull(allByName, "allByName");
 
@@ -23,7 +24,7 @@ public class LoadResult {
         return mainProgram;
     }
 
-    public Map<String, Operation> getAllByName() {
+    public Map<String, OperationView> getAllByName() {
         return allOperationsByName;
     }
 

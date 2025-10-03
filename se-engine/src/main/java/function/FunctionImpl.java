@@ -33,6 +33,7 @@ public final class FunctionImpl extends Operation implements Function {
         return Optional.ofNullable(returnVariable);
     }
 
+    @Override
     public String getUserString() {
         return userString;
     }

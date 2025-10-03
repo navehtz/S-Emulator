@@ -3,7 +3,7 @@ package execution;
 import engine.ProgramRegistry;
 import operation.Operation;
 import operation.OperationInvoker;
-import program.Program;
+import operation.OperationView;
 import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;
@@ -19,6 +19,7 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
 
     private final ProgramRegistry registry;
     private final OperationInvoker invoker;
+    private int lastInvocationCycles = 0;
 
     public ExecutionContextImpl(ProgramRegistry registry, OperationInvoker invoker) {
         this.variableToValue = new HashMap<>();
@@ -27,7 +28,7 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
     }
 
     @Override
-    public void initializeVariables(Operation program, Long... inputs) {
+    public void initializeVariables(OperationView program, Long... inputs) {
         program.sortVariableSetByNumber(program.getInputVariables());
 
         initializeInputVariableFromUserInput(program, inputs);
@@ -36,7 +37,7 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
         this.updateVariable(Variable.RESULT, 0L);
     }
 
-    private void initializeInputVariableFromUserInput(Operation program, Long[] inputs) {
+    private void initializeInputVariableFromUserInput(OperationView program, Long[] inputs) {
 
         Set<Variable> inputVariables = program.getInputVariables();
 
@@ -64,7 +65,7 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
         }
     }
 
-    private void initializeWorkVariable(Operation program) {
+    private void initializeWorkVariable(OperationView program) {
         for (Variable currWorkVariable : program.getWorkVariables()) {
             this.updateVariable(currWorkVariable, 0L);
         }
@@ -97,17 +98,23 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
             throw new IllegalStateException("No ProgramRegistry bound to ExecutionContext");
         }
 
-        Operation op = registry.getByName(name);
+        OperationView op = registry.getProgramByName(name);
         return invokeOperation(op, args);
     }
 
     @Override
-    public long invokeOperation(Operation op, long... args) {
+    public long invokeOperation(OperationView op, long... args) {
         if (registry == null) {
             throw new IllegalStateException("No ProgramRegistry bound to ExecutionContext");
         }
 
+        this.lastInvocationCycles = invoker.getLastCycles();
         return invoker.invokeOperation(op, args);
+    }
+
+    @Override
+    public int getLastInvocationCycles() {
+        return lastInvocationCycles;
     }
 
 }

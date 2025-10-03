@@ -1,23 +1,12 @@
 package program;
 
-import dto.InstructionDTO;
-import exceptions.EngineLoadException;
-import label.FixedLabel;
+import engine.ProgramRegistry;
 import label.Label;
-import label.LabelImpl;
 import operation.Operation;
-import variable.Variable;
-import variable.VariableImpl;
-import variable.VariableType;
-import instruction.Instruction;
-import instruction.LabelReferencesInstruction;
-import instruction.SyntheticInstruction;
-
-import java.io.*;
-import java.util.*;
-import java.util.stream.Collectors;
 
 public final class ProgramImpl extends Operation implements Program {
+
+    private ProgramRegistry registry = new ProgramRegistry();
 
     private ProgramImpl(Builder b) {
         super(b);
@@ -45,6 +34,14 @@ public final class ProgramImpl extends Operation implements Program {
         public ProgramImpl build() {
             return new ProgramImpl(this);
         }
+    }
+
+    public ProgramRegistry getRegistry() {
+        return registry;
+    }
+
+    public void setRegistry(ProgramRegistry registry) {
+        this.registry = registry;
     }
 }
 
@@ -354,7 +351,7 @@ public final class ProgramImpl extends Operation implements Program {
 //                // initialize
 //                instruction.setProgramOfThisInstruction(this);
 //                if (instruction instanceof SyntheticInstruction syntheticInstruction) {
-//                    nextInstructionNumber = syntheticInstruction.setInnerInstructionsAndReturnTheNextOne(nextInstructionNumber);
+//                    nextInstructionNumber = syntheticInstruction.expandInstruction(nextInstructionNumber);
 //                    newInstructionsList = instruction.getExtendedInstruction();
 //                }
 //                else {

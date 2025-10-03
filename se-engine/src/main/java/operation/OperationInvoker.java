@@ -1,5 +1,6 @@
 package operation;
 
 public interface OperationInvoker {
-    long invokeOperation(Operation op, long... args);
+    long invokeOperation(OperationView op, long... args);
+    int getLastCycles();
 }

@@ -5,6 +5,8 @@ import instruction.Instruction;
 import label.FixedLabel;
 import label.Label;
 import operation.Operation;
+import operation.OperationInvoker;
+import operation.OperationView;
 import variable.Variable;
 
 import java.io.Serializable;
@@ -12,20 +14,18 @@ import java.util.*;
 
 public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 
-    private final Operation program;
+    private final OperationView program;
     private final ProgramRegistry programRegistry;
     private final ExecutionContext context;
     private List<Long> inputsValues;
     private int runDegree = 0;
     private int totalCycles = 0;
 
-    public ProgramExecutorImpl(Operation program, ProgramRegistry registry) {
+    public ProgramExecutorImpl(OperationView program, ProgramRegistry registry) {
         this.program = program;
         this.programRegistry = Objects.requireNonNull(registry, "Program registry cannot be null");
-        this.context = new ExecutionContextImpl(
-                registry,
-                this::invokeCallee
-        );
+        OperationInvoker invoker = new ProgramExecutorInvoker(registry);
+        this.context = new ExecutionContextImpl(registry, invoker);
         this.inputsValues = new ArrayList<>();
     }
 
@@ -37,7 +37,7 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 //    }
 
     // Called by the invoker the context holds, to execute a callee Operation.
-    private long invokeCallee(Operation callee, long... args) {
+    private long invokeCallee(OperationView callee, long... args) {
         ProgramExecutorImpl nestedExecutor = new ProgramExecutorImpl(callee, programRegistry);
         nestedExecutor.runDegree = this.runDegree;
 
@@ -86,7 +86,7 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
     }
 
     @Override
-    public Operation getProgram() {
+    public OperationView getProgram() {
         return program;
     }
 

@@ -11,6 +11,8 @@ import execution.ProgramExecutor;
 import history.ExecutionHistoryImpl;
 import operation.Operation;
 import loader.XmlProgramLoader;
+import operation.OperationView;
+import program.Program;
 import variable.Variable;
 
 import java.io.*;
@@ -23,7 +25,7 @@ import java.util.Map;
 
 public class EngineImpl implements Engine, Serializable {
     private final ProgramRegistry registry = new ProgramRegistry();
-    private Map<String, Operation> loadedOperations = new HashMap<>();
+    private Map<String, OperationView> loadedOperations = new HashMap<>();
     private Operation program;
     private ProgramExecutor programExecutor;
     private ExecutionHistory executionHistory;
@@ -38,10 +40,7 @@ public class EngineImpl implements Engine, Serializable {
         XmlProgramLoader loader = new XmlProgramLoader();
         LoadResult loadResult = loader.loadAll(xmlPath);
 
-//        newProgram = loader.load(xmlPath);
-//        newProgram.validateProgram();
-//        newProgram.initialize();
-        for (Operation operation : loadResult.allOperationsByName.values()) {
+        for (OperationView operation : loadResult.allOperationsByName.values()) {
             operation.validateProgram();
             operation.initialize();
         }
@@ -51,6 +50,9 @@ public class EngineImpl implements Engine, Serializable {
         //loadResult.getAllByName().values().forEach(registry::register);
         this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
         this.registry.registerAll(loadResult.allOperationsByName);
+        if (this.program instanceof Program programImpl) {
+            programImpl.setRegistry(registry);
+        }
 
         FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
 
@@ -59,19 +61,19 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public void runProgram(int degree, Long... inputs) {
-        Map<String, Operation> clonedOperations = new HashMap<>();
-        for (Map.Entry<String, Operation> entry : loadedOperations.entrySet()) {
+        Map<String, OperationView> clonedOperations = new HashMap<>();
+        for (Map.Entry<String, OperationView> entry : loadedOperations.entrySet()) {
             clonedOperations.put(entry.getKey(), entry.getValue().deepClone());
         }
 
-        for (Operation operation : clonedOperations.values()) {
+        for (OperationView operation : clonedOperations.values()) {
             operation.expandProgram(degree);
         }
 
         ProgramRegistry runRegistry = new ProgramRegistry();
         runRegistry.registerAll(clonedOperations);
 
-        Operation mainClone = clonedOperations.get(program.getName());
+        OperationView mainClone = clonedOperations.get(program.getName());
 
         programExecutor = new ProgramExecutorImpl(mainClone, runRegistry);
 
@@ -149,7 +151,7 @@ public class EngineImpl implements Engine, Serializable {
         return buildProgramDTO(deepCopyOfProgram);
     }
 
-    private ProgramDTO buildProgramDTO(Operation program) {
+    private ProgramDTO buildProgramDTO(OperationView program) {
         InstructionsDTO instructionsDTO = new InstructionsDTO(program.getInstructionDTOList());
         List<String> allInputsWithSerial = new ArrayList<>(program.getInputAndWorkVariablesSortedBySerial().stream().map(Variable::getRepresentation).toList());
         allInputsWithSerial.addFirst(Variable.RESULT.getRepresentation());

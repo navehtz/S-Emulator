@@ -2,7 +2,11 @@ package instruction;
 
 import execution.ExecutionContext;
 import label.Label;
+import operation.Operation;
+import program.Program;
 import variable.Variable;
+
+import java.util.Map;
 
 
 public class OriginOfAllInstruction extends AbstractInstruction {
@@ -24,6 +28,11 @@ public class OriginOfAllInstruction extends AbstractInstruction {
 
     @Override
     public Instruction createInstructionWithInstructionNumber(int instructionNumber) {
+        return null;
+    }
+
+    @Override
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> variableMap, Map<Label, Label> labelMap, Instruction origin, Operation mainProgram) {
         return null;
     }
 }

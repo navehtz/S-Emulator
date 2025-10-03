@@ -6,6 +6,7 @@ import instruction.Instruction;
 import instruction.LabelReferencesInstruction;
 import instruction.SyntheticInstruction;
 import instruction.synthetic.QuoteInstruction;
+import instruction.SourceVariableInstruction;
 import label.FixedLabel;
 import label.Label;
 import label.LabelImpl;
@@ -176,6 +177,8 @@ public abstract class Operation implements OperationView, Serializable {
 
     @Override
     public void addInstruction(Instruction instruction) {
+        if (instruction == null) return;
+        instruction.setProgramOfThisInstruction(this);
         updateVariableAndLabel(instruction);
         operationInstructions.add(instruction);
     }
@@ -186,7 +189,9 @@ public abstract class Operation implements OperationView, Serializable {
 
         bucketLabel(instruction, currentLabel);
         bucketVariable(instruction.getTargetVariable());
-        bucketVariable(instruction.getSourceVariable());
+        if (instruction instanceof SourceVariableInstruction) {
+            bucketVariable(instruction.getSourceVariable());
+        }
     }
 
     private void bucketLabel(Instruction instruction, Label currentLabel) {
@@ -317,7 +322,7 @@ public abstract class Operation implements OperationView, Serializable {
 
         for (Instruction instruction : operationInstructions) {
             if (instruction instanceof QuoteInstruction quoteInstruction) {
-
+                //TODO
             }
             if (instruction instanceof SyntheticInstruction syntheticInstruction) {
                 maxDegree = Math.max(maxDegree, syntheticInstruction.getMaxDegree());
@@ -333,19 +338,19 @@ public abstract class Operation implements OperationView, Serializable {
             int nextInstructionNumber = 1;
 
             for (ListIterator<Instruction> iterator = getInstructionsList().listIterator(); iterator.hasNext(); ) {
-                Instruction instruction = iterator.next();
-                Label originalLabel = instruction.getLabel();
+                Instruction currentInstruction = iterator.next();
+                Label originalLabel = currentInstruction.getLabel();
                 List<Instruction> newInstructionsList = new ArrayList<>();
 
                 // initialize
-                instruction.setProgramOfThisInstruction(this);
-                if (instruction instanceof SyntheticInstruction syntheticInstruction) {
-                    nextInstructionNumber = syntheticInstruction.setInnerInstructionsAndReturnTheNextOne(nextInstructionNumber);
-                    newInstructionsList = instruction.getExtendedInstruction();
+                currentInstruction.setProgramOfThisInstruction(this);
+                if (currentInstruction instanceof SyntheticInstruction syntheticInstruction) {
+                    nextInstructionNumber = syntheticInstruction.expandInstruction(nextInstructionNumber);
+                    newInstructionsList = currentInstruction.getExtendedInstruction();
                 }
                 else {
-                    Instruction cloneInstruction = instruction.createInstructionWithInstructionNumber(nextInstructionNumber);
-                    newInstructionsList.add(cloneInstruction);
+                    Instruction clonedInstruction = currentInstruction.createInstructionWithInstructionNumber(nextInstructionNumber);
+                    newInstructionsList.add(clonedInstruction);
                     nextInstructionNumber++;
                 }
 
@@ -423,5 +428,9 @@ public abstract class Operation implements OperationView, Serializable {
         List<Variable> inputAndWorkVariablesAndTheirValues = new ArrayList<>(inputVariables);
         inputAndWorkVariablesAndTheirValues.addAll(workVariables);
         return inputAndWorkVariablesAndTheirValues;
+    }
+
+    public Variable getResultVariable() {
+        return Variable.RESULT;
     }
 }

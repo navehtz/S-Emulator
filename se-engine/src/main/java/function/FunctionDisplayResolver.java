@@ -6,6 +6,7 @@ import instruction.synthetic.QuoteInstruction;
 import operation.Operation;
 import instruction.synthetic.quoteArg.QuoteArg;
 import instruction.synthetic.quoteArg.CallArg;
+import operation.OperationView;
 
 import java.util.Collection;
 
@@ -13,8 +14,8 @@ public final class FunctionDisplayResolver {
 
     private FunctionDisplayResolver() {}
 
-    public static void populateDisplayNames(Collection<Operation> ops, ProgramRegistry registry) {
-        for (Operation op : ops) {
+    public static void populateDisplayNames(Collection<OperationView> ops, ProgramRegistry registry) {
+        for (OperationView op : ops) {
             for (Instruction ins : op.getInstructionsList()) {
                 if (ins instanceof QuoteInstruction qi) {
                     setDisplayFromRegistry(qi.getFunctionName(), registry, qi::setDisplayName);
@@ -42,7 +43,7 @@ public final class FunctionDisplayResolver {
                                                ProgramRegistry registry,
                                                java.util.function.Consumer<String> setter) {
         try {
-            Operation callee = registry.getByName(functionName);
+            OperationView callee = registry.getProgramByName(functionName);
             if (callee instanceof FunctionImpl function) {
                 String userString = function.getUserString();
                 if (userString != null && !userString.isBlank()) setter.accept(userString);

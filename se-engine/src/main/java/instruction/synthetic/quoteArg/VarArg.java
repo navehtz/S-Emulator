@@ -12,7 +12,6 @@ public class VarArg implements QuoteArg, Serializable {
         this.variable = variable;
     }
 
-
     @Override
     public long eval(ExecutionContext context) {
         return context.getVariableValue(variable);

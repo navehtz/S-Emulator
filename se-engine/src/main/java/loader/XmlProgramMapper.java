@@ -51,10 +51,6 @@ final class XmlProgramMapper {
             // Build an empty program consistently via Builder
             return new ProgramImpl.Builder()
                     .withName(programName)
-                    .withInstructions(code)
-                    .withVariables(vars)
-                    .withLabels(labels)
-                    .withEntry(FixedLabel.EMPTY)
                     .build();
         }
 
@@ -87,6 +83,21 @@ final class XmlProgramMapper {
             // collect variables visible on the instruction
             if (mappedInstruction.getTargetVariable() != null) vars.add(mappedInstruction.getTargetVariable());
             if (mappedInstruction.getSourceVariable() != null) vars.add(mappedInstruction.getSourceVariable());
+
+            if (mappedInstruction instanceof instruction.synthetic.QuoteInstruction qi) {
+                collectVarsFromQuoteArgs(qi.getFunctionArguments(), vars);
+            }
+        }
+    }
+
+    private static void collectVarsFromQuoteArgs(List<QuoteArg> args, Set<Variable> vars) {
+        if (args == null) return;
+        for (QuoteArg quoteArg : args) {
+            if (quoteArg instanceof VarArg v) {
+                vars.add(v.getVariable());
+            } else if (quoteArg instanceof CallArg c) {
+                collectVarsFromQuoteArgs(c.getArgs(), vars);
+            }
         }
     }
 
