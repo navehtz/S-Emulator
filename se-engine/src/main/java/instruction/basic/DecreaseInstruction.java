@@ -4,8 +4,7 @@ import execution.ExecutionContext;
 import instruction.*;
 import label.Label;
 import label.FixedLabel;
-import operation.Operation;
-import program.Program;
+import operation.OperationView;
 import variable.Variable;
 
 import java.util.Map;
@@ -50,7 +49,7 @@ public class DecreaseInstruction extends AbstractInstruction {
     }
 
     @Override
-    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, Operation mainProgram) {
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
         Variable tgt = RemapUtils.mapVar(varMap, getTargetVariable());
         Label lbl = RemapUtils.mapLbl(labelMap, getLabel());
 

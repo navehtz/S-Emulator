@@ -1,7 +1,9 @@
 package operation;
 
 import dto.InstructionDTO;
+import engine.ProgramRegistry;
 import exceptions.EngineLoadException;
+import function.FunctionDisplayResolver;
 import instruction.Instruction;
 import instruction.LabelReferencesInstruction;
 import instruction.SyntheticInstruction;
@@ -10,6 +12,7 @@ import instruction.SourceVariableInstruction;
 import label.FixedLabel;
 import label.Label;
 import label.LabelImpl;
+import program.Program;
 import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 
 public abstract class Operation implements OperationView, Serializable {
 
+    private transient ProgramRegistry registry;
     protected final String operationName;
     protected final List<Instruction> operationInstructions;
     protected final Set<Variable> inputVariables;
@@ -183,7 +187,8 @@ public abstract class Operation implements OperationView, Serializable {
         operationInstructions.add(instruction);
     }
 
-    private void updateVariableAndLabel(Instruction instruction) {
+    @Override
+    public void updateVariableAndLabel(Instruction instruction) {
         if (instruction == null) return;
         Label currentLabel = instruction.getLabel();
 
@@ -299,10 +304,14 @@ public abstract class Operation implements OperationView, Serializable {
     @Override
     public List<List<InstructionDTO>> getExpandedProgram() {
         List<List<InstructionDTO>> expandedProgram = new ArrayList<>();
+
         for (Instruction instruction : operationInstructions) {
             List<InstructionDTO> chain = instruction.getInstructionExtendedList();
-            if (chain != null && !chain.isEmpty()) expandedProgram.add(chain);
+            if (chain != null && !chain.isEmpty()) {
+                expandedProgram.add(chain);
+            }
         }
+
         return expandedProgram;
     }
 
@@ -316,21 +325,24 @@ public abstract class Operation implements OperationView, Serializable {
         return labelToInstruction;
     }
 
-    @Override
-    public int calculateProgramMaxDegree() {
-        int maxDegree = 0;
+    public void setRegistry(ProgramRegistry registry) { this.registry = registry; }
+    public ProgramRegistry getRegistry() { return registry; }
 
-        for (Instruction instruction : operationInstructions) {
-            if (instruction instanceof QuoteInstruction quoteInstruction) {
-                //TODO
-            }
-            if (instruction instanceof SyntheticInstruction syntheticInstruction) {
-                maxDegree = Math.max(maxDegree, syntheticInstruction.getMaxDegree());
-            }
-        }
-
-        return maxDegree;
-    }
+//    @Override
+//    public int calculateProgramMaxDegree() {
+//        int maxDegree = 0;
+//
+//        for (Instruction instruction : operationInstructions) {
+//            if (instruction instanceof QuoteInstruction quoteInstruction) {
+//                //TODO
+//            }
+//            if (instruction instanceof SyntheticInstruction syntheticInstruction) {
+//                maxDegree = Math.max(maxDegree, syntheticInstruction.getMaxDegree());
+//            }
+//        }
+//
+//        return maxDegree;
+//    }
 
     @Override
     public void expandProgram(int degree) {
@@ -359,6 +371,7 @@ public abstract class Operation implements OperationView, Serializable {
                 getLabelsInProgram().remove(originalLabel);
 
                 for (Instruction extendedInstruction : newInstructionsList) {
+                    extendedInstruction.setProgramOfThisInstruction(this);
                     updateVariableAndLabel(extendedInstruction);
                     iterator.add(extendedInstruction);
                 }
@@ -432,5 +445,57 @@ public abstract class Operation implements OperationView, Serializable {
 
     public Variable getResultVariable() {
         return Variable.RESULT;
+    }
+
+    @Override
+    public  Map<Integer, OperationView> calculateDegreeToProgram() {
+        Map<Integer, OperationView>  degreeToProgram = new HashMap<>();
+        boolean canExpandMore;
+        int degree = 0;
+
+        OperationView workingProgram = this.deepClone();
+        workingProgram.setRegistry(this.getRegistry());
+
+        do {
+            OperationView snapshotWorkingProgram = workingProgram.deepClone();
+            snapshotWorkingProgram.setRegistry(this.getRegistry());
+
+            FunctionDisplayResolver.populateDisplayNames(snapshotWorkingProgram, this.getRegistry());
+
+            degreeToProgram.put(degree, snapshotWorkingProgram);
+            int nextInstructionNumber = 1;
+            canExpandMore = false;
+
+            for (ListIterator<Instruction> iterator = workingProgram.getInstructionsList().listIterator(); iterator.hasNext(); ) {  // Run on working program
+                Instruction instruction = iterator.next();
+                instruction.setProgramOfThisInstruction(workingProgram);
+                Label originalLabel = instruction.getLabel();
+                List<Instruction> newInstructionsList = new ArrayList<>();
+
+                if (instruction instanceof SyntheticInstruction syntheticInstruction) {
+                    nextInstructionNumber = syntheticInstruction.expandInstruction(nextInstructionNumber);
+                    newInstructionsList = instruction.getExtendedInstruction();
+                    canExpandMore = true;
+                } else {
+                    Instruction cloneInstruction = instruction.createInstructionWithInstructionNumber(nextInstructionNumber);
+                    newInstructionsList.add(cloneInstruction);
+                    nextInstructionNumber++;
+                }
+
+                iterator.remove();                               // Remove the old instruction
+                workingProgram.getLabelToInstruction().remove(originalLabel);       // Remove the label from the map because we will add it again in line 239
+                workingProgram.getLabelsInProgram().remove(originalLabel);          // Remove the label from the map because we will add it again in line 239
+
+                for (Instruction extendedInstruction : newInstructionsList) {
+                    extendedInstruction.setProgramOfThisInstruction(workingProgram);
+                    workingProgram.updateVariableAndLabel(extendedInstruction);
+                    iterator.add(extendedInstruction);          // Add the extended (inner) instruction to the list
+                }
+            }
+
+            degree++;
+        } while (canExpandMore);
+
+        return degreeToProgram;
     }
 }

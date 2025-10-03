@@ -3,9 +3,8 @@ package instruction;
 import dto.InstructionDTO;
 import label.FixedLabel;
 import label.Label;
-import operation.Operation;
+import operation.OperationView;
 import variable.Variable;
-import program.Program;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +19,7 @@ public abstract class AbstractInstruction implements Instruction {
     protected final Label label;
     protected final Variable targetVariable;
     protected final Instruction origin;
-    protected Operation programOfThisInstruction = null;
+    protected OperationView programOfThisInstruction = null;
     //protected Program mainProgram;
 
 
@@ -86,12 +85,12 @@ public abstract class AbstractInstruction implements Instruction {
     }
 
     @Override
-    public Operation getProgramOfThisInstruction() {
+    public OperationView getProgramOfThisInstruction() {
         return programOfThisInstruction;
     }
 
     @Override
-    public void setProgramOfThisInstruction(Operation programOfThisInstruction) {
+    public void setProgramOfThisInstruction(OperationView programOfThisInstruction) {
         this.programOfThisInstruction = programOfThisInstruction;
     }
 
@@ -148,5 +147,5 @@ public abstract class AbstractInstruction implements Instruction {
         return chain;
     }
 
-    public abstract Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, Operation mainProgram);
+    public abstract Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram);
 }

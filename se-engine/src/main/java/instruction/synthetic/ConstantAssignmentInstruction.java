@@ -5,7 +5,7 @@ import instruction.*;
 import instruction.basic.IncreaseInstruction;
 import label.FixedLabel;
 import label.Label;
-import operation.Operation;
+import operation.OperationView;
 import variable.Variable;
 
 import java.util.ArrayList;
@@ -77,7 +77,7 @@ public class ConstantAssignmentInstruction extends AbstractInstruction implement
     }
 
     @Override
-    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, Operation mainProgram) {
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
         Variable tgtLbl = RemapUtils.mapVar(varMap, getTargetVariable());
         Label newLbl = RemapUtils.mapLbl(labelMap, getLabel());
 

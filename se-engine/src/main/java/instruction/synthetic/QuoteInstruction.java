@@ -1,5 +1,6 @@
 package instruction.synthetic;
 
+import engine.ProgramRegistry;
 import execution.ExecutionContext;
 import function.Function;
 import instruction.*;
@@ -30,7 +31,7 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
     private int currentCyclesNumber;
 
     public QuoteInstruction(Variable targetVariable, Instruction origin, int instructionNumber, String functionName, List<QuoteArg> functionArguments) {
-        super(InstructionData.QUOTE, InstructionType.SYNTHETIC ,targetVariable, FixedLabel.EMPTY, origin, instructionNumber);
+        super(InstructionData.QUOTE, InstructionType.SYNTHETIC, targetVariable, FixedLabel.EMPTY, origin, instructionNumber);
         this.functionName = Objects.requireNonNull(functionName, "functionName");
         this.functionArguments = functionArguments != null ? functionArguments : List.of();
     }
@@ -41,8 +42,13 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
         this.functionArguments = functionArguments != null ? functionArguments : List.of();
     }
 
-    public String getFunctionName() { return functionName; }
-    public List<QuoteArg> getFunctionArguments() { return functionArguments; }
+    public String getFunctionName() {
+        return functionName;
+    }
+
+    public List<QuoteArg> getFunctionArguments() {
+        return functionArguments;
+    }
 
     public void setDisplayName(String displayName) {
         this.displayName = (displayName == null || displayName.isBlank())
@@ -79,7 +85,7 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
 
         long[] argsValues = new long[functionArguments.size()];
 
-        for(int i = 0 ; i < functionArguments.size() ; i++) {
+        for (int i = 0; i < functionArguments.size(); i++) {
             argsValues[i] = functionArguments.get(i).eval(context);
         }
 
@@ -93,7 +99,12 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
 
     @Override
     public String getCommand() {
-        String shownName = (displayName != null) ? displayName :functionName;
+        String shownName = (displayName != null && !displayName.isBlank())
+                ? displayName
+                : resolveUserString(functionName);
+        if (shownName == null || shownName.isBlank()) {
+            shownName = functionName;
+        }
         String renderedArgs = functionArguments.stream()   // List<QuoteArg>
                 .map(QuoteArg::render)
                 .collect(java.util.stream.Collectors.joining(","));
@@ -152,13 +163,13 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
         // Resolve through the owning operation's registry.
         // If your ProgramImpl is the owner: ((ProgramImpl)getProgramOfThisInstruction()).getRegistry().getByName(name)
         // and cast to Function.
-        Operation owner = getProgramOfThisInstruction();
-        if (owner instanceof ProgramImpl pr) {
-            OperationView op = pr.getRegistry().getProgramByName(functionName);
-            if (op instanceof Function f)
-                return f;
-        }
-        throw new IllegalStateException("Cannot resolve function: " + functionName);
+        OperationView owner = getProgramOfThisInstruction(); // set in Operation.addInstruction(...)
+        if (owner == null) throw new IllegalStateException("QuoteInstruction has no owning Operation");
+        ProgramRegistry reg = owner.getRegistry();
+        if (reg == null) throw new IllegalStateException("No ProgramRegistry bound to owning Operation");
+        OperationView callee = reg.getProgramByName(functionName);
+        if (callee == null) throw new IllegalStateException("Cannot resolve function: " + functionName);
+        return (Function) callee;
     }
 
     private void mapQuoteFunctionVariables(Function calleeFunction) {
@@ -195,13 +206,13 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
         List<Variable> inputs = new ArrayList<>(calleeFunction.getInputVariables());
         inputs.sort(Comparator.comparingInt(Variable::getIndex));
 
-        if(functionArguments.size() != inputs.size()) {
+        if (functionArguments.size() != inputs.size()) {
             throw new IllegalArgumentException("QuoteInstruction: expected "
                     + inputs.size() + " arguments, but got " + functionArguments.size()
                     + " for function " + calleeFunction.getName());
         }
 
-        for (int i=0 ; i < inputs.size() ; i++) {
+        for (int i = 0; i < inputs.size(); i++) {
             Variable calleeXi = inputs.get(i);
             Variable mappedXi = variableToNewVariableMap.get(calleeXi);
             if (mappedXi == null) {
@@ -213,10 +224,20 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
 
             QuoteArg quoteArg = functionArguments.get(i);
             if (quoteArg instanceof VarArg varArg) {
-                expandedInstructions.add(new AssignmentInstruction(mappedXi, usedLabel, varArg.getVariable(), this, instructionNumber++));
+                var assignmentInstruction = new AssignmentInstruction(mappedXi, usedLabel, varArg.getVariable(), this, instructionNumber++);
+                expandedInstructions.add(assignmentInstruction);
+
             } else if (quoteArg instanceof CallArg callArg) {
                 List<QuoteArg> deepArgs = copyArgs(callArg.getArgs());
                 QuoteInstruction nestedQuoteInstruction = new QuoteInstruction(mappedXi, usedLabel, this, instructionNumber++, callArg.getCallName(), deepArgs);
+
+//                String displayName = callArg.getDisplayName();
+//                if (displayName == null || displayName.isBlank()) {
+//                    displayName = resolveUserString(callArg.getCallName());
+//                }
+//                if (displayName != null && !displayName.isBlank()) {
+//                    nestedQuoteInstruction.setDisplayName(displayName);
+//                }
                 nestedQuoteInstruction.setDisplayName(callArg.getDisplayName());
                 expandedInstructions.add(nestedQuoteInstruction);
             } else {
@@ -250,7 +271,7 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
     }
 
     @Override
-    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, Operation mainProgram) {
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
         Variable tgtLbl = RemapUtils.mapVar(varMap, getTargetVariable());
         Label newLbl = RemapUtils.mapLbl(labelMap, getLabel());
         List<QuoteArg> mappedQuoteArguments = FunctionInstructionUtils.mapFunctionArgumentsToNewList(functionArguments, varMap, true);
@@ -260,5 +281,13 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
         return clonedInstruction;
     }
 
+    private String resolveUserString(String calleeName) {
+        OperationView owner = getProgramOfThisInstruction();
+        if (owner instanceof program.ProgramImpl pr && pr.getRegistry() != null) {
+            var op = pr.getRegistry().getProgramByName(calleeName);
+            if (op instanceof function.Function f) return f.getUserString();
+        }
+        return null;
+    }
 
 }

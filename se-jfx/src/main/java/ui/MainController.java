@@ -30,7 +30,9 @@ import ui.behavior.HighlightingBehavior;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MainController {
 
@@ -94,6 +96,7 @@ public class MainController {
 
     private void initUiWiring() {
         initDegreeSelectorHandler();
+        initContextSelectorHandler();
         initRunButtonDisableBinding();
         mainInstrTableController.bindHistoryTable(currentProgramDTO::get, historyInstrTableController);
     }
@@ -104,12 +107,46 @@ public class MainController {
 
     private void initDegreeSelectorHandler() {
         degreeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                ProgramDTO expanded = engine.getExpandedProgramToDisplay(newVal);
-                updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
-                clearExecutionData();
-                populateHighlightSelectorFromCurrentProgram();
+            if (newVal == null) return;
+            String selectedContext = contextSelector.getValue() != null
+                    ? contextSelector.getValue()
+                    : engine.getProgramToDisplay().programName();
+            if (selectedContext == null) return;
+            String selectedFunction = engine.getAllUserStringToFunctionName().get(selectedContext); //TODO:Change so it wont happen every time
+            ProgramDTO expanded = engine.getExpandedProgramDTO(selectedFunction, newVal);
+            updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
+            clearExecutionData();
+            populateHighlightSelectorFromCurrentProgram();
+        });
+    }
+
+    private void initContextSelectorHandler() {
+        contextSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null) return;
+
+            int currentDegree = degreeSelector.getValue() != null ? degreeSelector.getValue() : 0;
+            String selectedFunction = engine.getAllUserStringToFunctionName().get(newVal); //TODO:Change so it wont happen every time
+
+            int maxDegreeForContext;
+            try {
+                maxDegreeForContext = engine.getMaxDegree(selectedFunction);
+            } catch (Exception e) {
+                degreeSelector.getItems().setAll(0);
+                degreeSelector.getSelectionModel().select(Integer.valueOf(0));
+                return;
             }
+
+            var degrees = java.util.stream.IntStream.rangeClosed(0, maxDegreeForContext)
+                    .boxed().toList();
+            degreeSelector.getItems().setAll(degrees);
+
+            int selectedDegree = (currentDegree <= maxDegreeForContext) ? currentDegree : 0;
+            degreeSelector.getSelectionModel().select(Integer.valueOf(selectedDegree));
+
+            ProgramDTO expanded = engine.getExpandedProgramDTO(selectedFunction, degreeSelector.getValue() != null ? degreeSelector.getValue() : 0);
+            updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
+            clearExecutionData();
+            populateHighlightSelectorFromCurrentProgram();
         });
     }
 
@@ -172,6 +209,13 @@ public class MainController {
             updateCurrentProgramAndMainInstrTable(baseProgram);
 
             try {
+                List<String> contextNames = new ArrayList<>();
+                contextNames.add(baseProgram.programName());
+                contextNames.addAll(engine.getAllUserStringToFunctionName().keySet());
+                contextSelector.getItems().setAll(contextNames);
+                //contextSelector.getItems().setAll(engine.getAllFunctionsNames());
+                contextSelector.getSelectionModel().selectFirst();
+
                 degreeSelector.getItems().setAll(
                         java.util.stream.IntStream.rangeClosed(0, engine.getMaxDegree()).boxed().toList()
                 );
@@ -184,6 +228,12 @@ public class MainController {
 
             clearExecutionData();
             runsHistoryManager.clearHistory();
+        });
+
+        task.setOnFailed(ev -> {
+            Throwable err = rootCause(task.getException());
+            err.printStackTrace(); // useful in console
+            Dialogs.error("Load failed", String.valueOf(err.getMessage()), getOwnerWindowOrNull());
         });
 
         showLoadingPopup(task, window);
@@ -251,6 +301,12 @@ public class MainController {
         PauseTransition pause = new PauseTransition(Duration.seconds(1.1));
         pause.setOnFinished(_e -> dialog.close());
         pause.play();
+    }
+
+    private static Throwable rootCause(Throwable t) {
+        Throwable c = t;
+        while (c.getCause() != null) c = c.getCause();
+        return c;
     }
 }
 

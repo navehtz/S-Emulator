@@ -8,14 +8,12 @@ import instruction.InstructionType;
 import instruction.LabelReferencesInstruction;
 import instruction.RemapUtils;
 import instruction.SyntheticInstruction;
-import instruction.synthetic.AssignmentInstruction;
-import instruction.synthetic.JumpEqualVariableInstruction;
 import instruction.synthetic.quoteArg.CallArg;
 import instruction.synthetic.quoteArg.QuoteArg;
 import instruction.synthetic.quoteArg.VarArg;
 import label.FixedLabel;
 import label.Label;
-import operation.Operation;
+import operation.OperationView;
 import variable.Variable;
 
 import java.util.ArrayList;
@@ -160,7 +158,7 @@ public class JumpEqualFunctionInstruction extends AbstractInstruction
                                      Map<Variable, Variable> varMap,
                                      Map<Label, Label> labelMap,
                                      Instruction newOrigin,
-                                     Operation newOwner) {
+                                     OperationView newOwner) {
 
         Variable newTarget = RemapUtils.mapVar(varMap, getTargetVariable());
         Label newLabel = RemapUtils.mapLbl(labelMap, getLabel());

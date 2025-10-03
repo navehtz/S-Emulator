@@ -8,7 +8,7 @@ import instruction.basic.JumpNotZeroInstruction;
 import instruction.basic.NoOpInstruction;
 import label.FixedLabel;
 import label.Label;
-import operation.Operation;
+import operation.OperationView;
 import variable.Variable;
 
 import java.util.ArrayList;
@@ -98,7 +98,7 @@ public class AssignmentInstruction extends AbstractInstruction implements Synthe
     }
 
     @Override
-    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, Operation mainProgram) {
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
         Variable tgtLbl = RemapUtils.mapVar(varMap, getTargetVariable());
         Label newLbl = RemapUtils.mapLbl(labelMap, getLabel());
         Variable newSrcVar = RemapUtils.mapVar(varMap, getSourceVariable());

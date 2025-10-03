@@ -1,9 +1,11 @@
 package operation;
 
 import dto.InstructionDTO;
+import engine.ProgramRegistry;
 import exceptions.EngineLoadException;
 import instruction.Instruction;
 import label.Label;
+import program.Program;
 import variable.Variable;
 
 import java.util.List;
@@ -34,7 +36,11 @@ public interface OperationView {
 
     List<List<InstructionDTO>> getExpandedProgram();
 
-    int calculateProgramMaxDegree();
+    ProgramRegistry getRegistry();
+
+    void setRegistry(ProgramRegistry registry);
+
+    Map<Integer, OperationView> calculateDegreeToProgram();
 
     void validateProgram() throws EngineLoadException;
 
@@ -55,5 +61,8 @@ public interface OperationView {
     void initialize();
 
     public Operation deepClone();
+
+    void updateVariableAndLabel(Instruction instruction);
+
 }
 

@@ -5,6 +5,7 @@ import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
 import exceptions.EngineLoadException;
 import execution.ProgramExecutorImpl;
+import function.Function;
 import function.FunctionDisplayResolver;
 import history.ExecutionHistory;
 import execution.ProgramExecutor;
@@ -26,10 +27,11 @@ import java.util.Map;
 public class EngineImpl implements Engine, Serializable {
     private final ProgramRegistry registry = new ProgramRegistry();
     private Map<String, OperationView> loadedOperations = new HashMap<>();
-    private Operation program;
+    private Operation mainProgram;
     private ProgramExecutor programExecutor;
     private ExecutionHistory executionHistory;
     private transient Path xmlPath;
+    private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new HashMap<>();
 
 
     @Override
@@ -45,18 +47,20 @@ public class EngineImpl implements Engine, Serializable {
             operation.initialize();
         }
 
-        this.program = loadResult.getMainProgram();
+        this.mainProgram = loadResult.getMainProgram();
         this.registry.clear();
         //loadResult.getAllByName().values().forEach(registry::register);
         this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
         this.registry.registerAll(loadResult.allOperationsByName);
-        if (this.program instanceof Program programImpl) {
-            programImpl.setRegistry(registry);
+        for (OperationView opView : loadedOperations.values()) {
+            opView.setRegistry(this.registry);
         }
+        this.mainProgram.setRegistry(this.registry);
 
         FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
 
         executionHistory = new ExecutionHistoryImpl();
+        calculateExpansionForAllPrograms();
     }
 
     @Override
@@ -66,14 +70,19 @@ public class EngineImpl implements Engine, Serializable {
             clonedOperations.put(entry.getKey(), entry.getValue().deepClone());
         }
 
+        ProgramRegistry runRegistry = new ProgramRegistry();
+        runRegistry.registerAll(clonedOperations);
+
+        for (OperationView op : clonedOperations.values()) {
+            op.setRegistry(runRegistry);
+        }
+
         for (OperationView operation : clonedOperations.values()) {
             operation.expandProgram(degree);
         }
 
-        ProgramRegistry runRegistry = new ProgramRegistry();
-        runRegistry.registerAll(clonedOperations);
 
-        OperationView mainClone = clonedOperations.get(program.getName());
+        OperationView mainClone = clonedOperations.get(mainProgram.getName());
 
         programExecutor = new ProgramExecutorImpl(mainClone, runRegistry);
 
@@ -91,12 +100,12 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public int getNumberOfInputVariables() {
-        return program.getInputVariables().size();
+        return mainProgram.getInputVariables().size();
     }
 
     @Override
     public ProgramDTO getProgramToDisplay() {
-        return buildProgramDTO(program);
+        return buildProgramDTO(mainProgram);
     }
 
     @Override
@@ -118,7 +127,7 @@ public class EngineImpl implements Engine, Serializable {
 
         for(ProgramExecutor programExecutorItem : executionHistory.getProgramsExecutions()) {
 
-            ProgramDTO programDTO = buildProgramDTO(program);
+            ProgramDTO programDTO = buildProgramDTO(mainProgram);
 
             ProgramExecutorDTO programExecutorDTO = new ProgramExecutorDTO(programDTO,
                     programExecutorItem.getVariablesToValuesSorted(),
@@ -136,19 +145,49 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public int getMaxDegree() throws EngineLoadException {
-        if(program == null) {
-            throw new EngineLoadException("Program not loaded before asking for max degree");
+        return this.nameAndDegreeToProgram.get(mainProgram.getName()).size() - 1; // The size of the map is the max degree
+    }
+
+    @Override
+    public ProgramDTO getExpandedProgramDTO(String programName, int degree) {
+        return buildProgramDTO(getExpandedProgram(programName, degree));
+    }
+
+    private OperationView getExpandedProgram(String programName, int degree) {
+        Map<Integer, OperationView> degreeMap = this.nameAndDegreeToProgram.get(programName);
+        if (degreeMap == null) {
+            throw new IllegalArgumentException("Program not found: " + programName);
         }
 
-        return program.calculateProgramMaxDegree();
+        OperationView expandedProgram = degreeMap.get(degree);
+        if (expandedProgram == null) {
+            throw new IllegalArgumentException("Degree " + degree + " not found for program: " + programName);
+        }
+
+        return expandedProgram;
     }
 
     @Override
     public ProgramDTO getExpandedProgramToDisplay(int degree) {
-        Operation deepCopyOfProgram = program.deepClone();
+        Operation deepCopyOfProgram = mainProgram.deepClone();
         deepCopyOfProgram.expandProgram(degree);
 
         return buildProgramDTO(deepCopyOfProgram);
+    }
+
+    @Override
+    public void calculateExpansionForAllPrograms() {
+        this.nameAndDegreeToProgram.put(
+                mainProgram.getName(),
+                mainProgram.calculateDegreeToProgram()
+        );
+
+        for (OperationView function : registry.allPrograms()) {
+            this.nameAndDegreeToProgram.put(
+                    function.getName(),
+                    function.calculateDegreeToProgram()
+            );
+        }
     }
 
     private ProgramDTO buildProgramDTO(OperationView program) {
@@ -181,7 +220,7 @@ public class EngineImpl implements Engine, Serializable {
             EngineImpl loaded = EngineIO.load(path);
 
             this.xmlPath = loaded.xmlPath;
-            this.program = loaded.program;
+            this.mainProgram = loaded.mainProgram;
             this.programExecutor = loaded.programExecutor;
             this.executionHistory = loaded.executionHistory;
         } catch (IOException | ClassNotFoundException e) {
@@ -201,4 +240,35 @@ public class EngineImpl implements Engine, Serializable {
         String pathStr = (String) in.readObject();
         this.xmlPath = pathStr != null ? Path.of(pathStr) : null;
     }
+
+    @Override
+    public List<String> getAllFunctionsNames() {
+        return registry.allPrograms().stream().map(OperationView::getName).toList();
+    }
+
+    @Override
+    public int getMaxDegree(String programName) throws EngineLoadException {
+        Map<Integer, OperationView> byDegree = nameAndDegreeToProgram.get(programName);
+        if (byDegree == null || byDegree.isEmpty()) {
+            throw new EngineLoadException("Unknown program/function: " + programName);
+        }
+        return byDegree.size() - 1;
+    }
+
+    @Override
+    public Map<String, String> getAllUserStringToFunctionName() {
+        Map<String, String> out = new HashMap<>();
+        for (OperationView operation : loadedOperations.values()) {
+            if (operation instanceof Function function) {
+                String functionName = function.getName();
+                String userString = function.getUserString();
+                out.putIfAbsent(userString, functionName);
+            } else if (operation instanceof Program) {
+                String programName = operation.getName();
+                out.putIfAbsent(programName, programName);
+            }
+        }
+        return out;
+    }
+
 }

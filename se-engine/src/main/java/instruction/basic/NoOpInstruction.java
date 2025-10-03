@@ -4,7 +4,7 @@ import execution.ExecutionContext;
 import instruction.*;
 import label.FixedLabel;
 import label.Label;
-import operation.Operation;
+import operation.OperationView;
 import variable.Variable;
 
 import java.util.Map;
@@ -42,7 +42,7 @@ public class NoOpInstruction extends AbstractInstruction {
     }
 
     @Override
-    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, Operation mainProgram) {
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
         Variable tgtLbl = RemapUtils.mapVar(varMap, getTargetVariable());
         Label newLbl = RemapUtils.mapLbl(labelMap, getLabel());
 

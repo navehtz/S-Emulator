@@ -3,8 +3,7 @@ package instruction;
 import dto.InstructionDTO;
 import execution.ExecutionContext;
 import label.Label;
-import operation.Operation;
-import program.Program;
+import operation.OperationView;
 import variable.Variable;
 
 import java.io.Serializable;
@@ -27,9 +26,9 @@ public interface Instruction extends Serializable {
     InstructionDTO getInstructionDTO();
     List<InstructionDTO> getInstructionExtendedList();
 
-    Operation getProgramOfThisInstruction();
+    OperationView getProgramOfThisInstruction();
 
-    void setProgramOfThisInstruction(Operation operationOfThisInstruction);
+    void setProgramOfThisInstruction(OperationView operationOfThisInstruction);
     Label execute(ExecutionContext context);
     Instruction createInstructionWithInstructionNumber(int instructionNumber);
 
@@ -38,7 +37,7 @@ public interface Instruction extends Serializable {
             Map<Variable, Variable> varMap,
             Map<label.Label, label.Label> labelMap,
             Instruction newOrigin,
-            Operation newOwner
+            OperationView newOwner
     ) {
         // Fallback: just renumber (if an impl forgets to override)
         Instruction c = createInstructionWithInstructionNumber(newInstructionNumber);
