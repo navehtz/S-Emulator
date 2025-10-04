@@ -8,12 +8,14 @@ import instruction.basic.JumpNotZeroInstruction;
 import instruction.basic.NoOpInstruction;
 import label.FixedLabel;
 import label.Label;
+import operation.OperationView;
 import variable.Variable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class AssignmentInstruction extends AbstractInstruction implements SyntheticInstruction {
+public class AssignmentInstruction extends AbstractInstruction implements SyntheticInstruction, SourceVariableInstruction {
     private final int MAX_DEGREE = 2;
     private final List<Instruction> innerInstructions = new ArrayList<>();
     private final Variable sourceVariable;
@@ -70,7 +72,7 @@ public class AssignmentInstruction extends AbstractInstruction implements Synthe
     }
 
     @Override
-    public int setInnerInstructionsAndReturnTheNextOne(int startNumber) {
+    public int expandInstruction(int startNumber) {
         Variable workVariable1 = super.getProgramOfThisInstruction().generateUniqueVariable();
         Label newLabel1 = (super.getLabel() == FixedLabel.EMPTY) ? FixedLabel.EMPTY : super.getLabel();
         Label newLabel2 =  super.getProgramOfThisInstruction().generateUniqueLabel();
@@ -95,4 +97,14 @@ public class AssignmentInstruction extends AbstractInstruction implements Synthe
         return instructionNumber;
     }
 
+    @Override
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
+        Variable tgtLbl = RemapUtils.mapVar(varMap, getTargetVariable());
+        Label newLbl = RemapUtils.mapLbl(labelMap, getLabel());
+        Variable newSrcVar = RemapUtils.mapVar(varMap, getSourceVariable());
+
+        Instruction clonedInstruction = new AssignmentInstruction(tgtLbl, newLbl, newSrcVar, origin, newInstructionNumber);
+        clonedInstruction.setProgramOfThisInstruction(mainProgram);
+        return clonedInstruction;
+    }
 }

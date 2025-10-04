@@ -1,26 +1,27 @@
 // src/main/java/ui/MainController.java
 package ui;
 
-import dto.InstructionDTO;
 import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
 import engine.Engine;
 import engine.EngineImpl;
 import exceptions.EngineLoadException;
+import javafx.animation.PauseTransition;
 import javafx.beans.property.*;
-import javafx.css.PseudoClass;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.stage.FileChooser;
-import javafx.stage.Window;
-import javafx.beans.value.ChangeListener;
-import javafx.scene.control.TableRow;
+import javafx.scene.layout.VBox;
+import javafx.stage.*;
 
+import javafx.util.Duration;
 import ui.components.*;
-import ui.run.RunCoordinator;
 import ui.run.RunOrchestrator;
-import ui.run.RunResultPresenter;
 import ui.run.RunUiPresenter;
 import ui.support.RunsHistoryManager;
 import ui.support.VariablesPaneUpdater;
@@ -30,11 +31,8 @@ import ui.behavior.HighlightingBehavior;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class MainController {
 
@@ -92,12 +90,14 @@ public class MainController {
                 this::getOwnerWindowOrNull,
                 this::getSelectedDegree,
                 isRunInProgress,
-                runUiPresenter
+                runUiPresenter,
+                this::selectedOperationKey
         );
     }
 
     private void initUiWiring() {
         initDegreeSelectorHandler();
+        initContextSelectorHandler();
         initRunButtonDisableBinding();
         mainInstrTableController.bindHistoryTable(currentProgramDTO::get, historyInstrTableController);
     }
@@ -108,12 +108,46 @@ public class MainController {
 
     private void initDegreeSelectorHandler() {
         degreeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                ProgramDTO expanded = engine.getExpandedProgramToDisplay(newVal);
-                updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
-                clearExecutionData();
-                populateHighlightSelectorFromCurrentProgram();
+            if (newVal == null) return;
+            String selectedContext = contextSelector.getValue() != null
+                    ? contextSelector.getValue()
+                    : engine.getProgramToDisplay().programName();
+            if (selectedContext == null) return;
+            String selectedFunction = engine.getAllUserStringToFunctionName().get(selectedContext);
+            ProgramDTO expanded = engine.getExpandedProgramDTO(selectedFunction, newVal);
+            updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
+            clearExecutionData();
+            populateHighlightSelectorFromCurrentProgram();
+        });
+    }
+
+    private void initContextSelectorHandler() {
+        contextSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null) return;
+
+            int currentDegree = degreeSelector.getValue() != null ? degreeSelector.getValue() : 0;
+            String selectedFunction = engine.getAllUserStringToFunctionName().get(newVal);
+
+            int maxDegreeForContext;
+            try {
+                maxDegreeForContext = engine.getMaxDegree(selectedFunction);
+            } catch (Exception e) {
+                degreeSelector.getItems().setAll(0);
+                degreeSelector.getSelectionModel().select(Integer.valueOf(0));
+                return;
             }
+
+            var degrees = java.util.stream.IntStream.rangeClosed(0, maxDegreeForContext)
+                    .boxed().toList();
+            degreeSelector.getItems().setAll(degrees);
+
+            int selectedDegree = (currentDegree <= maxDegreeForContext) ? currentDegree : 0;
+            degreeSelector.getSelectionModel().select(Integer.valueOf(selectedDegree));
+
+            ProgramDTO expanded = engine.getExpandedProgramDTO(selectedFunction, degreeSelector.getValue() != null ? degreeSelector.getValue() : 0);
+            updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
+            clearExecutionData();
+            populateHighlightSelectorFromCurrentProgram();
         });
     }
 
@@ -136,35 +170,78 @@ public class MainController {
     // ===== Handlers used in MainView.fxml =====
     @FXML private void onLoadXml(ActionEvent e) throws EngineLoadException {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open File");
+        fileChooser.setTitle("Open Program XML");
 
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("xml files", "*.xml"),
                 new FileChooser.ExtensionFilter("all files", "*.*")
         );
 
-        Window window = contextSelector.getScene().getWindow();
-        File selectedFile = fileChooser.showOpenDialog(window);
+        final Window window = contextSelector.getScene().getWindow();
+        final File selectedFile = fileChooser.showOpenDialog(window);
 
-        if (selectedFile == null || !selectedFile.getName().endsWith(".xml") ) {
-            Dialogs.warning("No Program Loaded", "Please load a program file before running.", window);
+        if (selectedFile == null) {
+            Dialogs.warning("No file selected", "Please choose an XML file.", window);
+            return;
+        }
+
+        final String name = selectedFile.getName().toLowerCase();
+
+        if (!(name.endsWith(".xml"))) {
+            Dialogs.warning("Invalid File", "Please choose an XML file.", window);
             return;
         }
 
         programNameLabel.setText(selectedFile.getAbsolutePath());
-        engine.loadProgram(Path.of(selectedFile.getAbsolutePath()));
-        clearExecutionData();
-        runsHistoryManager.clearHistory();
 
-        ProgramDTO baseProgram = engine.getProgramToDisplay();
-        updateCurrentProgramAndMainInstrTable(baseProgram);
+        final Path programPath = Path.of(selectedFile.getAbsolutePath());
 
-        int maxDegree = engine.getMaxDegree();
-        degreeSelector.getItems().setAll(
-                java.util.stream.IntStream.rangeClosed(0, maxDegree).boxed().toList()
-        );
-        degreeSelector.getSelectionModel().selectFirst();
-        highlightSelector.getItems().setAll(baseProgram.allVariables());
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception{
+                engine.loadProgram(programPath);
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(ev -> {
+
+            ProgramDTO baseProgram = engine.getProgramToDisplay();
+            updateCurrentProgramAndMainInstrTable(baseProgram);
+
+            try {
+                List<String> contextNames = new ArrayList<>();
+                contextNames.add(baseProgram.programName());
+                contextNames.addAll(engine.getAllUserStringToFunctionName().keySet());
+                contextSelector.getItems().setAll(contextNames);
+                //contextSelector.getItems().setAll(engine.getAllFunctionsNames());
+                contextSelector.getSelectionModel().selectFirst();
+
+                degreeSelector.getItems().setAll(
+                        java.util.stream.IntStream.rangeClosed(0, engine.getMaxDegree()).boxed().toList()
+                );
+                degreeSelector.getSelectionModel().selectFirst();
+            } catch (EngineLoadException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            highlightSelector.getItems().setAll(baseProgram.allVariables());
+
+            clearExecutionData();
+            runsHistoryManager.clearHistory();
+        });
+
+        task.setOnFailed(ev -> {
+            Throwable err = rootCause(task.getException());
+            err.printStackTrace(); // useful in console
+            Dialogs.error("Load failed", String.valueOf(err.getMessage()), getOwnerWindowOrNull());
+        });
+
+        showLoadingPopup(task, window);
+
+        Thread loadThread = new Thread(task, "load-xml-task");
+        loadThread.setDaemon(true);
+        loadThread.start();
     }
 
     @FXML private void onRun(ActionEvent e) {
@@ -195,6 +272,53 @@ public class MainController {
         List<Long> inputsValues = programExecutorDTO.inputsValuesOfUser();
         inputsPaneController.setInputsValuesOfUser(inputsValues);
     }
+
+    private void showLoadingPopup(Task<?> task, Window owner) {
+        // Progress bar bound to the task
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setPrefWidth(250);
+        progressBar.progressProperty().bind(task.progressProperty());
+
+        Label label = new Label("Loading program, please wait...");
+
+        VBox root = new VBox(10, label, progressBar);
+        root.setPadding(new Insets(20));
+        root.setAlignment(Pos.CENTER);
+
+        Stage dialog = new Stage(StageStyle.UTILITY);
+        dialog.initOwner(owner);
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setScene(new Scene(root));
+        dialog.setTitle("Loading…");
+
+        task.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, e -> closeLater(dialog));
+        task.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, e -> closeLater(dialog));
+        task.addEventHandler(WorkerStateEvent.WORKER_STATE_CANCELLED, e -> closeLater(dialog));
+
+        dialog.show();
+    }
+
+    private void closeLater(Stage dialog) {
+        PauseTransition pause = new PauseTransition(Duration.seconds(1.1));
+        pause.setOnFinished(_e -> dialog.close());
+        pause.play();
+    }
+
+    private static Throwable rootCause(Throwable t) {
+        Throwable c = t;
+        while (c.getCause() != null) c = c.getCause();
+        return c;
+    }
+
+    private String selectedOperationKey() {
+        String selectedOperationString = contextSelector.getValue();
+        if (selectedOperationString == null || selectedOperationString.isBlank()) {
+            return engine.getProgramToDisplay().programName(); // main program fallback
+        }
+
+        return engine.getAllUserStringToFunctionName().getOrDefault(selectedOperationString, selectedOperationString);
+    }
+
 }
 
 

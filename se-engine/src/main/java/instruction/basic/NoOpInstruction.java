@@ -1,13 +1,13 @@
 package instruction.basic;
 
 import execution.ExecutionContext;
-import instruction.AbstractInstruction;
-import instruction.Instruction;
-import instruction.InstructionData;
-import instruction.InstructionType;
+import instruction.*;
 import label.FixedLabel;
 import label.Label;
+import operation.OperationView;
 import variable.Variable;
+
+import java.util.Map;
 
 public class NoOpInstruction extends AbstractInstruction {
 
@@ -39,5 +39,15 @@ public class NoOpInstruction extends AbstractInstruction {
         command.append(variableRepresentation);
 
         return command.toString();
+    }
+
+    @Override
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
+        Variable tgtLbl = RemapUtils.mapVar(varMap, getTargetVariable());
+        Label newLbl = RemapUtils.mapLbl(labelMap, getLabel());
+
+        Instruction clonedInstruction = new NoOpInstruction(tgtLbl, newLbl, origin, newInstructionNumber);
+        clonedInstruction.setProgramOfThisInstruction(mainProgram);
+        return clonedInstruction;
     }
 }

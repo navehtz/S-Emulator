@@ -6,10 +6,12 @@ import instruction.basic.DecreaseInstruction;
 import instruction.basic.JumpNotZeroInstruction;
 import label.FixedLabel;
 import label.Label;
+import operation.OperationView;
 import variable.Variable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ZeroVariableInstruction extends AbstractInstruction implements SyntheticInstruction {
     private final int MAX_DEGREE = 1;
@@ -58,7 +60,7 @@ public class ZeroVariableInstruction extends AbstractInstruction implements Synt
     }
 
     @Override
-    public int setInnerInstructionsAndReturnTheNextOne(int startNumber) {
+    public int expandInstruction(int startNumber) {
         int instructionNumber = startNumber;
         Label newLabel1 = (super.getLabel() == FixedLabel.EMPTY) ? super.getProgramOfThisInstruction().generateUniqueLabel() : super.getLabel();
 
@@ -66,5 +68,15 @@ public class ZeroVariableInstruction extends AbstractInstruction implements Synt
         innerInstructions.add(new JumpNotZeroInstruction(super.getTargetVariable(), newLabel1, this, instructionNumber++));
 
         return instructionNumber;
+    }
+
+    @Override
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
+        Variable tgtLbl = RemapUtils.mapVar(varMap, getTargetVariable());
+        Label newLbl = RemapUtils.mapLbl(labelMap, getLabel());
+
+        Instruction clonedInstruction = new ZeroVariableInstruction(tgtLbl, newLbl, origin, newInstructionNumber);
+        clonedInstruction.setProgramOfThisInstruction(mainProgram);
+        return clonedInstruction;
     }
 }

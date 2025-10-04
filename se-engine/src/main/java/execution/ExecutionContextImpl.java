@@ -1,6 +1,9 @@
 package execution;
 
-import program.Program;
+import engine.ProgramRegistry;
+import operation.Operation;
+import operation.OperationInvoker;
+import operation.OperationView;
 import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;
@@ -14,12 +17,18 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
 
     private final Map<Variable, Long> variableToValue;
 
-    public ExecutionContextImpl() {
+    private final ProgramRegistry registry;
+    private final OperationInvoker invoker;
+    private int lastInvocationCycles = 0;
+
+    public ExecutionContextImpl(ProgramRegistry registry, OperationInvoker invoker) {
         this.variableToValue = new HashMap<>();
+        this.registry = registry;
+        this.invoker = invoker;
     }
 
     @Override
-    public void initializeVariables(Program program, Long... inputs) {
+    public void initializeVariables(OperationView program, Long... inputs) {
         program.sortVariableSetByNumber(program.getInputVariables());
 
         initializeInputVariableFromUserInput(program, inputs);
@@ -28,7 +37,7 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
         this.updateVariable(Variable.RESULT, 0L);
     }
 
-    private void initializeInputVariableFromUserInput(Program program, Long[] inputs) {
+    private void initializeInputVariableFromUserInput(OperationView program, Long[] inputs) {
 
         Set<Variable> inputVariables = program.getInputVariables();
 
@@ -56,12 +65,9 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
         }
     }
 
-    private void initializeWorkVariable(Program program) {
-        Set<Variable> workVariables = program.getWorkVariables();
-
-        for (Variable currWorkVariable : workVariables){
-            long value = 0L;
-            this.updateVariable(currWorkVariable, value);
+    private void initializeWorkVariable(OperationView program) {
+        for (Variable currWorkVariable : program.getWorkVariables()) {
+            this.updateVariable(currWorkVariable, 0L);
         }
     }
 
@@ -80,4 +86,35 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
 
         variableToValue.put(variable, value);
     }
+
+    @Override
+    public long getOperationResult() {
+        return variableToValue.getOrDefault(Variable.RESULT, 0L);
+    }
+
+    @Override
+    public long invokeOperation(String name, long... args) {
+        if (registry == null) {
+            throw new IllegalStateException("No ProgramRegistry bound to ExecutionContext");
+        }
+
+        OperationView op = registry.getProgramByName(name);
+        return invokeOperation(op, args);
+    }
+
+    @Override
+    public long invokeOperation(OperationView op, long... args) {
+        if (registry == null) {
+            throw new IllegalStateException("No ProgramRegistry bound to ExecutionContext");
+        }
+
+        this.lastInvocationCycles = invoker.getLastCycles();
+        return invoker.invokeOperation(op, args);
+    }
+
+    @Override
+    public int getLastInvocationCycles() {
+        return lastInvocationCycles;
+    }
+
 }
