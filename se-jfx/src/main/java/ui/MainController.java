@@ -53,6 +53,7 @@ public class MainController {
     @FXML private Button btnStop;
     @FXML private Button btnResume;
     @FXML private Button btnStepOver;
+    @FXML private Button btnStepBack;
     @FXML private Label cyclesLabel;
     @FXML private ScrollPane rootScroll;
     @FXML private BorderPane rootContent;
@@ -269,6 +270,9 @@ public class MainController {
     @FXML private void onResume(ActionEvent e)     {  }
     @FXML private void onStepOver(ActionEvent e)   {  }
 
+    @FXML private void onStepBack(ActionEvent actionEvent) {
+    }
+
     private int getSelectedDegree() {
         if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
         return degreeSelector.getValue();
@@ -335,7 +339,6 @@ public class MainController {
 
         return engine.getAllUserStringToFunctionName().getOrDefault(selectedOperationString, selectedOperationString);
     }
-
 }
 
 
