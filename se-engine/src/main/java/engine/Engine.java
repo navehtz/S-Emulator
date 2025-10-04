@@ -1,5 +1,6 @@
 package engine;
 
+import dto.DebugDTO;
 import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
 import exceptions.EngineLoadException;
@@ -24,6 +25,11 @@ public interface Engine {
     int getNumberOfInputVariables(String operationName);
     void runProgram(int expandLevel, Long... inputs);
     void runProgram(String operationName, int expandLevel, Long... inputs);
+    void initializeDebugger(String programName, int degree, List<Long> inputs);
+    DebugDTO getProgramAfterStepOver();
+    DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException;
+    DebugDTO getProgramAfterStepBack();
+    void stopDebugPress();
     List<String> getAllFunctionsNames();
     Map<String, String> getAllUserStringToFunctionName();
 

@@ -14,8 +14,8 @@ public interface Debug {
 
     boolean hasMoreInstructions();
 
-    ProgramExecutorDTO buildProgramExecutorDTO(ProgramExecutor programExecutor);
-    ProgramExecutor getDebugProgramExecutor();
+    //ProgramExecutorDTO buildSnapshotDTO(ProgramExecutor programExecutor);
+    //ProgramExecutor getDebugProgramExecutor();
     int getCurrentInstructionIndex();
     int getNextInstructionIndex();
 }

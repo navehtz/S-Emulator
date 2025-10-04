@@ -1,5 +1,8 @@
 package engine;
 
+import debug.Debug;
+import debug.DebugImpl;
+import dto.DebugDTO;
 import dto.InstructionsDTO;
 import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
@@ -29,8 +32,10 @@ public class EngineImpl implements Engine, Serializable {
     private Map<String, OperationView> loadedOperations = new HashMap<>();
     private Operation mainProgram;
     private ProgramExecutor programExecutor;
-    private ExecutionHistory executionHistory;
+    //private ExecutionHistory executionHistory;
+    private final Map<String, ExecutionHistory> programToExecutionHistory = new HashMap<>();
     private transient Path xmlPath;
+    private transient Debug debug;
     private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new HashMap<>();
 
 
@@ -59,7 +64,7 @@ public class EngineImpl implements Engine, Serializable {
 
         FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
 
-        executionHistory = new ExecutionHistoryImpl();
+        //executionHistory = new ExecutionHistoryImpl();
         calculateExpansionForAllPrograms();
     }
 
@@ -87,7 +92,9 @@ public class EngineImpl implements Engine, Serializable {
         programExecutor = new ProgramExecutorImpl(mainClone, runRegistry);
 
         programExecutor.run(degree, inputs);
+        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
         executionHistory.addProgramToHistory(programExecutor);
+        programToExecutionHistory.putIfAbsent(mainProgram.getName(), executionHistory);
 
 //        Operation deepCopyOfProgram = program.deepClone();
 //        deepCopyOfProgram.expandProgram(degree);
@@ -125,7 +132,7 @@ public class EngineImpl implements Engine, Serializable {
     public List<ProgramExecutorDTO> getHistoryToDisplay() {
         List<ProgramExecutorDTO> historyToDisplay = new ArrayList<>();
 
-        for(ProgramExecutor programExecutorItem : executionHistory.getProgramsExecutions()) {
+        for(ProgramExecutor programExecutorItem : programToExecutionHistory.get(mainProgram.getName()).getProgramsExecutions()) {
 
             ProgramDTO programDTO = buildProgramDTO(mainProgram);
 
@@ -222,7 +229,7 @@ public class EngineImpl implements Engine, Serializable {
             this.xmlPath = loaded.xmlPath;
             this.mainProgram = loaded.mainProgram;
             this.programExecutor = loaded.programExecutor;
-            this.executionHistory = loaded.executionHistory;
+            this.programToExecutionHistory.putIfAbsent(mainProgram.getName(), loaded.programToExecutionHistory.get(mainProgram.getName()));
         } catch (IOException | ClassNotFoundException e) {
             throw new EngineLoadException("Failed to load engine state: " + e.getMessage(), e);
         }
@@ -287,7 +294,9 @@ public class EngineImpl implements Engine, Serializable {
 
         programExecutor = new ProgramExecutorImpl(target, runRegistry);
         programExecutor.run(degree, inputs);
+        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
         executionHistory.addProgramToHistory(programExecutor);
+        programToExecutionHistory.putIfAbsent(operationName, executionHistory);
     }
 
     @Override
@@ -295,5 +304,71 @@ public class EngineImpl implements Engine, Serializable {
         OperationView op = loadedOperations.get(operationName);
         if (op == null) throw new IllegalArgumentException("Program not found: " + operationName);
         return op.getInputVariables().size();
+    }
+
+    @Override
+    public void initializeDebugger(String programName, int degree, List<Long> inputs) {
+        Map<String, OperationView> cloned = new HashMap<>();
+        for (var e : loadedOperations.entrySet()) {
+            cloned.put(e.getKey(), e.getValue().deepClone());
+        }
+
+        for (OperationView op : cloned.values()) {
+            op.expandProgram(degree);
+        }
+
+        ProgramRegistry runRegistry = new ProgramRegistry();
+        runRegistry.registerAll(cloned);
+        for (OperationView op : cloned.values()) {
+            op.setRegistry(runRegistry);
+        }
+
+        OperationView target = cloned.get(programName);
+        if (target == null) {
+            throw new IllegalArgumentException("Program not found: " + programName);
+        }
+
+        this.debug = new DebugImpl(target, runRegistry, degree, inputs != null ? inputs : List.of() );
+    }
+
+    @Override
+    public DebugDTO getProgramAfterStepOver() {
+        DebugDTO debugDTO = debug.stepOver();    // Step Over
+            //TODO: Check if needed
+//        if (!debugDTO.hasMoreInstructions()) {  // Add debug program executor to history map
+//            addDebugResultToHistoryMap(debugDTO);
+//        }
+
+        return debugDTO;
+    }
+
+    private void addDebugResultToHistoryMap(DebugDTO debugDTO) {
+        // TODO: Reintroduce when you decide how to persist debug snapshots.
+//        String programName = debugDTO.programName();
+//        ExecutionHistory executionHistory = programToExecutionHistory.computeIfAbsent(programName, k -> new ExecutionHistoryImpl());
+//        executionHistory.addProgramToHistory(debug.getDebugProgramExecutor());
+    }
+
+    @Override
+    public DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException {
+        DebugDTO debugDTO = debug.resume(breakPoints);  // Resume
+        //TODO: Check if needed
+//        if (!debugDTO.hasMoreInstructions()) {      // Add to history
+//            addDebugResultToHistoryMap(debugDTO);
+//        }
+
+        return debugDTO;
+    }
+
+    @Override
+    public DebugDTO getProgramAfterStepBack() {
+        return debug.stepBack();
+    }
+
+    @Override
+    public void stopDebugPress() {
+        DebugDTO debugDTO = debug.stop();
+        //TODO: Check if needed
+        //addDebugResultToHistoryMap(debugDTO);
     }
 }

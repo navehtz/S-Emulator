@@ -22,6 +22,8 @@ import javafx.stage.*;
 
 import javafx.util.Duration;
 import ui.components.*;
+import ui.debug.DebugOrchestrator;
+import ui.debug.DebugUiPresenter;
 import ui.run.RunOrchestrator;
 import ui.run.RunUiPresenter;
 import ui.support.RunsHistoryManager;
@@ -61,12 +63,16 @@ public class MainController {
     private final Engine engine = new EngineImpl();
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
     private final BooleanProperty isRunInProgress = new SimpleBooleanProperty(false);
+    private final BooleanProperty isDebugInProgress = new SimpleBooleanProperty(false);
 
     private RunOrchestrator runOrchestrator;
     private RunsHistoryManager runsHistoryManager;
 
+    private DebugOrchestrator debugOrchestrator;
+
     public ReadOnlyObjectProperty<ProgramDTO> currentProgramProperty() { return currentProgramDTO; }
     public BooleanProperty isRunInProgressProperty() { return isRunInProgress; }
+    public BooleanProperty isDebugInProgressProperty() { return isDebugInProgress; }
     public ProgramDTO getCurrentProgram() { return currentProgramDTO.get(); }
 
 
@@ -111,12 +117,35 @@ public class MainController {
                 runUiPresenter,
                 this::selectedOperationKey
         );
+
+        DebugUiPresenter debugPresenter = new DebugUiPresenter(
+                isDebugInProgress,
+                variablesPaneUpdater,
+                runsHistoryManager,
+                this::updateInputsPane,
+                this::getCurrentProgram
+        );
+
+        this.debugOrchestrator = new DebugOrchestrator(
+                engine,
+                this::getOwnerWindowOrNull,
+                this::getSelectedDegree,
+                isDebugInProgress,
+                debugPresenter,
+                this::selectedOperationKey
+        );
     }
 
     private void initUiWiring() {
         initDegreeSelectorHandler();
         initContextSelectorHandler();
-        initRunButtonDisableBinding();
+        initRunAndDebugButtonsDisableBinding();
+
+        btnStop.disableProperty().bind(isDebugInProgress.not());
+        btnResume.disableProperty().bind(isDebugInProgress.not());
+        btnStepOver.disableProperty().bind(isDebugInProgress.not());
+        btnStepBack.disableProperty().bind(isDebugInProgress.not());
+
         mainInstrTableController.bindHistoryTable(currentProgramDTO::get, historyInstrTableController);
     }
 
@@ -178,10 +207,15 @@ public class MainController {
         }
     }
 
-    private void initRunButtonDisableBinding() {
+    private void initRunAndDebugButtonsDisableBinding() {
         btnRun.disableProperty().bind(
                 currentProgramProperty().isNull()
                         .or(isRunInProgressProperty())
+        );
+
+        btnDebug.disableProperty().bind(
+                currentProgramProperty().isNull()
+                        .or(isDebugInProgressProperty())
         );
     }
 
@@ -265,7 +299,9 @@ public class MainController {
     @FXML private void onRun(ActionEvent e) {
         runOrchestrator.run(getCurrentProgram());
     }
-    @FXML private void onDebug(ActionEvent e)      {  }
+    @FXML private void onDebug(ActionEvent e)      {
+        debugOrchestrator.debug();
+    }
     @FXML private void onStop(ActionEvent e)       {  }
     @FXML private void onResume(ActionEvent e)     {  }
     @FXML private void onStepOver(ActionEvent e)   {  }
