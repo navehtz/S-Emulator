@@ -21,7 +21,9 @@ public interface Engine {
     int getMaxDegree(String programName) throws EngineLoadException;
     void calculateExpansionForAllPrograms();
     int getNumberOfInputVariables();
+    int getNumberOfInputVariables(String operationName);
     void runProgram(int expandLevel, Long... inputs);
+    void runProgram(String operationName, int expandLevel, Long... inputs);
     List<String> getAllFunctionsNames();
     Map<String, String> getAllUserStringToFunctionName();
 

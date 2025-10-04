@@ -90,7 +90,8 @@ public class MainController {
                 this::getOwnerWindowOrNull,
                 this::getSelectedDegree,
                 isRunInProgress,
-                runUiPresenter
+                runUiPresenter,
+                this::selectedOperationKey
         );
     }
 
@@ -112,7 +113,7 @@ public class MainController {
                     ? contextSelector.getValue()
                     : engine.getProgramToDisplay().programName();
             if (selectedContext == null) return;
-            String selectedFunction = engine.getAllUserStringToFunctionName().get(selectedContext); //TODO:Change so it wont happen every time
+            String selectedFunction = engine.getAllUserStringToFunctionName().get(selectedContext);
             ProgramDTO expanded = engine.getExpandedProgramDTO(selectedFunction, newVal);
             updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
             clearExecutionData();
@@ -125,7 +126,7 @@ public class MainController {
             if (newVal == null) return;
 
             int currentDegree = degreeSelector.getValue() != null ? degreeSelector.getValue() : 0;
-            String selectedFunction = engine.getAllUserStringToFunctionName().get(newVal); //TODO:Change so it wont happen every time
+            String selectedFunction = engine.getAllUserStringToFunctionName().get(newVal);
 
             int maxDegreeForContext;
             try {
@@ -308,6 +309,16 @@ public class MainController {
         while (c.getCause() != null) c = c.getCause();
         return c;
     }
+
+    private String selectedOperationKey() {
+        String selectedOperationString = contextSelector.getValue();
+        if (selectedOperationString == null || selectedOperationString.isBlank()) {
+            return engine.getProgramToDisplay().programName(); // main program fallback
+        }
+
+        return engine.getAllUserStringToFunctionName().getOrDefault(selectedOperationString, selectedOperationString);
+    }
+
 }
 
 

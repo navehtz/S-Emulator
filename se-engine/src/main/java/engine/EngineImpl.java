@@ -271,4 +271,29 @@ public class EngineImpl implements Engine, Serializable {
         return out;
     }
 
+    @Override
+    public void runProgram(String operationName, int degree, Long... inputs) {
+        // clone all operations for this run
+        Map<String, OperationView> cloned = new HashMap<>();
+        for (var e : loadedOperations.entrySet()) cloned.put(e.getKey(), e.getValue().deepClone());
+        // expand all
+        for (OperationView op : cloned.values()) op.expandProgram(degree);
+
+        ProgramRegistry runRegistry = new ProgramRegistry();
+        runRegistry.registerAll(cloned);
+
+        OperationView target = cloned.get(operationName);
+        if (target == null) throw new IllegalArgumentException("Program not found: " + operationName);
+
+        programExecutor = new ProgramExecutorImpl(target, runRegistry);
+        programExecutor.run(degree, inputs);
+        executionHistory.addProgramToHistory(programExecutor);
+    }
+
+    @Override
+    public int getNumberOfInputVariables(String operationName) {
+        OperationView op = loadedOperations.get(operationName);
+        if (op == null) throw new IllegalArgumentException("Program not found: " + operationName);
+        return op.getInputVariables().size();
+    }
 }

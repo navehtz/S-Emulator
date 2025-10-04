@@ -13,18 +13,21 @@ public class RunOrchestrator {
     private final Supplier<Integer> expansionDegreeSupplier;
     private final BooleanProperty isRunInProgress;
     private final RunResultPresenter resultPresenter;
+    private final Supplier<String> selectedOperationKeySupplier;
 
     private RunCoordinator runCoordinator;
     public RunOrchestrator(Engine engine,
                            Supplier<Window> ownerWindowSupplier,
                            Supplier<Integer> expansionDegreeSupplier,
                            BooleanProperty isRunInProgress,
-                           RunResultPresenter resultPresenter) {
+                           RunResultPresenter resultPresenter,
+                           Supplier<String> selectedOperationKeySupplier) {
         this.engine = engine;
         this.ownerWindowSupplier = ownerWindowSupplier;
         this.expansionDegreeSupplier = expansionDegreeSupplier;
         this.isRunInProgress = isRunInProgress;
         this.resultPresenter = resultPresenter;
+        this.selectedOperationKeySupplier = selectedOperationKeySupplier;
     }
 
     private void ensureCoordinator() {
@@ -33,6 +36,7 @@ public class RunOrchestrator {
                     engine,
                     ownerWindowSupplier.get(),
                     expansionDegreeSupplier::get,
+                    selectedOperationKeySupplier::get,
                     resultPresenter
             );
         }
