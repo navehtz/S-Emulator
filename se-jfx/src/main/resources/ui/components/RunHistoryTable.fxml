@@ -4,26 +4,24 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="201.0" prefWidth="299.0" xmlns="http://javafx.com/javafx/17.0.12"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.components.RunHistoryTableController">
-    <TitledPane text="History / Statistics">
-        <VBox spacing="8">
-            <padding>
-                <Insets bottom="6" left="6" right="6" top="6"/>
-            </padding>
-            <TableView fx:id="table" prefHeight="238.0" prefWidth="310.0" VBox.vgrow="ALWAYS">
-                <columns>
-                    <TableColumn fx:id="colRunNum" prefWidth="60.0" text="Run #"/>
-                    <TableColumn fx:id="colDegree" prefWidth="60.0" text="Degree"/>
-                    <TableColumn fx:id="colInputs" prefWidth="60.0" text="Inputs"/>
-                    <TableColumn fx:id="colResult" prefWidth="60.0" text="Result"/>
-                    <TableColumn fx:id="colCycles" prefWidth="60.0" text="Cycles"/>
-                </columns>
-            </TableView>
-            <HBox spacing="8">
-                <Button fx:id="btnShow" disable="true" text="Show"/>
-                <Button fx:id="btnRerun" disable="true" text="Re-Run"/>
-            </HBox>
-        </VBox>
-    </TitledPane>
-</AnchorPane>
+
+ <TitledPane text="History / Statistics" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.components.RunHistoryTableController">
+     <VBox spacing="8">
+         <padding>
+             <Insets bottom="6" left="6" right="6" top="6" />
+         </padding>
+         <TableView fx:id="table" prefHeight="238.0" prefWidth="310.0" VBox.vgrow="ALWAYS">
+             <columns>
+                 <TableColumn fx:id="colRunNum" prefWidth="60.0" text="Run #" />
+                 <TableColumn fx:id="colDegree" prefWidth="60.0" text="Degree" />
+                 <TableColumn fx:id="colInputs" prefWidth="60.0" text="Inputs" />
+                 <TableColumn fx:id="colResult" prefWidth="60.0" text="Result" />
+                 <TableColumn fx:id="colCycles" prefWidth="60.0" text="Cycles" />
+             </columns>
+         </TableView>
+         <HBox spacing="8">
+             <Button fx:id="btnShow" disable="true" text="Show" />
+             <Button fx:id="btnRerun" disable="true" text="Re-Run" />
+         </HBox>
+     </VBox>
+ </TitledPane>

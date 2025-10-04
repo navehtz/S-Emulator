@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="234.0" prefWidth="172.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.components.VariablesTableController">
-   <children>
-      <TitledPane expanded="true" prefHeight="233.0" prefWidth="172.0" text="Variables">
-          <content>
-              <TableView fx:id="table" minHeight="0.0" minWidth="0.0" prefHeight="316.0" prefWidth="170.0">
-                  <columns>
-                      <TableColumn fx:id="colName" prefWidth="84.0" text="Var" />
-                      <TableColumn fx:id="colValue" prefWidth="88.0" text="Value" />
-                  </columns>
-              </TableView>
-          </content>
-      </TitledPane>
-   </children>
-</AnchorPane>
+
+<TitledPane expanded="true" prefHeight="233.0" prefWidth="172.0" text="Variables" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.components.VariablesTableController">
+    <content>
+        <TableView fx:id="table" minHeight="0.0" minWidth="0.0" prefHeight="316.0" prefWidth="170.0">
+            <columns>
+                <TableColumn fx:id="colName" prefWidth="84.0" text="Var" />
+                <TableColumn fx:id="colValue" prefWidth="88.0" text="Value" />
+            </columns>
+        </TableView>
+    </content>
+</TitledPane>

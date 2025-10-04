@@ -4,164 +4,120 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" scaleShape="false" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.MainController">
+<ScrollPane fx:id="rootScroll" fitToHeight="true" fitToWidth="false" pannable="true" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.MainController">
    <content>
-      <AnchorPane>
-         <children>
-            <BorderPane prefHeight="700.0" prefWidth="1000.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-      
-               <!-- ===== TOP BAR ===== -->
-               <top>
-                  <AnchorPane>
-                     <children>
-                        <VBox spacing="4" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                           <HBox spacing="6">
-                              <padding>
-                                 <Insets bottom="0" left="6" right="6" top="6" />
-                              </padding>
-                              <AnchorPane>
-                                 <children>
-                  
-                                    <Button fx:id="btnLoadFile" minHeight="-Infinity" minWidth="-Infinity" onAction="#onLoadXml" prefHeight="25.0" prefWidth="149.0" text="Load File" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                 </children>
-                              </AnchorPane>
-            
-                              <Label minHeight="-Infinity" minWidth="-Infinity" prefHeight="22.0" prefWidth="48.0" text="File path:" />
-                              <Label fx:id="programNameLabel" prefHeight="23.0" prefWidth="751.0" text="(none)" />
-            
+      <BorderPane fx:id="rootContent" maxHeight="Infinity" maxWidth="Infinity" minHeight="400" minWidth="700" prefHeight="700.0" prefWidth="1000.0">
+
+         <!-- ===== TOP BAR ===== -->
+         <top>
+            <VBox spacing="4">
+               <HBox spacing="6">
+                  <padding>
+                     <Insets bottom="0" left="6" right="6" top="6" />
+                  </padding>
+
+                  <Button fx:id="btnLoadFile" minHeight="-Infinity" minWidth="-Infinity" onAction="#onLoadXml" prefHeight="25.0" prefWidth="149.0" text="Load File" />
+
+                  <Label minHeight="-Infinity" minWidth="-Infinity" prefHeight="22.0" prefWidth="48.0" text="File path:" />
+                  <Label fx:id="programNameLabel" prefHeight="23.0" prefWidth="751.0" text="(none)" />
+
+               </HBox>
+
+               <ToolBar>
+                  <Label text="Program/Function:" />
+                  <ComboBox fx:id="contextSelector" prefWidth="180" />
+
+                  <Separator orientation="VERTICAL" />
+
+                  <Label text="Degree:" />
+                  <ComboBox fx:id="degreeSelector" prefWidth="100" />
+
+                  <Separator orientation="VERTICAL" />
+
+                  <Label text="Highlight selection:" />
+                  <ComboBox fx:id="highlightSelector" prefWidth="200" />
+               </ToolBar>
+            </VBox>
+         </top>
+
+         <!-- ===== CENTER: LEFT/RIGHT SPLIT ===== -->
+         <center>
+            <SplitPane dividerPositions="0.68">
+               <SplitPane dividerPositions="0.6443452380952381" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+                  <items>
+                     <VBox prefHeight="430.0" prefWidth="676.0">
+                        <children>
+
+                           <!-- Main Instructions Table (reused component) -->
+                           <fx:include fx:id="mainInstrTable" source="components/InstructionTable.fxml" VBox.vgrow="ALWAYS" />
+
+                           <!-- Summary line -->
+                           <Label fx:id="summaryLabel" maxWidth="1.7976931348623157E308" prefHeight="40.0" prefWidth="674.0" style="-fx-background-color:#e5e5e5; -fx-padding:6;" text="Summary line" VBox.vgrow="SOMETIMES" />
+                        </children>
+                     </VBox>
+
+                     <!-- Selected instruction history chain (same component reused) -->
+                     <TitledPane expanded="true" prefWidth="660.0" text="Instruction History Chain">
+                        <content>
+                           <fx:include fx:id="historyInstrTable" source="components/InstructionTable.fxml" />
+                        </content>
+                     </TitledPane>
+                  </items>
+               </SplitPane>
+               <!-- ===== RIGHT SIDE ===== -->
+               <VBox fx:id="rightPane" spacing="10">
+                  <padding>
+                     <Insets bottom="8" left="0" right="8" top="8" />
+                  </padding>
+
+                  <!-- Debugger / Execution controls -->
+                  <TitledPane expanded="true" text="Debugger / Execution">
+                     <content>
+                        <VBox spacing="8">
+                           <padding>
+                              <Insets bottom="8" left="8" right="8" top="8" />
+                           </padding>
+                           <HBox spacing="8">
+                              <Button fx:id="btnRun" onAction="#onRun" text="Run" />
+                              <Button fx:id="btnDebug" onAction="#onDebug" text="Debug" />
+                              <Button fx:id="btnStop" onAction="#onStop" text="Stop" />
+                              <Button fx:id="btnResume" onAction="#onResume" text="Resume" />
+                              <Button fx:id="btnStepOver" onAction="#onStepOver" text="Step Over" />
                            </HBox>
-            
-                           <ToolBar>
-                              <Label text="Program/Function:" />
-                              <ComboBox fx:id="contextSelector" prefWidth="180" />
-            
-                              <Separator orientation="VERTICAL" />
-            
-                              <Label text="Degree:" />
-                              <ComboBox fx:id="degreeSelector" prefWidth="100" />
-            
-                              <Separator orientation="VERTICAL" />
-            
-                              <Label text="Highlight selection:" />
-                              <ComboBox fx:id="highlightSelector" prefWidth="200" />
-                           </ToolBar>
                         </VBox>
-                     </children>
-                  </AnchorPane>
-               </top>
-      
-               <!-- ===== CENTER: LEFT/RIGHT SPLIT ===== -->
-               <center>
-                  <AnchorPane>
+                     </content>
+                  </TitledPane>
+
+                  <!-- Variables + Dynamic Inputs -->
+                  <HBox prefWidth="193.0" spacing="8">
+                     <!-- Variables (component) -->
+                     <fx:include fx:id="varsPane" source="components/VariablesTable.fxml" />
+
+                     <!-- Dynamic Inputs (component builds only relevant x_i) -->
+                     <fx:include fx:id="inputsPane" source="components/DynamicInputsPane.fxml" HBox.hgrow="ALWAYS" />
+                  </HBox>
+
+                  <!-- Cycles row -->
+                  <HBox spacing="6">
+                     <Label text="Cycles:">
+                        <HBox.margin>
+                           <Insets left="5.0" />
+                        </HBox.margin>
+                     </Label>
+                     <Label fx:id="cyclesLabel" text="0" />
+                  </HBox>
+                  <AnchorPane prefHeight="200.0" prefWidth="200.0" VBox.vgrow="SOMETIMES">
                      <children>
-                        <SplitPane dividerPositions="0.68" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                           <AnchorPane>
-                              <children>
-                                 <SplitPane dividerPositions="0.6443452380952381" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                    <items>
-                                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-                                          <children>
-                                             <VBox prefHeight="430.0" prefWidth="676.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                                <children>
-
-                                                   <!-- Main Instructions Table (reused component) -->
-                                                   <fx:include fx:id="mainInstrTable" source="components/InstructionTable.fxml" VBox.vgrow="ALWAYS" />
-                                                   <AnchorPane prefHeight="27.0" prefWidth="674.0">
-                                                      <children>
       
-                                                         <!-- Summary line -->
-                                                         <Label fx:id="summaryLabel" layoutY="115.0" prefHeight="40.0" prefWidth="674.0" style="-fx-background-color:#e5e5e5; -fx-padding:6;" text="Summary line" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                                      </children>
-                                                   </AnchorPane>
-                                                </children>
-                                             </VBox>
-                                          </children>
-                                       </AnchorPane>
-                                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-                                          <children>
-
-                                             <!-- Selected instruction history chain (same component reused) -->
-                                             <TitledPane expanded="true" layoutX="-93.0" layoutY="-103.0" prefWidth="660.0" text="Instruction History Chain" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                                <content>
-                                                   <fx:include fx:id="historyInstrTable" source="components/InstructionTable.fxml" />
-                                                </content>
-                                             </TitledPane>
-                                          </children>
-                                       </AnchorPane>
-                                    </items>
-                                 </SplitPane>
-                              </children>
-                           </AnchorPane>
-                           <AnchorPane prefHeight="200.0" prefWidth="200.0">
-                              <children>
-                                 <!-- ===== RIGHT SIDE ===== -->
-                                 <VBox spacing="10" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                    <padding>
-                                       <Insets bottom="8" left="0" right="8" top="8" />
-                                    </padding>
-                  
-                                    <!-- Debugger / Execution controls -->
-                                    <TitledPane expanded="true" text="Debugger / Execution">
-                                       <content>
-                                          <VBox spacing="8">
-                                             <padding>
-                                                <Insets bottom="8" left="8" right="8" top="8" />
-                                             </padding>
-                                             <HBox spacing="8">
-                                                <Button fx:id="btnRun" onAction="#onRun" text="Run" />
-                                                <Button fx:id="btnDebug" onAction="#onDebug" text="Debug" />
-                                                <Button fx:id="btnStop" onAction="#onStop" text="Stop" />
-                                                <Button fx:id="btnResume" onAction="#onResume" text="Resume" />
-                                                <Button fx:id="btnStepOver" onAction="#onStepOver" text="Step Over" />
-                                             </HBox>
-                                          </VBox>
-                                       </content>
-                                    </TitledPane>
-                                    <AnchorPane prefHeight="200.0" prefWidth="200.0">
-                                       <children>
-
-                                          <!-- Variables + Dynamic Inputs -->
-                                          <HBox prefWidth="193.0" spacing="8" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                             <!-- Variables (component) -->
-                                             <fx:include fx:id="varsPane" source="components/VariablesTable.fxml" />
-
-                                             <!-- Dynamic Inputs (component builds only relevant x_i) -->
-                                             <fx:include fx:id="inputsPane" source="components/DynamicInputsPane.fxml" HBox.hgrow="ALWAYS" />
-                                          </HBox>
-                                       </children>
-                                    </AnchorPane>
-                                    <AnchorPane prefHeight="200.0" prefWidth="200.0">
-                                       <children>
-                        
-                                          <!-- Cycles row -->
-                                          <HBox spacing="6" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                             <Label text="Cycles:">
-                                                <HBox.margin>
-                                                   <Insets left="5.0" />
-                                                </HBox.margin>
-                                             </Label>
-                                             <Label fx:id="cyclesLabel" text="0" />
-                                          </HBox>
-                                       </children>
-                                    </AnchorPane>
-                                    <AnchorPane prefHeight="200.0" prefWidth="200.0">
-                                       <children>
-                        
-                                          <!-- Run History (component) -->
-                                          <fx:include fx:id="runsPane" source="components/RunHistoryTable.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" VBox.vgrow="ALWAYS" />
-                                       </children>
-                                    </AnchorPane>
-                  
-                                 </VBox>
-                              </children>
-                           </AnchorPane>
-                        </SplitPane>
+                        <!-- Run History (component) -->
+                        <fx:include fx:id="runsPane" source="components/RunHistoryTable.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" VBox.vgrow="ALWAYS" />
                      </children>
                   </AnchorPane>
-               </center>
-      
-            </BorderPane>
-         </children>
-      </AnchorPane>
+
+               </VBox>
+            </SplitPane>
+         </center>
+
+      </BorderPane>
    </content>
 </ScrollPane>

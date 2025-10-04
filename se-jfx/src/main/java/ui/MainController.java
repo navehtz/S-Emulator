@@ -16,6 +16,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.*;
 
@@ -36,6 +37,7 @@ import java.util.Map;
 
 public class MainController {
 
+    @FXML private VBox rightPane;
     @FXML private InstructionTableController mainInstrTableController;
     @FXML private InstructionTableController historyInstrTableController;
     @FXML private VariablesTableController   varsPaneController;
@@ -52,6 +54,8 @@ public class MainController {
     @FXML private Button btnResume;
     @FXML private Button btnStepOver;
     @FXML private Label cyclesLabel;
+    @FXML private ScrollPane rootScroll;
+    @FXML private BorderPane rootContent;
 
     private final Engine engine = new EngineImpl();
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
@@ -72,7 +76,20 @@ public class MainController {
         new HighlightingBehavior("var-highlight").wire(
                 mainInstrTableController.getTable(),
                 highlightSelector,
-                mainInstrTableController::commandTextOf);
+                mainInstrTableController::commandTextOf
+        );
+
+        rootScroll.viewportBoundsProperty().addListener((obs, oldVal, newVal) -> {
+            double designWidth = 1000.0;
+            double designHeight = 700.0;
+            rootContent.setPrefWidth(Math.max(designWidth, newVal.getWidth()));
+            rootContent.setPrefHeight(Math.max(designHeight, newVal.getHeight()));
+        });
+
+        rightPane.setMinWidth(340);
+        rightPane.setPrefWidth(360);
+        rightPane.setMaxWidth(420);
+
     }
 
     private void initCollaborators() {

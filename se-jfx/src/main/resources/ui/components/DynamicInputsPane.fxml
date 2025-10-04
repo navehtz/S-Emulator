@@ -4,20 +4,17 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.components.DynamicInputsController">
-    <children>
-        <TitledPane expanded="true" text="Inputs:">
-            <content>
-                <ScrollPane fitToWidth="true">
-                    <content>
-                        <VBox fx:id="container" spacing="8">
-                            <padding>
-                                <Insets bottom="8" left="8" right="8" top="8" />
-                            </padding>
-                        </VBox>
-                    </content>
-                </ScrollPane>
-            </content>
-        </TitledPane>
-    </children>
-</AnchorPane>
+
+  <TitledPane expanded="true" text="Inputs:" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.components.DynamicInputsController">
+      <content>
+          <ScrollPane fitToWidth="true">
+              <content>
+                  <VBox fx:id="container" spacing="8">
+                      <padding>
+                          <Insets bottom="8" left="8" right="8" top="8" />
+                      </padding>
+                  </VBox>
+              </content>
+          </ScrollPane>
+      </content>
+  </TitledPane>
