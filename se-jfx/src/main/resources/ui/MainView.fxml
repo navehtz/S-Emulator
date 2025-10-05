@@ -59,7 +59,7 @@
                      <!-- Selected instruction history chain (same component reused) -->
                      <TitledPane expanded="true" prefWidth="660.0" text="Instruction History Chain">
                         <content>
-                           <fx:include fx:id="historyInstrTable" source="components/InstructionTable.fxml" />
+                           <fx:include fx:id="historyInstrTable" source="components/InstructionHistoryChain.fxml" />
                         </content>
                      </TitledPane>
                   </items>

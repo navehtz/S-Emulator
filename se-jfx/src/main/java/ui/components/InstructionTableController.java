@@ -107,7 +107,7 @@ public class InstructionTableController {
     }
 
 
-    public void bindHistoryTable(Supplier<ProgramDTO> currentProgramSupplier, InstructionTableController historyInstrTableController) {
+    public void bindHistoryTable(Supplier<ProgramDTO> currentProgramSupplier, InstructionHistoryChainController historyInstrTableController) {
         getTable().getSelectionModel()
                 .selectedIndexProperty()
                 .addListener((obs, oldIdx, newIdx) -> {

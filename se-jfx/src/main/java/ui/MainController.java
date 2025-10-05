@@ -41,7 +41,7 @@ public class MainController {
 
     @FXML private VBox rightPane;
     @FXML private InstructionTableController mainInstrTableController;
-    @FXML private InstructionTableController historyInstrTableController;
+    @FXML private InstructionHistoryChainController historyInstrTableController;
     @FXML private VariablesTableController   varsPaneController;
     @FXML private DynamicInputsController    inputsPaneController;
     @FXML private RunHistoryTableController  runsPaneController;
