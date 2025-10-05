@@ -203,6 +203,9 @@ public class MainController {
             if (isDebugInProgress.get()) {
                 isDebugInProgress.set(false);
             }
+
+            //TODO: Change to real history of function
+            runsHistoryManager.clearHistory();
         });
     }
 
