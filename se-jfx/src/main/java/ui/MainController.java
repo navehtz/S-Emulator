@@ -1,6 +1,8 @@
 // src/main/java/ui/MainController.java
 package ui;
 
+import dto.DebugDTO;
+import dto.InstructionsDTO;
 import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
 import engine.Engine;
@@ -22,6 +24,8 @@ import javafx.stage.*;
 
 import javafx.util.Duration;
 import ui.components.*;
+import ui.debug.DebugOrchestrator;
+import ui.debug.DebugUiPresenter;
 import ui.run.RunOrchestrator;
 import ui.run.RunUiPresenter;
 import ui.support.RunsHistoryManager;
@@ -31,9 +35,7 @@ import ui.behavior.HighlightingBehavior;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MainController {
 
@@ -53,6 +55,7 @@ public class MainController {
     @FXML private Button btnStop;
     @FXML private Button btnResume;
     @FXML private Button btnStepOver;
+    @FXML private Button btnStepBack;
     @FXML private Label cyclesLabel;
     @FXML private ScrollPane rootScroll;
     @FXML private BorderPane rootContent;
@@ -60,12 +63,16 @@ public class MainController {
     private final Engine engine = new EngineImpl();
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
     private final BooleanProperty isRunInProgress = new SimpleBooleanProperty(false);
+    private final BooleanProperty isDebugInProgress = new SimpleBooleanProperty(false);
 
     private RunOrchestrator runOrchestrator;
     private RunsHistoryManager runsHistoryManager;
+    private DebugOrchestrator debugOrchestrator;
+    private final Map<String, Long> lastVarsSnapshot = new HashMap<>();
 
     public ReadOnlyObjectProperty<ProgramDTO> currentProgramProperty() { return currentProgramDTO; }
     public BooleanProperty isRunInProgressProperty() { return isRunInProgress; }
+    public BooleanProperty isDebugInProgressProperty() { return isDebugInProgress; }
     public ProgramDTO getCurrentProgram() { return currentProgramDTO.get(); }
 
 
@@ -110,12 +117,36 @@ public class MainController {
                 runUiPresenter,
                 this::selectedOperationKey
         );
+
+        DebugUiPresenter debugPresenter = new DebugUiPresenter(
+                isDebugInProgress,
+                variablesPaneUpdater,
+                runsHistoryManager,
+                this::updateInputsPane,
+                this::applySnapshot,
+                this::enterDebugMode
+        );
+
+        this.debugOrchestrator = new DebugOrchestrator(
+                engine,
+                this::getOwnerWindowOrNull,
+                this::getSelectedDegree,
+                isDebugInProgress,
+                debugPresenter,
+                this::selectedOperationKey
+        );
     }
 
     private void initUiWiring() {
         initDegreeSelectorHandler();
         initContextSelectorHandler();
-        initRunButtonDisableBinding();
+        initRunAndDebugButtonsDisableBinding();
+
+        btnStop.disableProperty().bind(isDebugInProgress.not());
+        btnResume.disableProperty().bind(isDebugInProgress.not());
+        btnStepOver.disableProperty().bind(isDebugInProgress.not());
+        btnStepBack.disableProperty().bind(isDebugInProgress.not());
+
         mainInstrTableController.bindHistoryTable(currentProgramDTO::get, historyInstrTableController);
     }
 
@@ -135,6 +166,9 @@ public class MainController {
             updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
             clearExecutionData();
             populateHighlightSelectorFromCurrentProgram();
+            if (isDebugInProgress.get()) {
+                isDebugInProgress.set(false);
+            }
         });
     }
 
@@ -165,6 +199,13 @@ public class MainController {
             updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
             clearExecutionData();
             populateHighlightSelectorFromCurrentProgram();
+
+            if (isDebugInProgress.get()) {
+                isDebugInProgress.set(false);
+            }
+
+            //TODO: Change to real history of function
+            runsHistoryManager.clearHistory();
         });
     }
 
@@ -174,13 +215,19 @@ public class MainController {
             highlightSelector.getItems().clear();
         } else {
             highlightSelector.getItems().setAll(currentProgram.allVariables());
+            highlightSelector.getItems().addAll(currentProgram.labelsStr());
         }
     }
 
-    private void initRunButtonDisableBinding() {
+    private void initRunAndDebugButtonsDisableBinding() {
         btnRun.disableProperty().bind(
                 currentProgramProperty().isNull()
                         .or(isRunInProgressProperty())
+        );
+
+        btnDebug.disableProperty().bind(
+                currentProgramProperty().isNull()
+                        .or(isDebugInProgressProperty())
         );
     }
 
@@ -243,6 +290,7 @@ public class MainController {
             }
 
             highlightSelector.getItems().setAll(baseProgram.allVariables());
+            highlightSelector.getItems().addAll(baseProgram.labelsStr());
 
             clearExecutionData();
             runsHistoryManager.clearHistory();
@@ -264,10 +312,48 @@ public class MainController {
     @FXML private void onRun(ActionEvent e) {
         runOrchestrator.run(getCurrentProgram());
     }
-    @FXML private void onDebug(ActionEvent e)      {  }
-    @FXML private void onStop(ActionEvent e)       {  }
-    @FXML private void onResume(ActionEvent e)     {  }
-    @FXML private void onStepOver(ActionEvent e)   {  }
+    @FXML private void onDebug(ActionEvent e)      {
+        debugOrchestrator.debug();
+    }
+    @FXML private void onStop(ActionEvent e)       {
+        try {
+            engine.stopDebugPress();
+        } finally {
+            leaveDebugMode();
+        }
+    }
+
+    @FXML private void onResume(ActionEvent e)     {
+        try {
+            var breakpoints = mainInstrTableController.getBreakpoints();
+            var d = engine.getProgramAfterResume(breakpoints);
+            applySnapshot(d);
+        } catch (InterruptedException ex) {
+            // user cancelled, ignore
+        } catch (Exception ex) {
+            Dialogs.error("Resume failed", ex.getMessage(), getOwnerWindowOrNull());
+            leaveDebugMode();
+        }
+    }
+
+    @FXML private void onStepOver(ActionEvent e)   {
+        try {
+            var d = engine.getProgramAfterStepOver();
+            applySnapshot(d);
+        } catch (Exception exception) {
+            Dialogs.error("Step Over failed", exception.getMessage(), getOwnerWindowOrNull());
+            leaveDebugMode();
+        }
+    }
+
+    @FXML private void onStepBack(ActionEvent actionEvent) {
+        try {
+            var d = engine.getProgramAfterStepBack();
+            applySnapshot(d);
+        } catch (Exception ex) {
+            Dialogs.error("Step Back failed", ex.getMessage(), getOwnerWindowOrNull());
+        }
+    }
 
     private int getSelectedDegree() {
         if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
@@ -336,6 +422,82 @@ public class MainController {
         return engine.getAllUserStringToFunctionName().getOrDefault(selectedOperationString, selectedOperationString);
     }
 
+    private void enterDebugMode() {
+//        var d = engine.getInitSnapshot();
+//        applySnapshot(d);
+        //lastVarsSnapshot.clear();
+//        btnRun.setDisable(true);
+//        btnDebug.setDisable(true);
+//        btnStop.setDisable(false);
+//        btnResume.setDisable(false);
+//        btnStepOver.setDisable(false);
+//        btnStepBack.setDisable(true); // no history yet
+        isDebugInProgress.set(true);
+    }
+
+    private void leaveDebugMode() {
+//        btnRun.setDisable(false);
+//        btnDebug.setDisable(false);
+//        btnStop.setDisable(true);
+//        btnResume.setDisable(true);
+//        btnStepOver.setDisable(true);
+//        btnStepBack.setDisable(true);
+        isDebugInProgress.set(false);
+    }
+
+    // After each step/resume/stepBack update
+    private void updateButtonsForSnapshot(dto.ProgramExecutorDTO snap, boolean hasMore, boolean hasHistoryBack) {
+//        btnStop.setDisable(false);
+//        btnStepOver.setDisable(!hasMore);
+//        btnResume.setDisable(!hasMore);
+//        btnStepBack.setDisable(!hasHistoryBack);
+    }
+
+    private void applySnapshot(DebugDTO dbgDTO) {
+        mainInstrTableController.markCurrentInstruction(dbgDTO.currentInstructionNumber());
+
+        Set<String> changedVariables = new HashSet<>();
+        Map<String, Long> variablesStateNow = dbgDTO.variablesToValuesSorted();
+        for (var e : variablesStateNow.entrySet()) {
+            Long variableStateBefore = lastVarsSnapshot.get(e.getKey());
+            if (variableStateBefore == null || !variableStateBefore.equals(e.getValue()))
+                changedVariables.add(e.getKey());
+        }
+
+        // remember for next time
+        lastVarsSnapshot.clear();
+        lastVarsSnapshot.putAll(variablesStateNow);
+        var programExecutor = toProgramExecutor(dbgDTO);
+        // update right panes
+        updateInputsPane(programExecutor);                          // if you prefer to only set on session start, remove this line
+        new VariablesPaneUpdater(varsPaneController, cyclesLabel).update(programExecutor, changedVariables);
+
+        boolean hasHistory = dbgDTO.currentInstructionNumber() > 0;
+        updateButtonsForSnapshot(programExecutor, dbgDTO.hasMoreInstructions(), hasHistory);
+
+        if (!dbgDTO.hasMoreInstructions()) {
+            runsHistoryManager.append(programExecutor);
+            leaveDebugMode();
+        }
+    }
+
+    private dto.ProgramExecutorDTO toProgramExecutor(DebugDTO dbg) {
+        var stub = new dto.ProgramDTO(
+                dbg.programName(),
+                List.of(), List.of(),
+                new InstructionsDTO(List.of()),
+                List.of(),
+                List.of()
+        );
+        return new dto.ProgramExecutorDTO(
+                stub,
+                dbg.variablesToValuesSorted(),
+                dbg.result(),
+                dbg.totalCycles(),
+                dbg.degree(),
+                List.of() // inputs pane is already set at session start
+        );
+    }
 }
 
 

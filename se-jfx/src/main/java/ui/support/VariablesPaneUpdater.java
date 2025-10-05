@@ -6,6 +6,7 @@ import ui.components.VariablesTableController;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class VariablesPaneUpdater {
@@ -21,8 +22,6 @@ public class VariablesPaneUpdater {
         Map<String, Long> sortedVariables = new LinkedHashMap<>();
         sortedVariables.put("y", executionResult.result());
         sortedVariables.putAll((Map<? extends String, ? extends Long>) executionResult.variablesToValuesSorted().entrySet().stream()
-                // Filter out variables that start with "x" or "X"
-                .filter(entry -> !entry.getKey().toLowerCase().startsWith("x"))
                 // Collect the remaining entries into a sorted LinkedHashMap
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
@@ -33,5 +32,11 @@ public class VariablesPaneUpdater {
 
         varsPaneController.setVariables(sortedVariables);
         cyclesLabel.setText(String.valueOf(executionResult.totalCycles()));
+    }
+
+    public void update(ProgramExecutorDTO exec, Set<String> changedNames) {
+        varsPaneController.setVariables(exec.variablesToValuesSorted());
+        varsPaneController.highlightChanged(changedNames);
+        cyclesLabel.setText(String.valueOf(exec.totalCycles())); //TODO: Check
     }
 }

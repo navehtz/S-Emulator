@@ -15,13 +15,13 @@ import java.util.List;
 public class RunHistoryTableController {
 
 
-    public record RunRow(int runNum, int degree, String inputs, long result, int cycles) {
+    public record RunRow(int runNum, int degree, /*String inputs*/ long result, int cycles) {
     }
 
     @FXML private TableView<RunRow> table;
     @FXML private TableColumn<RunRow, Number> colRunNum;
     @FXML private TableColumn<RunRow, Number> colDegree;
-    @FXML private TableColumn<RunRow, String> colInputs;
+    //@FXML private TableColumn<RunRow, String> colInputs;
     @FXML private TableColumn<RunRow, Number> colResult;
     @FXML private TableColumn<RunRow, Number> colCycles;
 
@@ -34,7 +34,7 @@ public class RunHistoryTableController {
     private void initialize() {
         colRunNum.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().runNum));
         colDegree.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().degree));
-        colInputs.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().inputs));
+        //colInputs.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().inputs));
         colResult.setCellValueFactory(d -> new SimpleLongProperty(d.getValue().result));
         colCycles.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().cycles));
         table.setItems(rows);
