@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 public abstract class Operation implements OperationView, Serializable {
 
-    private transient ProgramRegistry registry;
+    protected ProgramRegistry registry;
     protected final String operationName;
     protected final List<Instruction> operationInstructions;
     protected final Set<Variable> inputVariables;

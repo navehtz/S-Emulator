@@ -316,6 +316,7 @@ public class EngineImpl implements Engine, Serializable {
         }
 
         for (OperationView op : cloned.values()) {
+            op.setRegistry(registry);
             op.expandProgram(degree);
         }
 
