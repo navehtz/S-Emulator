@@ -29,6 +29,7 @@ public interface Engine {
     DebugDTO getProgramAfterStepOver();
     DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException;
     DebugDTO getProgramAfterStepBack();
+    DebugDTO getInitSnapshot();
     void stopDebugPress();
     List<String> getAllFunctionsNames();
     Map<String, String> getAllUserStringToFunctionName();

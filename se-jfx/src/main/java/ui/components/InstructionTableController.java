@@ -2,6 +2,7 @@ package ui.components;
 
 import dto.InstructionDTO;
 import dto.ProgramDTO;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -9,6 +10,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
@@ -32,6 +34,7 @@ public class InstructionTableController {
     private final ObservableList<InstructionDTO> rows = FXCollections.observableArrayList();
 
     private final Set<BreakpointKey> breakpoints = new HashSet<>();
+    private final IntegerProperty currentExecIndex = new SimpleIntegerProperty(-1);
 
 
     @FXML
@@ -48,6 +51,32 @@ public class InstructionTableController {
         colBp.setReorderable(false);
         colBp.setResizable(false);
         colBp.setCellFactory(column -> new TableColumnCell(breakpoints));
+
+        table.setRowFactory(tableView -> new TableRow<InstructionDTO>() {
+            @Override
+            protected void updateItem(InstructionDTO item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setStyle("");
+                    return;
+                }
+
+                boolean isDebugRow = getIndex() == currentExecIndex.get();
+                setStyle(isDebugRow ? "-fx-background-color: #fff3cd;" : "");
+            }
+        });
+
+        currentExecIndex.addListener((obs, oldVal, newVal) -> table.refresh() );
+    }
+
+    public void markCurrentInstruction(int zeroBasedIndex) {
+        currentExecIndex.set(zeroBasedIndex);
+        if (zeroBasedIndex >= 0 && zeroBasedIndex < rows.size()) {
+            table.getSelectionModel().clearAndSelect(zeroBasedIndex);
+            table.scrollTo(zeroBasedIndex);
+        } else {
+            table.getSelectionModel().clearSelection();
+        }
     }
 
     public void setItems(Iterable<InstructionDTO> items) {
@@ -166,4 +195,9 @@ public class InstructionTableController {
         }
     }
 
+    public void selectRow(int index) {
+        if (index < 0) return;
+        table.getSelectionModel().clearAndSelect(index);
+        table.scrollTo(index);
+    }
 }

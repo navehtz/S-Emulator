@@ -5,6 +5,6 @@ import dto.ProgramExecutorDTO;
 
 public interface DebugResultPresenter {
     void onDebugStarted();
-    void onDebugSucceeded(DebugDTO result);
+    void onDebugSucceeded(DebugDTO snapshot);
     void onDebugFailed(String message);
 }

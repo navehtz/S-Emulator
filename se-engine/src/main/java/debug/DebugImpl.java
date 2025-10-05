@@ -52,6 +52,23 @@ public class DebugImpl implements Debug {
     }
 
     @Override
+    public DebugDTO init() {
+        return setAndReturnInitSnapshot();
+    }
+
+    private DebugDTO setAndReturnInitSnapshot() {
+        currentInstructionIndex = 0;
+        nextInstructionIndex = 0;
+        currentCycles = 0;
+        context.initializeVariables(program, inputsValuesOfUser.toArray(Long[]::new));
+        DebugDTO initSnap = buildSnapshotDTO();
+        stepsHistory.clear();
+        stepsHistory.add(initSnap);
+        historyIndex = 0;
+        return initSnap;
+    }
+
+    @Override
     public DebugDTO resume(List<Boolean> breakPoints) throws InterruptedException {
         if (historyIndex < 0 && hasMoreInstructions()) {
             if (stopHereOnBreakpoint(breakPoints)) {
@@ -99,15 +116,7 @@ public class DebugImpl implements Debug {
         historyIndex--;
         if (historyIndex < 0) {
             // reset
-            currentInstructionIndex = 0;
-            nextInstructionIndex = 0;
-            currentCycles = 0;
-            context.initializeVariables(program, inputsValuesOfUser.toArray(Long[]::new));
-            DebugDTO initSnap = buildSnapshotDTO();
-            stepsHistory.clear();
-            stepsHistory.add(initSnap);
-            historyIndex = 0;
-            return initSnap;
+            return setAndReturnInitSnapshot();
         }
 
         DebugDTO snap = stepsHistory.get(historyIndex);
@@ -119,7 +128,15 @@ public class DebugImpl implements Debug {
 
     @Override
     public DebugDTO stop() {
-        return (historyIndex >= 0) ? stepsHistory.get(historyIndex) : buildSnapshotDTO();
+        DebugDTO snap;
+        if (historyIndex >= 0) {
+            snap = stepsHistory.get(historyIndex);
+            //stepsHistory.clear();
+            historyIndex = -1;
+        } else {
+            snap = buildSnapshotDTO();
+        }
+        return snap;
     }
 
     @Override

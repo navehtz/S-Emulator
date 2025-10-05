@@ -26,7 +26,7 @@ public final class DebugCoordinator {
                             Window ownerWindow,
                             IntSupplier expansionDegreeSupplier,
                             Supplier<String> selectedOperationKeySupplier,
-                            DebugResultPresenter resultPresenter ) {
+                            DebugResultPresenter resultPresenter) {
 
         this.engine = Objects.requireNonNull(engine, "engine");
         this.ownerWindow = ownerWindow;
@@ -49,32 +49,36 @@ public final class DebugCoordinator {
         Optional<Map<String, Double>> userValues = dialog.showAndWait();
         if (userValues.isEmpty()) return; // user canceled
 
-        final Map<String, Double> provided = userValues.get();
+        Map<String, Double> provided = userValues.get();
         // remember for next time
         lastInputsByProgram.put(selectedOperationKey, new LinkedHashMap<>(provided));
 
         final List<Long> argv = requiredInputs.stream()
-                        .map(name -> provided.getOrDefault(name, 0.0))
-                        .map(Double::longValue)
-                        .toList();
+                .map(name -> provided.getOrDefault(name, 0.0))
+                .map(Double::longValue)
+                .toList();
 
         resultPresenter.onDebugStarted();
 
+        engine.initializeDebugger(selectedOperationKey, degree, argv);
+        DebugDTO initialSnapshot = engine.getInitSnapshot();
+        resultPresenter.onDebugSucceeded(initialSnapshot);
 
-        Task<DebugDTO> task = new Task<>() {
-            @Override
-            protected DebugDTO call() throws Exception {
-                engine.initializeDebugger(selectedOperationKey, degree, argv);
-                return engine.getProgramAfterStepOver();
-            }
-        };
-
-        task.setOnSucceeded(ev -> resultPresenter.onDebugSucceeded(task.getValue()));
-        task.setOnFailed(ev -> {
-            Throwable ex = task.getException();
-            resultPresenter.onDebugFailed(ex != null ? ex.getMessage() : "Unknown error");
-        });
-
-        new Thread(task, "debug-exec").start();
+//        Task<DebugDTO> task = new Task<>() {
+//            @Override
+//            protected DebugDTO call() throws Exception {
+//                engine.initializeDebugger(selectedOperationKey, degree, argv);
+//                return engine.getInitSnapshot();
+//            }
+//        };
+//
+//        task.setOnSucceeded(ev -> resultPresenter.onDebugSucceeded(task.getValue()));
+//        task.setOnFailed(ev -> {
+//            Throwable ex = task.getException();
+//            resultPresenter.onDebugFailed(ex != null ? ex.getMessage() : "Unknown error");
+//        });
+//
+//        new Thread(task, "debug-init").start();
+//    }
     }
 }

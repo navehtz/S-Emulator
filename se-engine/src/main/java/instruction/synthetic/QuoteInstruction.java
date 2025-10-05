@@ -166,8 +166,19 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
         OperationView owner = getProgramOfThisInstruction(); // set in Operation.addInstruction(...)
         if (owner == null) throw new IllegalStateException("QuoteInstruction has no owning Operation");
         ProgramRegistry reg = owner.getRegistry();
-        if (reg == null) throw new IllegalStateException("No ProgramRegistry bound to owning Operation");
-        OperationView callee = reg.getProgramByName(functionName);
+        if (reg == null && owner instanceof Operation) {
+            throw new IllegalStateException("No ProgramRegistry bound to owning Operation: " +
+                    owner.getName() + ". Please ensure registry is properly set after cloning operations.");
+        }
+        if (reg == null) {
+            throw new IllegalStateException("No ProgramRegistry bound to owning Operation");
+        }
+        OperationView callee;
+        try {
+            callee = reg.getProgramByName(functionName);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("Cannot resolve function: " + functionName, e);
+        }
         if (callee == null) throw new IllegalStateException("Cannot resolve function: " + functionName);
         return (Function) callee;
     }

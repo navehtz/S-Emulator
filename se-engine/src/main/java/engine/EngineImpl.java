@@ -171,6 +171,8 @@ public class EngineImpl implements Engine, Serializable {
             throw new IllegalArgumentException("Degree " + degree + " not found for program: " + programName);
         }
 
+        expandedProgram.setRegistry(this.registry);
+
         return expandedProgram;
     }
 
@@ -309,8 +311,8 @@ public class EngineImpl implements Engine, Serializable {
     @Override
     public void initializeDebugger(String programName, int degree, List<Long> inputs) {
         Map<String, OperationView> cloned = new HashMap<>();
-        for (var e : loadedOperations.entrySet()) {
-            cloned.put(e.getKey(), e.getValue().deepClone());
+        for (var entry : loadedOperations.entrySet()) {
+            cloned.put(entry.getKey(), entry.getValue().deepClone());
         }
 
         for (OperationView op : cloned.values()) {
@@ -370,5 +372,11 @@ public class EngineImpl implements Engine, Serializable {
         DebugDTO debugDTO = debug.stop();
         //TODO: Check if needed
         //addDebugResultToHistoryMap(debugDTO);
+    }
+
+    @Override
+    public DebugDTO getInitSnapshot() {
+        if (debug == null) throw new IllegalStateException("Debugger not initialized");
+        return debug.init();
     }
 }

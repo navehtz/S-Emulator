@@ -11,6 +11,7 @@ public interface Debug {
     DebugDTO stepOver();
     DebugDTO stepBack();
     DebugDTO stop();
+    DebugDTO init();
 
     boolean hasMoreInstructions();
 

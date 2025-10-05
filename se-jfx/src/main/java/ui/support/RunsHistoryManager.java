@@ -14,14 +14,14 @@ public class RunsHistoryManager {
     }
 
     public void append(ProgramExecutorDTO executionResult) {
-        String inputs = executionResult.inputsValuesOfUser().stream()
-                        .map(String::valueOf)
-                        .collect(Collectors.joining(", "));
+//        String inputs = executionResult.inputsValuesOfUser().stream()
+//                        .map(String::valueOf)
+//                        .collect(Collectors.joining(", "));
 
         RunHistoryTableController.RunRow row = new RunHistoryTableController.RunRow(
                 ++runNum,
                 executionResult.degree(),
-                inputs,
+                //inputs,
                 executionResult.result(),
                 executionResult.totalCycles()
         );

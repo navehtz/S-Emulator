@@ -7,11 +7,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 
-import java.util.Comparator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class VariablesTableController {
 
@@ -24,11 +23,25 @@ public class VariablesTableController {
 
     private final ObservableList<VarRow> rows = FXCollections.observableArrayList();
 
+    private Set<String> changedNow = Collections.emptySet();
+
     @FXML
     private void initialize() {
         colName.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().name));
         colValue.setCellValueFactory(d -> new SimpleLongProperty(d.getValue().value));
         table.setItems(rows);
+
+        table.setRowFactory(tv -> new TableRow<VarRow>() {
+            @Override protected void updateItem(VarRow item, boolean empty) {
+                super.updateItem(item, empty);
+                setStyle("");
+                if (empty || item == null) return;
+                if (changedNow.contains(item.name())) {
+                    // soft green background for changed values (adjust / CSS)
+                    setStyle("-fx-background-color: rgba(72,180,97,0.25);");
+                }
+            }
+        });
     }
 
     /** expects a map like {y=3, x1=0, x2=4, z1=7} */
@@ -38,6 +51,7 @@ public class VariablesTableController {
         Map<String,Long> sorted = new TreeMap<>(new VarOrder());
         sorted.putAll(vars);
         for (var e : sorted.entrySet()) rows.add(new VarRow(e.getKey(), e.getValue()));
+        table.refresh();
     }
 
     public TableView<VarRow> getTable() { return table; }
@@ -56,6 +70,11 @@ public class VariablesTableController {
 
     public void clearVariables() {
         rows.clear();
+    }
+
+    public void highlightChanged(Set<String> names) {
+        this.changedNow = (names == null) ? Collections.emptySet() : new HashSet<>(names);
+        table.refresh();
     }
 
 }

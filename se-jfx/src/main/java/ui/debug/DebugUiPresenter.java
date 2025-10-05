@@ -1,6 +1,7 @@
 package ui.debug;
 
 import dto.DebugDTO;
+import dto.InstructionsDTO;
 import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
 import javafx.beans.property.BooleanProperty;
@@ -18,41 +19,45 @@ public class DebugUiPresenter implements DebugResultPresenter {
     private final VariablesPaneUpdater variablesPaneUpdater;
     private final RunsHistoryManager runsHistoryManager;
     private final Consumer<ProgramExecutorDTO> inputsUpdater;
-    private final Supplier<ProgramDTO> currentProgramSupplier;
+    private final Consumer<DebugDTO> applySnapshot;
+    //private final Supplier<ProgramDTO> currentProgramSupplier;
+    private final Runnable onSessionStarted;
 
     public DebugUiPresenter(BooleanProperty isDebugInProgress,
                             VariablesPaneUpdater variablesPaneUpdater,
                             RunsHistoryManager runsHistoryManager,
                             Consumer<ProgramExecutorDTO> inputsUpdater,
-                            Supplier<ProgramDTO> currentProgramSupplier) {
+                            Consumer<DebugDTO> applySnapshot,
+                            //Supplier<ProgramDTO> currentProgramSupplier,
+                            Runnable onSessionStarted) {
         this.isDebugInProgress = isDebugInProgress;
         this.variablesPaneUpdater = variablesPaneUpdater;
         this.runsHistoryManager = runsHistoryManager;
         this.inputsUpdater = inputsUpdater;
-        this.currentProgramSupplier = Objects.requireNonNull(currentProgramSupplier);
+        this.applySnapshot = applySnapshot;
+        //this.currentProgramSupplier = Objects.requireNonNull(currentProgramSupplier);
+        this.onSessionStarted = onSessionStarted;
     }
 
     @Override
     public void onDebugStarted() {
         isDebugInProgress.set(true);
+        if (onSessionStarted != null) onSessionStarted.run();
     }
 
     @Override
     public void onDebugSucceeded(DebugDTO state) {
-        try {
-            ProgramDTO program = currentProgramSupplier.get();
-            ProgramExecutorDTO exec = toExecDTO(program, state);
+        //ProgramDTO program = currentProgramSupplier.get();
 
-            if (inputsUpdater != null) inputsUpdater.accept(exec);
-            variablesPaneUpdater.update(exec);
+        ProgramExecutorDTO exec = toExecDTO(state);
 
-            if (!state.hasMoreInstructions()) {
-                runsHistoryManager.append(exec);
-            }
+        if (inputsUpdater != null) inputsUpdater.accept(exec);
+        variablesPaneUpdater.update(exec);
 
-        } finally {
-            isDebugInProgress.set(false);
+        if (!state.hasMoreInstructions()) {
+            runsHistoryManager.append(exec);
         }
+        if (applySnapshot != null) applySnapshot.accept(state);
     }
 
     @Override
@@ -61,9 +66,17 @@ public class DebugUiPresenter implements DebugResultPresenter {
         Dialogs.error("Debug failed", message, null);
     }
 
-    private static ProgramExecutorDTO toExecDTO(ProgramDTO program, DebugDTO dbg) {
+    private static ProgramExecutorDTO toExecDTO(DebugDTO dbg) {
+        ProgramDTO stub = new ProgramDTO(
+                dbg.programName(),
+                List.of(), List.of(),
+                new InstructionsDTO(List.of()),
+                List.of(),
+                List.of()
+        );
+
         return new ProgramExecutorDTO(
-                program,
+                stub,
                 dbg.variablesToValuesSorted(),
                 dbg.result(),
                 dbg.totalCycles(),

@@ -35,7 +35,7 @@ public class DebugOrchestrator {
                     engine,
                     ownerWindowSupplier.get(),
                     expansionDegreeSupplier::get,
-                    selectedOperationKeySupplier::get,
+                    selectedOperationKeySupplier,
                     resultPresenter
             );
         }
