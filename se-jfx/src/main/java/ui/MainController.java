@@ -45,6 +45,7 @@ public class MainController {
     @FXML private VariablesTableController   varsPaneController;
     @FXML private DynamicInputsController    inputsPaneController;
     @FXML private RunHistoryTableController  runsPaneController;
+    @FXML private SummaryLineController      summaryLineController;
 
     @FXML private Label programNameLabel;
     @FXML private ComboBox<String> contextSelector;
@@ -102,6 +103,9 @@ public class MainController {
     private void initCollaborators() {
         VariablesPaneUpdater variablesPaneUpdater = new VariablesPaneUpdater(varsPaneController, cyclesLabel);
         runsHistoryManager = new RunsHistoryManager(runsPaneController);
+        summaryLineController.setProperty(currentProgramDTO);
+        summaryLineController.initializeBindings();
+
 
         RunUiPresenter runUiPresenter = new RunUiPresenter(
                 isRunInProgress,

@@ -52,7 +52,7 @@
                            <fx:include fx:id="mainInstrTable" source="components/InstructionTable.fxml" VBox.vgrow="ALWAYS" />
 
                            <!-- Summary line -->
-                           <Label fx:id="summaryLabel" maxWidth="1.7976931348623157E308" prefHeight="40.0" prefWidth="674.0" style="-fx-background-color:#e5e5e5; -fx-padding:6;" text="Summary line" VBox.vgrow="SOMETIMES" />
+                           <fx:include fx:id="summaryLine" source="components/SummaryLine.fxml"/>
                         </children>
                      </VBox>
 
