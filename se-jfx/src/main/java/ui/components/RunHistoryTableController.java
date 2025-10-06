@@ -54,4 +54,8 @@ public class RunHistoryTableController {
     public void clearHistory() {
         rows.clear();
     }
+
+    public void replaceAll(List<RunRow> rows) {
+        table.getItems().setAll(rows);
+    }
 }

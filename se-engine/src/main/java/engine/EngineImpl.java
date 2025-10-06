@@ -129,25 +129,28 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public List<ProgramExecutorDTO> getHistoryToDisplay() {
-        List<ProgramExecutorDTO> historyToDisplay = new ArrayList<>();
+    public List<ProgramExecutorDTO> getHistoryToDisplayByProgramName(String programName) {
+        List<ProgramExecutorDTO> out = new ArrayList<>();
+        ExecutionHistory executionHistory = programToExecutionHistory.get(programName);
+        if (executionHistory == null) return out;
 
-        for(ProgramExecutor programExecutorItem : programToExecutionHistory.get(mainProgram.getName()).getProgramsExecutions()) {
+        for(ProgramExecutor programExecutorItem : executionHistory.getProgramsExecutions()) {
 
-            ProgramDTO programDTO = buildProgramDTO(mainProgram);
+            ProgramDTO programDTO = buildProgramDTO(programExecutorItem.getProgram());
 
-            ProgramExecutorDTO programExecutorDTO = new ProgramExecutorDTO(programDTO,
+            out.add(new ProgramExecutorDTO(
+                    programDTO,
                     programExecutorItem.getVariablesToValuesSorted(),
                     programExecutorItem.getVariableValue(Variable.RESULT),
                     programExecutorItem.getTotalCyclesOfProgram(),
                     programExecutorItem.getRunDegree(),
                     programExecutorItem.getInputsValuesOfUser()
-            );
+            ));
 
-            historyToDisplay.add(programExecutorDTO);
+            //historyToDisplay.add(programExecutorDTO);
         }
 
-        return historyToDisplay;
+        return out;
     }
 
     @Override
@@ -296,9 +299,12 @@ public class EngineImpl implements Engine, Serializable {
 
         programExecutor = new ProgramExecutorImpl(target, runRegistry);
         programExecutor.run(degree, inputs);
-        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
+//        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
+//        executionHistory.addProgramToHistory(programExecutor);
+//        programToExecutionHistory.putIfAbsent(operationName, executionHistory);
+        ExecutionHistory executionHistory = programToExecutionHistory
+                .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
         executionHistory.addProgramToHistory(programExecutor);
-        programToExecutionHistory.putIfAbsent(operationName, executionHistory);
     }
 
     @Override

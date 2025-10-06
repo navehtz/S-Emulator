@@ -16,7 +16,7 @@ public interface Engine {
     ProgramDTO getProgramToDisplay();  // throws if no program loaded
     ProgramDTO getExpandedProgramToDisplay(int degree);
     ProgramExecutorDTO getProgramToDisplayAfterRun();
-    List<ProgramExecutorDTO> getHistoryToDisplay();
+    List<ProgramExecutorDTO> getHistoryToDisplayByProgramName(String programName);
     ProgramDTO getExpandedProgramDTO(String programName, int degree);
     int getMaxDegree() throws EngineLoadException;  // per current program
     int getMaxDegree(String programName) throws EngineLoadException;

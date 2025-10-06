@@ -103,6 +103,7 @@ public class MainController {
     private void initCollaborators() {
         VariablesPaneUpdater variablesPaneUpdater = new VariablesPaneUpdater(varsPaneController, cyclesLabel);
         runsHistoryManager = new RunsHistoryManager(runsPaneController);
+        runsHistoryManager.setCurrentProgramKeySupplier(this::selectedOperationKey);
         summaryLineController.setProperty(currentProgramDTO);
         summaryLineController.initializeBindings();
 
@@ -204,12 +205,14 @@ public class MainController {
             clearExecutionData();
             populateHighlightSelectorFromCurrentProgram();
 
+            runsHistoryManager.onContextChanged(selectedFunction);
+            
             if (isDebugInProgress.get()) {
                 isDebugInProgress.set(false);
             }
 
-            //TODO: Change to real history of function
-            runsHistoryManager.clearHistory();
+//            //TODO: Change to real history of function
+//            runsHistoryManager.clearHistory();
         });
     }
 
