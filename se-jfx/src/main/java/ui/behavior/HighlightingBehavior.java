@@ -49,6 +49,9 @@ public class HighlightingBehavior {
     }
 
     private boolean containsVariable(String command, String variable) {
-        return command != null && command.contains(variable);
+        //return command != null && command.contains(variable);
+        if (command == null || variable == null || variable.isEmpty()) return false;
+
+        return command.matches(".*\\b" + java.util.regex.Pattern.quote(variable) + "\\b.*");
     }
 }
