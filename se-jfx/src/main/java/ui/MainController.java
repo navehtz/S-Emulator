@@ -8,7 +8,8 @@ import dto.ProgramExecutorDTO;
 import engine.Engine;
 import engine.EngineImpl;
 import exceptions.EngineLoadException;
-import javafx.animation.PauseTransition;
+import javafx.animation.*;
+import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -18,8 +19,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.*;
 
 import javafx.util.Duration;
@@ -51,6 +54,7 @@ public class MainController {
     @FXML private ComboBox<String> contextSelector;
     @FXML private ComboBox<Integer> degreeSelector;
     @FXML private ComboBox<String> highlightSelector;
+    @FXML private Button btnLoadFile;
     @FXML private Button btnRun;
     @FXML private Button btnDebug;
     @FXML private Button btnStop;
@@ -60,6 +64,7 @@ public class MainController {
     @FXML private Label cyclesLabel;
     @FXML private ScrollPane rootScroll;
     @FXML private BorderPane rootContent;
+    @FXML private CheckBox checkBoxAnimations;
 
     private final Engine engine = new EngineImpl();
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
@@ -70,6 +75,11 @@ public class MainController {
     private RunsHistoryManager runsHistoryManager;
     private DebugOrchestrator debugOrchestrator;
     private final Map<String, Long> lastVarsSnapshot = new HashMap<>();
+
+    private SequentialTransition pulseAnimation;
+    private SequentialTransition introAnimation;
+    private ParallelTransition runDebugPulse;
+    private BooleanProperty animationsEnabled = new SimpleBooleanProperty(true);
 
     public ReadOnlyObjectProperty<ProgramDTO> currentProgramProperty() { return currentProgramDTO; }
     public BooleanProperty isRunInProgressProperty() { return isRunInProgress; }
@@ -98,6 +108,21 @@ public class MainController {
         rightPane.setPrefWidth(360);
         rightPane.setMaxWidth(420);
 
+        animationsEnabled.bind(checkBoxAnimations.selectedProperty());
+        animationsEnabled.addListener((obs, was, isNow) -> {
+            if (isNow) {
+                animateLoadFileButton();
+            }
+            else {
+                stopAllAnimations();
+            }
+        });
+
+        Platform.runLater(() -> {
+           if (animationsEnabled.get()) {
+               animateLoadFileButton();
+           }
+        });
     }
 
     private void initCollaborators() {
@@ -282,6 +307,11 @@ public class MainController {
             ProgramDTO baseProgram = engine.getProgramToDisplay();
             updateCurrentProgramAndMainInstrTable(baseProgram);
 
+            if (pulseAnimation != null) pulseAnimation.stop(); // Stop the pulsing
+            btnLoadFile.setScaleX(1);
+            btnLoadFile.setScaleY(1);
+            btnLoadFile.setEffect(null); // Remove the glow
+
             try {
                 List<String> contextNames = new ArrayList<>(engine.getAllUserStringToFunctionName().keySet());
                 contextSelector.getItems().setAll(contextNames);
@@ -318,9 +348,13 @@ public class MainController {
 
     @FXML private void onRun(ActionEvent e) {
         runOrchestrator.run(getCurrentProgram());
+        btnRun.setEffect(null);
+        btnDebug.setEffect(null);
     }
     @FXML private void onDebug(ActionEvent e)      {
         debugOrchestrator.debug();
+        btnRun.setEffect(null);
+        btnDebug.setEffect(null);
     }
     @FXML private void onStop(ActionEvent e)       {
         try {
@@ -526,8 +560,88 @@ public class MainController {
 
         // Seed inputs so the next Run/Debug dialog is prefilled
         runOrchestrator.seedPrefillInputs(programKey, row.inputs());
-        // (User can now click Run or Debug; dialog will show the seeded inputs.)
+
+        pulseRunAndDebugButtons();
+    }
+
+    private void animateLoadFileButton() {
+        if (!animationsEnabled.get()) return;
+        // Start subtle: slightly transparent & lowered
+        btnLoadFile.setOpacity(0);
+        btnLoadFile.setTranslateY(14);
+
+        // Drop shadow (soft)
+        DropShadow ds = new DropShadow(10, Color.rgb(10,194,227,0.60));
+        btnLoadFile.setEffect(ds);
+
+        // Intro: fade + slide
+        FadeTransition fade = new FadeTransition(Duration.millis(420), btnLoadFile);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+
+        TranslateTransition slide = new TranslateTransition(Duration.millis(420), btnLoadFile);
+        slide.setFromY(14);
+        slide.setToY(0);
+
+        // Pulse after intro (scale up , then back)
+        ScaleTransition pulseUp = new ScaleTransition(Duration.millis(200), btnLoadFile);
+        pulseUp.setToX(1.04);
+        pulseUp.setToY(1.04);
+
+        ScaleTransition pulseDown = new ScaleTransition(Duration.millis(200), btnLoadFile);
+        pulseDown.setToX(1.0);
+        pulseDown.setToY(1.0);
+
+        pulseAnimation = new SequentialTransition(
+                new PauseTransition(Duration.seconds(2.0)),
+                pulseUp, pulseDown
+        );
+        pulseAnimation.setCycleCount(Animation.INDEFINITE);
+
+        introAnimation = new SequentialTransition(
+                new PauseTransition(Duration.millis(200)),
+                new ParallelTransition(fade, slide)
+        );
+        introAnimation.setOnFinished(e -> pulseAnimation.play());
+        introAnimation.play();
+    }
+
+    private void pulseRunAndDebugButtons() {
+        if (!animationsEnabled.get()) return;
+        if (runDebugPulse != null) runDebugPulse.stop();
+
+        DropShadow ds = new DropShadow(10, Color.rgb(10,194,227,0.60));
+        btnRun.setEffect(ds);
+        btnDebug.setEffect(ds);
+
+        double scaleUpRatio = 1.08;
+        Duration time = Duration.millis(350);
+
+        ScaleTransition runUp   = new ScaleTransition(time, btnRun);
+        runUp.setToX(scaleUpRatio);
+        runUp.setToY(scaleUpRatio);
+        ScaleTransition runDown = new ScaleTransition(time, btnRun);
+        runDown.setToX(1);
+        runDown.setToY(1);
+
+        ScaleTransition dbgUp   = new ScaleTransition(time, btnDebug);
+        dbgUp.setToX(scaleUpRatio);
+        dbgUp.setToY(scaleUpRatio);
+        ScaleTransition dbgDown = new ScaleTransition(time, btnDebug);
+        dbgDown.setToX(1);
+        dbgDown.setToY(1);
+
+        SequentialTransition runSeq = new SequentialTransition(runUp, runDown);
+        SequentialTransition dbgSeq = new SequentialTransition(dbgUp, dbgDown);
+
+        runDebugPulse = new ParallelTransition(runSeq, dbgSeq);
+        runDebugPulse.setInterpolator(Interpolator.EASE_BOTH);
+        runDebugPulse.play();
+    }
+
+    private void stopAllAnimations() {
+        if (pulseAnimation != null) pulseAnimation.stop();
+        if (introAnimation != null) introAnimation.stop();
+        if (runDebugPulse != null) runDebugPulse.stop();
     }
 }
-
-
