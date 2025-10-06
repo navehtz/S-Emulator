@@ -74,4 +74,18 @@ public final class RunCoordinator {
 
         new Thread(task, "run-exec").start();
     }
+
+        public void seedPrefillInputs(String selectedOperationKey, List<Long> inputsValues) {
+            var inputsNames = engine.getExpandedProgramDTO(selectedOperationKey, expansionDegreeSupplier.getAsInt()).inputVariables();
+            if (inputsNames.size() != inputsValues.size()) {
+                throw new IllegalArgumentException("Input list size must match the number of inputs in the program");
+            }
+
+            Map<String, Double> prefill = new LinkedHashMap<>();
+            for (int i = 0; i < inputsNames.size(); i++) {
+                double inputValue = (i < inputsValues.size() ? inputsValues.get(i).doubleValue(): 0.0);
+                prefill.put(inputsNames.get(i), inputValue);
+            }
+            lastInputsByProgram.put(selectedOperationKey, prefill);
+        }
 }

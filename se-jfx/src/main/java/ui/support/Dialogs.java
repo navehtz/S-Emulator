@@ -24,4 +24,13 @@ public final class Dialogs {
         if (owner != null) a.initOwner(owner);
         a.showAndWait();
     }
+
+    public static void info(String title, String message, Window owner) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle(title);
+        a.setHeaderText(null);
+        a.setContentText(message);
+        if (owner != null) a.initOwner(owner);
+        a.showAndWait();
+    }
 }

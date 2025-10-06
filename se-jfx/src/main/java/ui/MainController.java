@@ -106,6 +106,8 @@ public class MainController {
         runsHistoryManager.setCurrentProgramKeySupplier(this::selectedOperationKey);
         summaryLineController.setProperty(currentProgramDTO);
         summaryLineController.initializeBindings();
+        runsPaneController.setOnShowStatus(runsHistoryManager::showStatusPopup);
+        runsPaneController.setOnRerun(row -> onRerunRow(row));
 
 
         RunUiPresenter runUiPresenter = new RunUiPresenter(
@@ -206,7 +208,7 @@ public class MainController {
             populateHighlightSelectorFromCurrentProgram();
 
             runsHistoryManager.onContextChanged(selectedFunction);
-            
+
             if (isDebugInProgress.get()) {
                 isDebugInProgress.set(false);
             }
@@ -281,12 +283,10 @@ public class MainController {
             updateCurrentProgramAndMainInstrTable(baseProgram);
 
             try {
-                List<String> contextNames = new ArrayList<>();
-                contextNames.add(baseProgram.programName());
-                contextNames.addAll(engine.getAllUserStringToFunctionName().keySet());
+                List<String> contextNames = new ArrayList<>(engine.getAllUserStringToFunctionName().keySet());
                 contextSelector.getItems().setAll(contextNames);
                 //contextSelector.getItems().setAll(engine.getAllFunctionsNames());
-                contextSelector.getSelectionModel().selectFirst();
+                contextSelector.getSelectionModel().select(baseProgram.programName());
 
                 degreeSelector.getItems().setAll(
                         java.util.stream.IntStream.rangeClosed(0, engine.getMaxDegree()).boxed().toList()
@@ -504,6 +504,29 @@ public class MainController {
                 dbg.degree(),
                 List.of() // inputs pane is already set at session start
         );
+    }
+
+    private void onRerunRow(RunHistoryTableController.RunRow row) {
+        String programKey = row.programKey();
+
+        String displayFunction = engine.getAllUserStringToFunctionName()
+                .entrySet().stream()
+                .filter(e -> e.getValue().equals(programKey))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(programKey);
+
+        contextSelector.getSelectionModel().select(displayFunction);
+
+        // Set degree to the run’s degree
+        degreeSelector.getSelectionModel().select(Integer.valueOf(row.degree()));
+
+        // Clear panes for a fresh session
+        clearExecutionData();
+
+        // Seed inputs so the next Run/Debug dialog is prefilled
+        runOrchestrator.seedPrefillInputs(programKey, row.inputs());
+        // (User can now click Run or Debug; dialog will show the seeded inputs.)
     }
 }
 

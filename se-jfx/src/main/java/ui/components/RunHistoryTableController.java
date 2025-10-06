@@ -11,11 +11,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class RunHistoryTableController {
 
 
-    public record RunRow(int runNum, int degree, /*String inputs*/ long result, int cycles) {
+    public record RunRow(int runNum, String programKey, int degree, List<Long> inputs, long result, int cycles) {
     }
 
     @FXML private TableView<RunRow> table;
@@ -28,7 +29,11 @@ public class RunHistoryTableController {
     @FXML public Button btnShow;
     @FXML public Button btnRerun;
 
+    public interface RerunListener { void onRerun(RunRow row);}
+    private RerunListener rerunListener;
+
     private final ObservableList<RunRow> rows = FXCollections.observableArrayList();
+    private Consumer<RunRow> showStatusHandler;
 
     @FXML
     private void initialize() {
@@ -38,13 +43,22 @@ public class RunHistoryTableController {
         colResult.setCellValueFactory(d -> new SimpleLongProperty(d.getValue().result));
         colCycles.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().cycles));
         table.setItems(rows);
+
+        btnShow.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+        btnRerun.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
     }
 
     public void setRows(List<RunRow> list) {
         rows.setAll(list);
     }
 
-    public RunRow getSelected() { return table.getSelectionModel().getSelectedItem(); }
+    public RunRow getSelectedRunRow() {
+        return table.getSelectionModel().getSelectedItem();
+    }
+
+    public int getSelectedIndex() {
+        return table.getSelectionModel().getSelectedIndex();
+    }
 
     public void appendRow(RunRow row) {
         rows.add(row);
@@ -57,5 +71,30 @@ public class RunHistoryTableController {
 
     public void replaceAll(List<RunRow> rows) {
         table.getItems().setAll(rows);
+    }
+
+    public void setOnShowStatus(Consumer<RunRow> handler) {
+        this.showStatusHandler = handler;
+    }
+
+    @FXML
+    private void onShowStatus() {
+        RunRow selectedRow = table.getSelectionModel().getSelectedItem();
+        if (selectedRow == null) return;
+
+        if (showStatusHandler != null) {
+            showStatusHandler.accept(selectedRow);
+        }
+    }
+
+    public void setOnRerun(RerunListener rerunListener) {
+        this.rerunListener = rerunListener;
+    }
+
+    @FXML
+    private void onRerun() {
+        RunRow selectedRow = table.getSelectionModel().getSelectedItem();
+        if (selectedRow != null && rerunListener != null)
+            rerunListener.onRerun(selectedRow);
     }
 }

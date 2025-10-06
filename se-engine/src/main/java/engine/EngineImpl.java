@@ -21,10 +21,7 @@ import variable.Variable;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class EngineImpl implements Engine, Serializable {
@@ -269,7 +266,7 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public Map<String, String> getAllUserStringToFunctionName() {
-        Map<String, String> out = new HashMap<>();
+        Map<String, String> out = new LinkedHashMap<>();
         for (OperationView operation : loadedOperations.values()) {
             if (operation instanceof Function function) {
                 String functionName = function.getName();
