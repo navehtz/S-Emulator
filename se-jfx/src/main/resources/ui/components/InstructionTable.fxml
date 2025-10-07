@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fillWidth="true" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.components.InstructionTableController">
+  <TableView fx:id="table" prefHeight="307.0" prefWidth="652.0" VBox.vgrow="ALWAYS">
+
+      <columns>
+          <TableColumn fx:id="colBp" prefWidth="36.0" text="" />
+          <TableColumn fx:id="colIdx" prefWidth="60.0" style="-fx-alignment: CENTER;" text="#" />
+          <TableColumn fx:id="colType" prefWidth="70.0" style="-fx-alignment: CENTER;" text="B/S" />
+          <TableColumn fx:id="colLabel" prefWidth="110.0" style="-fx-alignment: CENTER;" text="Label" />
+          <TableColumn fx:id="colCommand" prefWidth="276.0" style="-fx-alignment: CENTER;" text="Instruction" />
+          <TableColumn fx:id="colCycles" prefWidth="99.0" style="-fx-alignment: CENTER;" text="Cycles" />
+      </columns>
+  </TableView>
+</VBox>
