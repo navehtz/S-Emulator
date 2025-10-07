@@ -1,13 +1,13 @@
 package instruction.basic;
 
 import execution.ExecutionContext;
-import instruction.AbstractInstruction;
-import instruction.Instruction;
-import instruction.InstructionData;
-import instruction.InstructionType;
+import instruction.*;
 import label.Label;
 import label.FixedLabel;
+import operation.OperationView;
 import variable.Variable;
+
+import java.util.Map;
 
 public class DecreaseInstruction extends AbstractInstruction {
 
@@ -46,6 +46,16 @@ public class DecreaseInstruction extends AbstractInstruction {
         command.append(" - 1");
 
         return command.toString();
+    }
+
+    @Override
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
+        Variable tgt = RemapUtils.mapVar(varMap, getTargetVariable());
+        Label lbl = RemapUtils.mapLbl(labelMap, getLabel());
+
+        Instruction clonedInstruction = new DecreaseInstruction(tgt, lbl, origin, newInstructionNumber);
+        clonedInstruction.setProgramOfThisInstruction(mainProgram);
+        return clonedInstruction;
     }
 
 }

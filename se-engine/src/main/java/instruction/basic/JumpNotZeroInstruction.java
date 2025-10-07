@@ -3,8 +3,11 @@ package instruction.basic;
 import execution.ExecutionContext;
 import label.FixedLabel;
 import label.Label;
+import operation.OperationView;
 import variable.Variable;
 import instruction.*;
+
+import java.util.Map;
 
 public class JumpNotZeroInstruction extends AbstractInstruction implements LabelReferencesInstruction {
     private final Label referencesLabel;
@@ -46,6 +49,17 @@ public class JumpNotZeroInstruction extends AbstractInstruction implements Label
 
     @Override
     public Label getReferenceLabel() {
-        return referencesLabel;
+        return referencesLabel == null ? FixedLabel.EMPTY : referencesLabel;
+    }
+
+    @Override
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
+        Variable tgtLbl = RemapUtils.mapVar(varMap, getTargetVariable());
+        Label newLbl = RemapUtils.mapLbl(labelMap, getLabel());
+        Label refLbl = RemapUtils.mapLbl(labelMap, getReferenceLabel());
+
+        Instruction clonedInstruction = new JumpNotZeroInstruction(tgtLbl, newLbl, refLbl, origin, newInstructionNumber);
+        clonedInstruction.setProgramOfThisInstruction(mainProgram);
+        return clonedInstruction;
     }
 }

@@ -7,7 +7,12 @@ import instruction.InstructionData;
 import instruction.InstructionType;
 import label.Label;
 import label.FixedLabel;
+import operation.OperationView;
 import variable.Variable;
+
+import java.util.Map;
+
+import instruction.RemapUtils;
 
 public class IncreaseInstruction extends AbstractInstruction {
 
@@ -45,4 +50,16 @@ public class IncreaseInstruction extends AbstractInstruction {
 
         return command.toString();
     }
+
+    @Override
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
+        Variable tgt = RemapUtils.mapVar(varMap, getTargetVariable());
+        Label lbl = RemapUtils.mapLbl(labelMap, getLabel());
+
+        Instruction clonedInstruction = new IncreaseInstruction(tgt, lbl, origin, newInstructionNumber);
+        clonedInstruction.setProgramOfThisInstruction(mainProgram);
+        return clonedInstruction;
+    }
+
+
 }

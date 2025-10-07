@@ -5,10 +5,12 @@ import instruction.*;
 import instruction.basic.IncreaseInstruction;
 import label.FixedLabel;
 import label.Label;
+import operation.OperationView;
 import variable.Variable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ConstantAssignmentInstruction extends AbstractInstruction implements SyntheticInstruction {
     private final int MAX_DEGREE = 2;
@@ -61,7 +63,7 @@ public class ConstantAssignmentInstruction extends AbstractInstruction implement
 
 
     @Override
-    public int setInnerInstructionsAndReturnTheNextOne(int startNumber) {
+    public int expandInstruction(int startNumber) {
         Label newLabel1 = (super.getLabel() == FixedLabel.EMPTY) ? FixedLabel.EMPTY : super.getLabel();
         int instructionNumber = startNumber;
 
@@ -74,4 +76,13 @@ public class ConstantAssignmentInstruction extends AbstractInstruction implement
         return instructionNumber;
     }
 
+    @Override
+    public Instruction remapAndClone(int newInstructionNumber, Map<Variable, Variable> varMap, Map<Label, Label> labelMap, Instruction origin, OperationView mainProgram) {
+        Variable tgtLbl = RemapUtils.mapVar(varMap, getTargetVariable());
+        Label newLbl = RemapUtils.mapLbl(labelMap, getLabel());
+
+        Instruction clonedInstruction = new ConstantAssignmentInstruction(tgtLbl, newLbl, this.constantValue, origin, newInstructionNumber);
+        clonedInstruction.setProgramOfThisInstruction(mainProgram);
+        return clonedInstruction;
+    }
 }

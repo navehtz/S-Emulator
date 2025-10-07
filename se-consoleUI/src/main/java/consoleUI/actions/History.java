@@ -14,7 +14,8 @@ public class History implements MenuActionable {
     public void startAction(Scanner scanner, Engine engine) {
         printTitle("Present History");
 
-        List<ProgramExecutorDTO> programExecutorDTOList = engine.getHistoryToDisplay();
+        String programName = engine.getProgramToDisplay().programName();
+        List<ProgramExecutorDTO> programExecutorDTOList = engine.getHistoryToDisplayByProgramName(programName);
 
         if (!programExecutorDTOList.isEmpty()) {
             displayHistory(programExecutorDTOList);

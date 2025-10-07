@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/se-api/se-api.iml" filepath="$PROJECT_DIR$/se-api/se-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/se-consoleUI/se-consoleUI.iml" filepath="$PROJECT_DIR$/se-consoleUI/se-consoleUI.iml" />
       <module fileurl="file://$PROJECT_DIR$/se-engine/se-engine.iml" filepath="$PROJECT_DIR$/se-engine/se-engine.iml" />
+      <module fileurl="file://$PROJECT_DIR$/se-jfx/se-jfx.iml" filepath="$PROJECT_DIR$/se-jfx/se-jfx.iml" />
     </modules>
   </component>
 </project>

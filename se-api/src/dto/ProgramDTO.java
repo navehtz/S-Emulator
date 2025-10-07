@@ -7,5 +7,6 @@ public record ProgramDTO (
     List<String> labelsStr,
     List<String> inputVariables,
     InstructionsDTO instructions,
-    List<List<InstructionDTO>> expandedProgram
+    List<List<InstructionDTO>> expandedProgram,
+    List<String> allVariables
 ) {}
