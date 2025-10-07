@@ -6,39 +6,39 @@
 
 <ScrollPane fx:id="rootScroll" fitToHeight="true" fitToWidth="false" pannable="true" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.MainController">
    <content>
-      <BorderPane fx:id="rootContent" maxHeight="Infinity" maxWidth="Infinity" minHeight="400" minWidth="700" prefHeight="700.0" prefWidth="1000.0">
+      <BorderPane fx:id="rootContent" maxHeight="Infinity" maxWidth="Infinity" minHeight="400" minWidth="900.0" prefHeight="700.0" prefWidth="1100.0">
 
          <!-- ===== TOP BAR ===== -->
          <top>
             <VBox spacing="4">
-               <HBox spacing="6">
+               <HBox minHeight="-Infinity" spacing="6">
                   <padding>
                      <Insets bottom="0" left="6" right="6" top="6" />
                   </padding>
 
-                  <Button fx:id="btnLoadFile" minHeight="-Infinity" minWidth="-Infinity" onAction="#onLoadXml" prefHeight="25.0" prefWidth="149.0" text="Load File" />
+                  <Button fx:id="btnLoadFile" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#onLoadXml" prefHeight="25.0" prefWidth="149.0" text="Load File" />
 
-                  <Label minHeight="-Infinity" minWidth="-Infinity" prefHeight="22.0" prefWidth="48.0" text="File path:" />
-                  <Label fx:id="programNameLabel" prefHeight="23.0" prefWidth="522.0" text="(none)" />
+                  <Label alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="50.0" text="File path:" HBox.hgrow="ALWAYS" />
+                  <Label fx:id="programNameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="597.0" text="(none)" />
+                  <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="23.0" />
+                  <CheckBox fx:id="checkBoxAnimations" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Animations" />
                   <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="5.0" />
-                  <CheckBox fx:id="checkBoxAnimations" contentDisplay="CENTER" mnemonicParsing="false" selected="true" text="Animations" />
-                  <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="5.0" />
-                  <ComboBox fx:id="themeSelector" prefHeight="25.0" prefWidth="126.0" promptText="Theme" />
+                  <ComboBox fx:id="themeSelector" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="126.0" promptText="Theme" />
 
                </HBox>
 
                <ToolBar>
-                  <Label text="Program/Function:" />
+                  <Label maxWidth="1.7976931348623157E308" text="Program/Function:" />
                   <ComboBox fx:id="contextSelector" prefWidth="180" />
 
                   <Separator orientation="VERTICAL" />
 
-                  <Label text="Degree:" />
+                  <Label maxWidth="1.7976931348623157E308" text="Degree:" />
                   <ComboBox fx:id="degreeSelector" prefWidth="100" />
 
                   <Separator orientation="VERTICAL" />
 
-                  <Label text="Highlight selection:" />
+                  <Label maxWidth="1.7976931348623157E308" text="Highlight selection:" />
                   <ComboBox fx:id="highlightSelector" prefWidth="200" />
                </ToolBar>
             </VBox>
@@ -75,21 +75,21 @@
                   </padding>
 
                   <!-- Debugger / Execution controls -->
-                  <TitledPane expanded="true" text="Debugger / Execution">
+                  <TitledPane expanded="true" maxWidth="1.7976931348623157E308" text="Debugger / Execution">
                      <content>
                         <VBox spacing="8">
                            <padding>
                               <Insets bottom="8" left="8" right="8" top="8" />
                            </padding>
-                           <HBox alignment="CENTER" spacing="8">
+                           <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="8">
                               <Button fx:id="btnRun" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" onAction="#onRun" prefHeight="25.0" prefWidth="148.0" text="Run" />
                               <Button fx:id="btnDebug" alignment="CENTER" contentDisplay="CENTER" disable="true" maxWidth="1.7976931348623157E308" onAction="#onDebug" prefHeight="25.0" prefWidth="132.0" text="Debug" />
                            </HBox>
-                           <HBox alignment="CENTER" spacing="8">
-                              <Button fx:id="btnStop" alignment="CENTER" contentDisplay="CENTER" disable="true" onAction="#onStop" prefHeight="25.0" prefWidth="70.0" text="Stop" />
-                              <Button fx:id="btnResume" alignment="CENTER" contentDisplay="CENTER" disable="true" onAction="#onResume" text="Resume" />
-                              <Button fx:id="btnStepOver" alignment="CENTER" contentDisplay="CENTER" disable="true" onAction="#onStepOver" text="Step Over" />
-                              <Button fx:id="btnStepBack" alignment="CENTER" contentDisplay="CENTER" disable="true" onAction="#onStepBack" text="Step Back" />
+                           <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="8">
+                              <Button fx:id="btnStop" alignment="CENTER" contentDisplay="CENTER" disable="true" maxWidth="1.7976931348623157E308" onAction="#onStop" prefHeight="25.0" prefWidth="70.0" text="Stop" />
+                              <Button fx:id="btnResume" alignment="CENTER" contentDisplay="CENTER" disable="true" maxWidth="1.7976931348623157E308" onAction="#onResume" text="Resume" />
+                              <Button fx:id="btnStepOver" alignment="CENTER" contentDisplay="CENTER" disable="true" maxWidth="1.7976931348623157E308" onAction="#onStepOver" text="Step Over" />
+                              <Button fx:id="btnStepBack" alignment="CENTER" contentDisplay="CENTER" disable="true" maxWidth="1.7976931348623157E308" onAction="#onStepBack" text="Step Back" />
                            </HBox>
                         </VBox>
                      </content>

@@ -2,34 +2,32 @@ package ui.behavior;
 
 import dto.InstructionDTO;
 import javafx.beans.value.ChangeListener;
-import javafx.css.PseudoClass;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 
 import java.util.function.Function;
 
-
 public class HighlightingBehavior {
-    private final PseudoClass highlightedPseudoClass;
-
-    public HighlightingBehavior(String pseudoClassName) {
-        this.highlightedPseudoClass = PseudoClass.getPseudoClass(pseudoClassName);
-    }
+    private static final String HIGHLIGHT_CLASS = "var-highlight";
 
     public void wire(TableView<InstructionDTO> table,
                      ComboBox<String> selectorComboBox,
                      Function<InstructionDTO, String> commandExtractor) {
 
-        selectorComboBox.valueProperty().addListener((obs, oldVal, newVal) -> table.refresh());
+        Runnable refresh = table::refresh;
+        selectorComboBox.valueProperty().addListener((o,ov,nv) -> refresh.run());
+        table.itemsProperty().addListener((o,ov,nv) -> refresh.run());
 
-        table.itemsProperty().addListener((obs, oldVal, newVal) -> table.refresh());
-
-        table.setRowFactory(_tv -> {
+        table.setRowFactory(tv -> {
             TableRow<InstructionDTO> row = new TableRow<>();
-            ChangeListener<Object> applier = (obs, oldVal, newValue) -> apply(row, selectorComboBox, commandExtractor);
-            row.itemProperty().addListener(applier);
-            row.selectedProperty().addListener(applier);
+
+            ChangeListener<Object> upd = (o, ov, nv) -> apply(row, selectorComboBox, commandExtractor);
+            row.itemProperty().addListener(upd);
+            row.indexProperty().addListener(upd);
+            tv.getSelectionModel().selectedIndexProperty().addListener(upd);
+            selectorComboBox.valueProperty().addListener(upd);
+
             return row;
         });
     }
@@ -37,21 +35,20 @@ public class HighlightingBehavior {
     private void apply(TableRow<InstructionDTO> row,
                        ComboBox<String> selectorComboBox,
                        Function<InstructionDTO, String> commandExtractor) {
-        InstructionDTO instructionFromRow = row.getItem();
-        String chosenVariable = selectorComboBox.getValue();
 
-        boolean isRowChosen = chosenVariable != null && !chosenVariable.isBlank();
-        boolean isMatchedRows = isRowChosen && instructionFromRow != null
-                && containsVariable(commandExtractor.apply(instructionFromRow), chosenVariable);
+        row.getStyleClass().remove(HIGHLIGHT_CLASS);
 
-        boolean isApply = isMatchedRows && !row.isSelected();
-        row.pseudoClassStateChanged(highlightedPseudoClass, isApply);
-    }
+        InstructionDTO item = row.getItem();
+        if (item == null) return;
 
-    private boolean containsVariable(String command, String variable) {
-        //return command != null && command.contains(variable);
-        if (command == null || variable == null || variable.isEmpty()) return false;
+        String picked = selectorComboBox.getValue();
+        if (picked == null || picked.isBlank()) return;
 
-        return command.matches(".*\\b" + java.util.regex.Pattern.quote(variable) + "\\b.*");
+        String cmd = commandExtractor.apply(item);
+        boolean match = cmd != null && cmd.matches(".*\\b" + java.util.regex.Pattern.quote(picked) + "\\b.*");
+
+        if (match && !row.isSelected()) {
+            row.getStyleClass().add(HIGHLIGHT_CLASS);
+        }
     }
 }

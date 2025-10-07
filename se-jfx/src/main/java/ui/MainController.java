@@ -35,6 +35,7 @@ import ui.support.RunsHistoryManager;
 import ui.support.VariablesPaneUpdater;
 import ui.support.Dialogs;
 import ui.behavior.HighlightingBehavior;
+import ui.themes.Theme;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -65,6 +66,7 @@ public class MainController {
     @FXML private ScrollPane rootScroll;
     @FXML private BorderPane rootContent;
     @FXML private CheckBox checkBoxAnimations;
+    @FXML private ComboBox<String> themeSelector;
 
     private final Engine engine = new EngineImpl();
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
@@ -80,6 +82,7 @@ public class MainController {
     private SequentialTransition introAnimation;
     private ParallelTransition runDebugPulse;
     private BooleanProperty animationsEnabled = new SimpleBooleanProperty(true);
+    private static final String PREF_KEY_THEME = "app.theme";
 
     public ReadOnlyObjectProperty<ProgramDTO> currentProgramProperty() { return currentProgramDTO; }
     public BooleanProperty isRunInProgressProperty() { return isRunInProgress; }
@@ -91,26 +94,26 @@ public class MainController {
     private void initialize() {
         initCollaborators();
         initUiWiring();
-        new HighlightingBehavior("var-highlight").wire(
+        new HighlightingBehavior().wire(
                 mainInstrTableController.getTable(),
                 highlightSelector,
                 mainInstrTableController::commandTextOf
         );
 
         rootScroll.viewportBoundsProperty().addListener((obs, oldVal, newVal) -> {
-            double designWidth = 1000.0;
-            double designHeight = 700.0;
+            double designWidth = 1100.0;
+            double designHeight = 600.0;
             rootContent.setPrefWidth(Math.max(designWidth, newVal.getWidth()));
             rootContent.setPrefHeight(Math.max(designHeight, newVal.getHeight()));
         });
 
-        rightPane.setMinWidth(340);
-        rightPane.setPrefWidth(360);
-        rightPane.setMaxWidth(420);
+        rightPane.setMinWidth(400);
+        rightPane.setPrefWidth(400);
+        rightPane.setMaxWidth(500);
 
         animationsEnabled.bind(checkBoxAnimations.selectedProperty());
         animationsEnabled.addListener((obs, was, isNow) -> {
-            if (isNow) {
+            if (isNow && !(isRunInProgress.get() || isDebugInProgress.get())) {
                 animateLoadFileButton();
             }
             else {
@@ -122,6 +125,27 @@ public class MainController {
            if (animationsEnabled.get()) {
                animateLoadFileButton();
            }
+        });
+
+        themeSelector.getItems().setAll(
+                Theme.LIGHT.toString(),
+                Theme.DARK.toString(),
+                Theme.YELLOW_BLUE.toString()
+        );
+        var prefs = java.util.prefs.Preferences.userNodeForPackage(getClass());
+        String saved = prefs.get(PREF_KEY_THEME, Theme.LIGHT.toString());
+        themeSelector.getItems().setAll(Theme.LIGHT.toString(), Theme.DARK.toString(), Theme.YELLOW_BLUE.toString());
+        themeSelector.getSelectionModel().select(saved);
+
+        // apply current once UI is ready
+        Platform.runLater(() -> applySelectedTheme(saved));
+
+        // react to changes
+        themeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                applySelectedTheme(newVal);
+                prefs.put(PREF_KEY_THEME, newVal);
+            }
         });
     }
 
@@ -566,12 +590,11 @@ public class MainController {
 
     private void animateLoadFileButton() {
         if (!animationsEnabled.get()) return;
-        // Start subtle: slightly transparent & lowered
         btnLoadFile.setOpacity(0);
-        btnLoadFile.setTranslateY(14);
+        //btnLoadFile.setTranslateY(14);
 
         // Drop shadow (soft)
-        DropShadow ds = new DropShadow(10, Color.rgb(10,194,227,0.60));
+        DropShadow ds = new DropShadow(30, Color.rgb(0,0,0,0.30));
         btnLoadFile.setEffect(ds);
 
         // Intro: fade + slide
@@ -579,9 +602,9 @@ public class MainController {
         fade.setFromValue(0);
         fade.setToValue(1);
 
-        TranslateTransition slide = new TranslateTransition(Duration.millis(420), btnLoadFile);
-        slide.setFromY(14);
-        slide.setToY(0);
+//        TranslateTransition slide = new TranslateTransition(Duration.millis(420), btnLoadFile);
+//        slide.setFromY(14);
+//        slide.setToY(0);
 
         // Pulse after intro (scale up , then back)
         ScaleTransition pulseUp = new ScaleTransition(Duration.millis(200), btnLoadFile);
@@ -600,7 +623,7 @@ public class MainController {
 
         introAnimation = new SequentialTransition(
                 new PauseTransition(Duration.millis(200)),
-                new ParallelTransition(fade, slide)
+                new ParallelTransition(fade)
         );
         introAnimation.setOnFinished(e -> pulseAnimation.play());
         introAnimation.play();
@@ -610,7 +633,7 @@ public class MainController {
         if (!animationsEnabled.get()) return;
         if (runDebugPulse != null) runDebugPulse.stop();
 
-        DropShadow ds = new DropShadow(10, Color.rgb(10,194,227,0.60));
+        DropShadow ds = new DropShadow(30, Color.rgb(0,0,0,0.30));
         btnRun.setEffect(ds);
         btnDebug.setEffect(ds);
 
@@ -643,5 +666,50 @@ public class MainController {
         if (pulseAnimation != null) pulseAnimation.stop();
         if (introAnimation != null) introAnimation.stop();
         if (runDebugPulse != null) runDebugPulse.stop();
+    }
+
+    private void applySelectedTheme(String themeKey) {
+        if (themeKey == null) themeKey = Theme.LIGHT.toString();
+        if (btnRun == null || btnRun.getScene() == null) return;
+
+        var scene = btnRun.getScene();
+        var sheets = scene.getStylesheets();
+        sheets.clear();
+
+        addCss(sheets, "/ui/styles/light.css"); // base
+        String themePath = switch (themeKey) {
+            case "Dark" -> "/ui/styles/dark.css";
+            case "Yellow-Blue" -> "/ui/styles/yellowblue.css";
+            default -> "/ui/styles/light.css";
+        };
+        addCss(sheets, themePath);
+
+        // === Tag the tables with the theme key so the row highlight rules match ===
+        var table = mainInstrTableController.getTable();
+        var historyTable = historyInstrTableController.getTable(); // ensure controller exposes getTable()
+
+        String cls = themeKey.equals("Dark") ? "dark"
+                : themeKey.equals("Yellow-Blue") ? "yellowblue"
+                : "light";
+
+        if (table != null) {
+            table.getStyleClass().removeAll("light","dark","yellowblue");
+            table.getStyleClass().add(cls);
+            table.refresh();
+        }
+        if (historyTable != null) {
+            historyTable.getStyleClass().removeAll("light","dark","yellowblue");
+            historyTable.getStyleClass().add(cls);
+            historyTable.refresh();
+        }
+    }
+
+    private void addCss(java.util.List<String> sheets, String path) {
+        var url = getClass().getResource(path);
+        if (url == null) {
+            System.err.println("CSS not found on classpath: " + path);
+            return; // avoid NPE
+        }
+        sheets.add(url.toExternalForm());
     }
 }
