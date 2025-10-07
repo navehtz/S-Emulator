@@ -4,7 +4,6 @@ import engine.ProgramRegistry;
 import instruction.Instruction;
 import label.FixedLabel;
 import label.Label;
-import operation.Operation;
 import operation.OperationInvoker;
 import operation.OperationView;
 import variable.Variable;
@@ -29,23 +28,17 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
         this.inputsValues = new ArrayList<>();
     }
 
-//    @Deprecated
-//    public ProgramExecutorImpl(Operation program) {
-//        this.program = program;
-//        this.context = new ExecutionContextImpl();
-//        this.inputsValues = new ArrayList<>();
-//    }
 
     // Called by the invoker the context holds, to execute a callee Operation.
-    private long invokeCallee(OperationView callee, long... args) {
-        ProgramExecutorImpl nestedExecutor = new ProgramExecutorImpl(callee, programRegistry);
-        nestedExecutor.runDegree = this.runDegree;
-
-        Long[] boxedArgs = Arrays.stream(args).boxed().toArray(Long[]::new);
-        nestedExecutor.run(runDegree, boxedArgs);
-
-        return nestedExecutor.getExecutionContext().getOperationResult();
-    }
+//    private long invokeCallee(OperationView callee, long... args) {
+//        ProgramExecutorImpl nestedExecutor = new ProgramExecutorImpl(callee, programRegistry);
+//        nestedExecutor.runDegree = this.runDegree;
+//
+//        Long[] boxedArgs = Arrays.stream(args).boxed().toArray(Long[]::new);
+//        nestedExecutor.run(runDegree, boxedArgs);
+//
+//        return nestedExecutor.getExecutionContext().getOperationResult();
+//    }
 
     public ExecutionContext getExecutionContext() {
         return context;

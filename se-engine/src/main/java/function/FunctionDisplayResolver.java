@@ -72,17 +72,6 @@ public final class FunctionDisplayResolver {
         return Optional.empty();
     }
 
-//    private static void setDisplayFromRegistry(String functionName,
-//                                               ProgramRegistry registry,
-//                                               java.util.function.Consumer<String> setter) {
-//        try {
-//            OperationView callee = registry.getProgramByName(functionName);
-//            if (callee instanceof FunctionImpl function) {
-//                String userString = function.getUserString();
-//                if (userString != null && !userString.isBlank()) setter.accept(userString);
-//            }
-//        } catch (Exception ignored) {}
-//    }
 
     private static void setDisplayIfAbsent(Consumer<String> setter, Optional<String> userString) {
         userString.ifPresent(setter);

@@ -10,9 +10,7 @@ import ui.support.RunsHistoryManager;
 import ui.support.VariablesPaneUpdater;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class DebugUiPresenter implements DebugResultPresenter {
     private final BooleanProperty isDebugInProgress;
@@ -28,14 +26,12 @@ public class DebugUiPresenter implements DebugResultPresenter {
                             RunsHistoryManager runsHistoryManager,
                             Consumer<ProgramExecutorDTO> inputsUpdater,
                             Consumer<DebugDTO> applySnapshot,
-                            //Supplier<ProgramDTO> currentProgramSupplier,
                             Runnable onSessionStarted) {
         this.isDebugInProgress = isDebugInProgress;
         this.variablesPaneUpdater = variablesPaneUpdater;
         this.runsHistoryManager = runsHistoryManager;
         this.inputsUpdater = inputsUpdater;
         this.applySnapshot = applySnapshot;
-        //this.currentProgramSupplier = Objects.requireNonNull(currentProgramSupplier);
         this.onSessionStarted = onSessionStarted;
     }
 

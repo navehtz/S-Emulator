@@ -39,7 +39,6 @@ public class EngineImpl implements Engine, Serializable {
     @Override
     public void loadProgram(Path xmlPath) throws EngineLoadException {
         this.xmlPath = xmlPath;
-        //Operation newProgram;
 
         XmlProgramLoader loader = new XmlProgramLoader();
         LoadResult loadResult = loader.loadAll(xmlPath);
@@ -51,7 +50,6 @@ public class EngineImpl implements Engine, Serializable {
 
         this.mainProgram = loadResult.getMainProgram();
         this.registry.clear();
-        //loadResult.getAllByName().values().forEach(registry::register);
         this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
         this.registry.registerAll(loadResult.allOperationsByName);
         for (OperationView opView : loadedOperations.values()) {
@@ -61,7 +59,6 @@ public class EngineImpl implements Engine, Serializable {
 
         FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
 
-        //executionHistory = new ExecutionHistoryImpl();
         calculateExpansionForAllPrograms();
     }
 
@@ -93,13 +90,6 @@ public class EngineImpl implements Engine, Serializable {
         executionHistory.addProgramToHistory(programExecutor);
         programToExecutionHistory.putIfAbsent(mainProgram.getName(), executionHistory);
 
-//        Operation deepCopyOfProgram = program.deepClone();
-//        deepCopyOfProgram.expandProgram(degree);
-//
-//        programExecutor = new ProgramExecutorImpl(deepCopyOfProgram);
-//
-//        programExecutor.run(degree, inputs);
-//        executionHistory.addProgramToHistory(programExecutor);
     }
 
     @Override
@@ -144,7 +134,6 @@ public class EngineImpl implements Engine, Serializable {
                     programExecutorItem.getInputsValuesOfUser()
             ));
 
-            //historyToDisplay.add(programExecutorDTO);
         }
 
         return out;
@@ -296,9 +285,6 @@ public class EngineImpl implements Engine, Serializable {
 
         programExecutor = new ProgramExecutorImpl(target, runRegistry);
         programExecutor.run(degree, inputs);
-//        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
-//        executionHistory.addProgramToHistory(programExecutor);
-//        programToExecutionHistory.putIfAbsent(operationName, executionHistory);
         ExecutionHistory executionHistory = programToExecutionHistory
                 .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
         executionHistory.addProgramToHistory(programExecutor);
@@ -340,28 +326,15 @@ public class EngineImpl implements Engine, Serializable {
     @Override
     public DebugDTO getProgramAfterStepOver() {
         DebugDTO debugDTO = debug.stepOver();    // Step Over
-            //TODO: Check if needed
-//        if (!debugDTO.hasMoreInstructions()) {  // Add debug program executor to history map
-//            addDebugResultToHistoryMap(debugDTO);
-//        }
-
         return debugDTO;
     }
 
     private void addDebugResultToHistoryMap(DebugDTO debugDTO) {
-        // TODO: Reintroduce when you decide how to persist debug snapshots.
-//        String programName = debugDTO.programName();
-//        ExecutionHistory executionHistory = programToExecutionHistory.computeIfAbsent(programName, k -> new ExecutionHistoryImpl());
-//        executionHistory.addProgramToHistory(debug.getDebugProgramExecutor());
     }
 
     @Override
     public DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException {
         DebugDTO debugDTO = debug.resume(breakPoints);  // Resume
-        //TODO: Check if needed
-//        if (!debugDTO.hasMoreInstructions()) {      // Add to history
-//            addDebugResultToHistoryMap(debugDTO);
-//        }
 
         return debugDTO;
     }
@@ -374,8 +347,6 @@ public class EngineImpl implements Engine, Serializable {
     @Override
     public void stopDebugPress() {
         DebugDTO debugDTO = debug.stop();
-        //TODO: Check if needed
-        //addDebugResultToHistoryMap(debugDTO);
     }
 
     @Override

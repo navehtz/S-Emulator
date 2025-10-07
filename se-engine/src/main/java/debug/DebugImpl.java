@@ -1,7 +1,6 @@
 package debug;
 
 import dto.DebugDTO;
-import dto.ProgramExecutorDTO;
 import engine.ProgramRegistry;
 import execution.*;
 import instruction.Instruction;
@@ -144,11 +143,6 @@ public class DebugImpl implements Debug {
         if (currentInstructionIndex >= instructions.size()) return false;
         return !instructions.get(currentInstructionIndex).getLabel().equals(FixedLabel.EXIT);
     }
-
-//    @Override
-//    public ProgramExecutorDTO buildProgramExecutorDTO(ProgramExecutor programExecutor) {
-//        return null;
-//    }
 
     @Override
     public int getCurrentInstructionIndex() {

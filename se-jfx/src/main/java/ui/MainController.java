@@ -488,34 +488,15 @@ public class MainController {
     }
 
     private void enterDebugMode() {
-//        var d = engine.getInitSnapshot();
-//        applySnapshot(d);
-        //lastVarsSnapshot.clear();
-//        btnRun.setDisable(true);
-//        btnDebug.setDisable(true);
-//        btnStop.setDisable(false);
-//        btnResume.setDisable(false);
-//        btnStepOver.setDisable(false);
-//        btnStepBack.setDisable(true); // no history yet
         isDebugInProgress.set(true);
     }
 
     private void leaveDebugMode() {
-//        btnRun.setDisable(false);
-//        btnDebug.setDisable(false);
-//        btnStop.setDisable(true);
-//        btnResume.setDisable(true);
-//        btnStepOver.setDisable(true);
-//        btnStepBack.setDisable(true);
         isDebugInProgress.set(false);
     }
 
     // After each step/resume/stepBack update
     private void updateButtonsForSnapshot(dto.ProgramExecutorDTO snap, boolean hasMore, boolean hasHistoryBack) {
-//        btnStop.setDisable(false);
-//        btnStepOver.setDisable(!hasMore);
-//        btnResume.setDisable(!hasMore);
-//        btnStepBack.setDisable(!hasHistoryBack);
     }
 
     private void applySnapshot(DebugDTO dbgDTO) {
@@ -602,10 +583,6 @@ public class MainController {
         fade.setFromValue(0);
         fade.setToValue(1);
 
-//        TranslateTransition slide = new TranslateTransition(Duration.millis(420), btnLoadFile);
-//        slide.setFromY(14);
-//        slide.setToY(0);
-
         // Pulse after intro (scale up , then back)
         ScaleTransition pulseUp = new ScaleTransition(Duration.millis(200), btnLoadFile);
         pulseUp.setToX(1.04);
@@ -684,7 +661,7 @@ public class MainController {
         };
         addCss(sheets, themePath);
 
-        // === Tag the tables with the theme key so the row highlight rules match ===
+        // Tag the tables with the theme key so the row highlight rules match
         var table = mainInstrTableController.getTable();
         var historyTable = historyInstrTableController.getTable(); // ensure controller exposes getTable()
 
@@ -708,7 +685,7 @@ public class MainController {
         var url = getClass().getResource(path);
         if (url == null) {
             System.err.println("CSS not found on classpath: " + path);
-            return; // avoid NPE
+            return;
         }
         sheets.add(url.toExternalForm());
     }

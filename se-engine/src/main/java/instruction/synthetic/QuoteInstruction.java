@@ -11,7 +11,6 @@ import label.FixedLabel;
 import label.Label;
 import operation.Operation;
 import operation.OperationView;
-import program.ProgramImpl;
 import variable.Variable;
 import instruction.synthetic.functionExecutionUtils.FunctionInstructionUtils;
 
@@ -135,7 +134,6 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
         return (currentCyclesNumber == 0) ? InstructionData.QUOTE.getCycles() : currentCyclesNumber;
     }
 
-    //TODO: Check if need to sort arguments
     @Override
     public int expandInstruction(int startNumber) {
         List<Instruction> expandedInstructions = convertFunctionData(startNumber);
@@ -242,13 +240,7 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
                 List<QuoteArg> deepArgs = copyArgs(callArg.getArgs());
                 QuoteInstruction nestedQuoteInstruction = new QuoteInstruction(mappedXi, usedLabel, this, instructionNumber++, callArg.getCallName(), deepArgs);
 
-//                String displayName = callArg.getDisplayName();
-//                if (displayName == null || displayName.isBlank()) {
-//                    displayName = resolveUserString(callArg.getCallName());
-//                }
-//                if (displayName != null && !displayName.isBlank()) {
-//                    nestedQuoteInstruction.setDisplayName(displayName);
-//                }
+
                 nestedQuoteInstruction.setDisplayName(callArg.getDisplayName());
                 expandedInstructions.add(nestedQuoteInstruction);
             } else {

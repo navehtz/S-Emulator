@@ -2,7 +2,6 @@ package ui.components;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -22,7 +21,6 @@ public class RunHistoryTableController {
     @FXML private TableView<RunRow> table;
     @FXML private TableColumn<RunRow, Number> colRunNum;
     @FXML private TableColumn<RunRow, Number> colDegree;
-    //@FXML private TableColumn<RunRow, String> colInputs;
     @FXML private TableColumn<RunRow, Number> colResult;
     @FXML private TableColumn<RunRow, Number> colCycles;
 
@@ -39,7 +37,6 @@ public class RunHistoryTableController {
     private void initialize() {
         colRunNum.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().runNum));
         colDegree.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().degree));
-        //colInputs.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().inputs));
         colResult.setCellValueFactory(d -> new SimpleLongProperty(d.getValue().result));
         colCycles.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().cycles));
         table.setItems(rows);

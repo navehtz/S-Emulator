@@ -26,6 +26,8 @@ import instruction.basic.NoOpInstruction;
 import instruction.synthetic.*;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 final class XmlProgramMapper {
 
@@ -251,6 +253,32 @@ final class XmlProgramMapper {
                 return new QuoteInstruction(targetVariable, instructionLabel, originInstruction, ordinal, functionName, functionArguments);
             }
 
+            case "JUMP_EQUAL_FUNCTION": {
+                Label addedLabel = sInstructionArguments.stream()
+                        .filter(arg -> arg.getName().equalsIgnoreCase("JEFunctionLabel"))
+                        .map(SInstructionArgument::getValue)
+                        .findFirst()
+                        .map(labelStr -> parseLabel(labelStr, instructionName, ordinal))
+                        .orElseThrow(() -> new IllegalArgumentException("JEFunctionLabel not found"));
+
+                String functionName = sInstructionArguments.stream()
+                        .filter(arg -> arg.getName().equalsIgnoreCase("functionName"))
+                        .map(SInstructionArgument::getValue)
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException("functionName not found"));
+
+                String rawFunctionArguments = sInstructionArguments.stream()
+                        .filter(arg -> arg.getName().equalsIgnoreCase("functionArguments"))
+                        .map(SInstructionArgument::getValue)
+                        .findFirst()
+                        .orElse("");
+
+
+                List<QuoteArg> functionArguments = parseTopLevelArgs(rawFunctionArguments, instructionName, ordinal);
+
+                return new JumpEqualFunctionInstruction(targetVariable, instructionLabel, addedLabel, originInstruction, ordinal, functionName, functionArguments);
+            }
+
             default:
                 throw new IllegalArgumentException(
                         "Unknown instruction name at position " + ordinal + ": " + instructionName
@@ -391,7 +419,17 @@ final class XmlProgramMapper {
         return s == null ? null : s.trim().toUpperCase(Locale.ROOT);
     }
 
-    /*public static void registerFunctionNameToUserString(String functionName, String userString) {
-        functionNameToUserString.put(functionName, userString);
-    }*/
+    private static Set<Variable> extractXVariablesIntoSet(Set<Variable> seenInputVariable, String functionArguments) {
+        Pattern pattern = Pattern.compile("x(\\d+)");
+        Matcher matcher = pattern.matcher(functionArguments);
+
+        while (matcher.find()) {
+            int number = Integer.parseInt(matcher.group(1));
+            Variable newVariable = new VariableImpl(VariableType.INPUT, number);
+
+            seenInputVariable.add(newVariable);
+        }
+
+        return seenInputVariable;
+    }
 }

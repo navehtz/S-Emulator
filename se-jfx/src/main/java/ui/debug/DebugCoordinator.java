@@ -2,12 +2,8 @@ package ui.debug;
 
 import dto.DebugDTO;
 import dto.ProgramDTO;
-import dto.ProgramExecutorDTO;
 import engine.Engine;
-import javafx.concurrent.Task;
 import javafx.stage.Window;
-import ui.run.RunInputsDialog;
-import ui.run.RunResultPresenter;
 
 import java.util.*;
 import java.util.function.IntSupplier;
@@ -64,21 +60,6 @@ public final class DebugCoordinator {
         DebugDTO initialSnapshot = engine.getInitSnapshot();
         resultPresenter.onDebugSucceeded(initialSnapshot);
 
-//        Task<DebugDTO> task = new Task<>() {
-//            @Override
-//            protected DebugDTO call() throws Exception {
-//                engine.initializeDebugger(selectedOperationKey, degree, argv);
-//                return engine.getInitSnapshot();
-//            }
-//        };
-//
-//        task.setOnSucceeded(ev -> resultPresenter.onDebugSucceeded(task.getValue()));
-//        task.setOnFailed(ev -> {
-//            Throwable ex = task.getException();
-//            resultPresenter.onDebugFailed(ex != null ? ex.getMessage() : "Unknown error");
-//        });
-//
-//        new Thread(task, "debug-init").start();
-//    }
+
     }
 }

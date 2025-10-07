@@ -18,12 +18,24 @@
 
                   <Button fx:id="btnLoadFile" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#onLoadXml" prefHeight="25.0" prefWidth="149.0" text="Load File" />
 
-                  <Label alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="50.0" text="File path:" HBox.hgrow="ALWAYS" />
-                  <Label fx:id="programNameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="597.0" text="(none)" />
+                  <Label maxHeight="1.7976931348623157E308" prefHeight="25.0" prefWidth="65.0" text="File path:" HBox.hgrow="ALWAYS" />
+                  <AnchorPane>
+                     <children>
+                        <Label fx:id="programNameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="597.0" text="(none)" AnchorPane.leftAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
                   <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="23.0" />
-                  <CheckBox fx:id="checkBoxAnimations" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Animations" />
+                  <AnchorPane>
+                     <children>
+                        <CheckBox fx:id="checkBoxAnimations" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Animations" AnchorPane.rightAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
                   <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="5.0" />
-                  <ComboBox fx:id="themeSelector" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="126.0" promptText="Theme" />
+                  <AnchorPane>
+                     <children>
+                        <ComboBox fx:id="themeSelector" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="126.0" promptText="Theme" AnchorPane.rightAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
 
                </HBox>
 
