@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Available Programs" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.dashboard.components.availableProgramsTable.AvailableProgramsTableController">
+   <content>
+      <VBox alignment="TOP_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+         <children>
+            <TableView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+              <columns>
+                <TableColumn prefWidth="75.0" text="Name" />
+                <TableColumn prefWidth="75.0" text="User Uploaded" />
+                  <TableColumn prefWidth="75.0" text="No. Instructions" />
+                  <TableColumn prefWidth="75.0" text="Max Degree" />
+                  <TableColumn prefWidth="75.0" text="No. Executions" />
+                  <TableColumn prefWidth="75.0" text="Average Cost" />
+              </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+            </TableView>
+            <Button mnemonicParsing="false" text="Execute Program">
+               <VBox.margin>
+                  <Insets top="5.0" />
+               </VBox.margin>
+            </Button>
+         </children>
+      </VBox>
+   </content>
+</TitledPane>

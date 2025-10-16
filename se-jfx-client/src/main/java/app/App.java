@@ -1,18 +1,18 @@
-package main.java.app;
+package app;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import ui.MainController;
+import ui.execution.components.main.MainController;
 
 import java.util.Objects;
 
 public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/MainView.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/execution/components/main/MainView.fxml"));
         Parent root = loader.load();
         MainController mainController = loader.getController();
         Scene scene = new Scene(root);

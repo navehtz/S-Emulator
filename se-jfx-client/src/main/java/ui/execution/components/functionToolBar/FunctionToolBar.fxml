@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="36.0" prefWidth="775.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.execution.components.functionToolBar.FunctionToolBar">
+
+    <ToolBar>
+        <Label maxWidth="1.7976931348623157E308" text="Program/Function:" />
+        <ComboBox fx:id="contextSelector" prefWidth="180" />
+
+        <Separator orientation="VERTICAL" />
+
+        <Label maxWidth="1.7976931348623157E308" text="Degree:" />
+        <ComboBox fx:id="degreeSelector" prefWidth="100" />
+
+        <Separator orientation="VERTICAL" />
+
+        <Label maxWidth="1.7976931348623157E308" text="Highlight selection:" />
+        <ComboBox fx:id="highlightSelector" prefWidth="200" />
+    </ToolBar>
+
+</AnchorPane>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.dashboard.components.main.DashboardController">
+   <content>
+      <GridPane prefHeight="761.0" prefWidth="1037.0">
+          <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="649.0" minWidth="10.0" prefWidth="469.0" />
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="568.0" minWidth="10.0" prefWidth="568.0" />
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints maxHeight="225.0" minHeight="0.0" prefHeight="93.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="563.0" minHeight="10.0" prefHeight="383.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="217.0" minHeight="10.0" prefHeight="217.0" vgrow="SOMETIMES" />
+          </rowConstraints>
+           <children>
+              <fx:include fx:id="topBar" source="../topBar/TopBar.fxml" GridPane.columnSpan="2" />
+              <fx:include fx:id="programsTable" source="../availableProgramsTable/AvailableProgramsTable.fxml" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+              <fx:include fx:id="functionsTable" source="../availableFunctionsTable/AvailableFunctionsTable.fxml" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+              <fx:include fx:id="users" source="../availableUsersTable/AvailableUsersTable.fxml" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+              <fx:include fx:id="userHistory" source="../userHistoryTable/UserHistoryTable.fxml" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+           </children>
+        </GridPane>
+   </content>
+</ScrollPane>

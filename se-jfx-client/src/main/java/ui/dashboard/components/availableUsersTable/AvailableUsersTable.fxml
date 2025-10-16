@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Available Users" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.dashboard.components.availableUsersTable.AvailableUsersTableController">
+      <content>
+          <VBox alignment="TOP_RIGHT" prefHeight="200.0" prefWidth="597.0">
+              <children>
+                  <TableView prefHeight="199.0" prefWidth="467.0" VBox.vgrow="SOMETIMES">
+                      <columns>
+                          <TableColumn prefWidth="75.0" text="User Name" />
+                          <TableColumn prefWidth="75.0" text="No. Programs Uploaded" />
+                          <TableColumn prefWidth="75.0" text="No. Sub-Functions Uploaded" />
+                          <TableColumn prefWidth="75.0" text="Current Credits" />
+                          <TableColumn prefWidth="75.0" text="Credits Used" />
+                          <TableColumn prefWidth="75.0" text="No. Executions" />
+                      </columns>
+                      <columnResizePolicy>
+                          <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                      </columnResizePolicy>
+                  </TableView>
+                  <Button mnemonicParsing="false" text="Unselect User">
+                      <VBox.margin>
+                          <Insets top="5.0" />
+                      </VBox.margin>
+                  </Button>
+              </children>
+          </VBox>
+      </content>
+  </TitledPane>
