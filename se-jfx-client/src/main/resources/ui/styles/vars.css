@@ -1,0 +1,9 @@
+/* Subtle yellow background for highlighted rows */
+.table-row-cell:var-highlight {
+    -fx-background-color: #fff3cd;
+}
+
+/* Keep cell backgrounds transparent so the row color shows through */
+.table-row-cell:var-highlight .table-cell {
+    -fx-background-color: transparent;
+}

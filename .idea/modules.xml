@@ -3,10 +3,12 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/S-Emulator.iml" filepath="$PROJECT_DIR$/S-Emulator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/S-Emulator_App/S-Emulator_App.iml" filepath="$PROJECT_DIR$/S-Emulator_App/S-Emulator_App.iml" />
       <module fileurl="file://$PROJECT_DIR$/se-api/se-api.iml" filepath="$PROJECT_DIR$/se-api/se-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/se-consoleUI/se-consoleUI.iml" filepath="$PROJECT_DIR$/se-consoleUI/se-consoleUI.iml" />
       <module fileurl="file://$PROJECT_DIR$/se-engine/se-engine.iml" filepath="$PROJECT_DIR$/se-engine/se-engine.iml" />
       <module fileurl="file://$PROJECT_DIR$/se-jfx/se-jfx.iml" filepath="$PROJECT_DIR$/se-jfx/se-jfx.iml" />
+      <module fileurl="file://$PROJECT_DIR$/se-jfx-client/se-jfx-client.iml" filepath="$PROJECT_DIR$/se-jfx-client/se-jfx-client.iml" />
     </modules>
   </component>
 </project>
