@@ -50,11 +50,11 @@
          <Insets top="3.0" />
       </padding>
    </GridPane>
-     <HBox minHeight="-Infinity" spacing="6">
+     <HBox maxWidth="1.7976931348623157E308" minHeight="-Infinity" spacing="6">
          <padding>
              <Insets bottom="0" left="6" right="6" top="6" />
          </padding>
-      <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="818.0">
+      <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="818.0" HBox.hgrow="ALWAYS">
          <children>
       
                            <Button fx:id="btnLoadFile" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#onLoadXml" prefHeight="27.0" prefWidth="149.0" text="Load File">
