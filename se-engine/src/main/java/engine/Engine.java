@@ -4,6 +4,7 @@ import dto.DebugDTO;
 import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
 import exceptions.EngineLoadException;
+import users.UserManager;
 
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -35,6 +36,7 @@ public interface Engine {
     void stopDebugPress();
     List<String> getAllFunctionsNames();
     Map<String, String> getAllUserStringToFunctionName();
+    UserManager getUserManager();
 
     void saveState(Path path) throws EngineLoadException;
     void loadState(Path path) throws EngineLoadException;

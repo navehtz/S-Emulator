@@ -17,6 +17,7 @@ import operation.Operation;
 import loader.XmlProgramLoader;
 import operation.OperationView;
 import program.Program;
+import users.UserManager;
 import variable.Variable;
 
 import java.io.*;
@@ -34,6 +35,7 @@ public class EngineImpl implements Engine, Serializable {
     private transient Path xmlPath;
     private transient Debug debug;
     private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new HashMap<>();
+    private UserManager userManager = new UserManager();
 
 
     @Override
@@ -378,5 +380,9 @@ public class EngineImpl implements Engine, Serializable {
     public DebugDTO getInitSnapshot() {
         if (debug == null) throw new IllegalStateException("Debugger not initialized");
         return debug.init();
+    }
+
+    public UserManager getUserManager() {
+        return userManager;
     }
 }
