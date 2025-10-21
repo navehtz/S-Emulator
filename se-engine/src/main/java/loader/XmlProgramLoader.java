@@ -10,7 +10,9 @@ import generatedFromXml.SInstruction;
 import generatedFromXml.SInstructionArgument;
 
 import javax.xml.transform.stream.StreamSource;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -51,11 +53,27 @@ public class XmlProgramLoader {
         List<SFunction> sFunctions = sProgram.getFunctions();
 
         if(sFunctions != null) {
-            /*for (SFunction sFunction : sFunctions) {
+            for (SFunction sFunction : sFunctions) {
                 if(sFunction == null) continue;
-                XmlProgramMapper.registerFunctionNameToUserString(sFunction.getName(), sFunction.getUserString());
-            }*/
+                Operation functionOperation = XmlProgramMapper.map(sFunction);
+                putUnique(allOperationsByName, functionOperation);
+            }
+        }
 
+        return new LoadResult(mainProgram, Collections.unmodifiableMap(allOperationsByName));
+    }
+
+    public LoadResult loadAll(InputStream inputStream) throws EngineLoadException {
+        //validatePath(xmlPath);
+        SProgram sProgram = unmarshal(inputStream);
+        Operation mainProgram = XmlProgramMapper.map(sProgram);
+
+        Map<String, Operation> allOperationsByName = new HashMap<>();
+        putUnique(allOperationsByName, mainProgram);
+
+        List<SFunction> sFunctions = sProgram.getFunctions();
+
+        if(sFunctions != null) {
             for (SFunction sFunction : sFunctions) {
                 if(sFunction == null) continue;
                 Operation functionOperation = XmlProgramMapper.map(sFunction);
@@ -109,6 +127,23 @@ public class XmlProgramLoader {
             throw new EngineLoadException("Failed to parse XML: " + abs + ", " + e.getMessage(), e);
         } catch (Exception e) {
             throw new EngineLoadException("Failed to read XML: " + abs + ", " + e.getMessage(), e);
+        }
+    }
+
+    private SProgram unmarshal(InputStream inputStream) throws EngineLoadException {
+        try {
+            Unmarshaller um = JAXB_CTX.createUnmarshaller();
+
+            Object root = um.unmarshal(inputStream);
+
+            if (root instanceof SProgram) return (SProgram) root;
+            if (root instanceof JAXBElement<?> je && je.getValue() instanceof SProgram sp) return sp;
+
+            throw new EngineLoadException("Unexpected root element for file.");
+        } catch (JAXBException e) {
+            throw new EngineLoadException("Failed to parse XML." + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new EngineLoadException("Failed to read XML: " + e.getMessage(), e);
         }
     }
 }

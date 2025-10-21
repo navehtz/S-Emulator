@@ -63,6 +63,31 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
+    public void loadProgram(InputStream inputStream) throws EngineLoadException {
+
+        XmlProgramLoader loader = new XmlProgramLoader();
+        LoadResult loadResult = loader.loadAll(inputStream);
+
+        for (OperationView operation : loadResult.allOperationsByName.values()) {
+            operation.validateProgram();
+            operation.initialize();
+        }
+
+        this.mainProgram = loadResult.getMainProgram();
+        this.registry.clear();
+        this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+        this.registry.registerAll(loadResult.allOperationsByName);
+        for (OperationView opView : loadedOperations.values()) {
+            opView.setRegistry(this.registry);
+        }
+        this.mainProgram.setRegistry(this.registry);
+
+        FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
+
+        calculateExpansionForAllPrograms();
+    }
+
+    @Override
     public void runProgram(int degree, Long... inputs) {
         Map<String, OperationView> clonedOperations = new HashMap<>();
         for (Map.Entry<String, OperationView> entry : loadedOperations.entrySet()) {

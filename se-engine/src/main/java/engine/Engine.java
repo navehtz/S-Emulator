@@ -5,6 +5,7 @@ import dto.ProgramDTO;
 import dto.ProgramExecutorDTO;
 import exceptions.EngineLoadException;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Map;
 public interface Engine {
 
     void loadProgram(Path Path) throws EngineLoadException;
+    void loadProgram(InputStream inputStream) throws EngineLoadException;
 
     ProgramDTO getProgramToDisplay();  // throws if no program loaded
     ProgramDTO getExpandedProgramToDisplay(int degree);
