@@ -6,8 +6,12 @@ import ui.dashboard.components.availableProgramsTable.AvailableProgramsTableCont
 import ui.dashboard.components.availableUsersTable.AvailableUsersTableController;
 import ui.dashboard.components.topBar.TopBarController;
 import ui.dashboard.components.userHistoryTable.UserHistoryTableController;
+import ui.main.components.SEmulatorAppMainController;
 
-public class DashboardController {
+import java.io.Closeable;
+import java.io.IOException;
+
+public class DashboardController implements Closeable {
 
     @FXML TopBarController topBarController;
     @FXML AvailableProgramsTableController availableProgramsTableController;
@@ -15,7 +19,33 @@ public class DashboardController {
     @FXML AvailableUsersTableController availableUsersTableController;
     @FXML UserHistoryTableController userHistoryTableController;
 
+
+    private SEmulatorAppMainController sEmulatorAppMainController;
+
+
+
     @FXML
     private void initialize() { }
+
+
+    @Override
+    public void close() throws IOException {
+        // TODO
+        //availableUsersTableController.close();
+    }
+
+    public void setActive() {
+        // TODO
+    }
+
+    public void setInActive() {
+        try {
+            // TODO
+        } catch (Exception ignored) {}
+    }
+
+    public void setSEmulatorAppMainController(SEmulatorAppMainController sEmulatorAppMainController) {
+        this.sEmulatorAppMainController = sEmulatorAppMainController;
+    }
 
 }

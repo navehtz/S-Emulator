@@ -6,16 +6,17 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import ui.dashboard.components.main.DashboardController;
-import ui.execution.components.main.MainController;
 
 import java.util.Objects;
+
+import static util.support.Constants.MAIN_PAGE_FXML_RESOURCE_LOCATION;
 
 public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/dashboard/components/main/Dashboard.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(MAIN_PAGE_FXML_RESOURCE_LOCATION));
         Parent root = loader.load();
-        DashboardController dashboardController = loader.getController();
+        //DashboardController dashboardController = loader.getController();
         Scene scene = new Scene(root);
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/ui/styles/vars.css")).toExternalForm());
         stage.setTitle("S-Emulator");

@@ -3,25 +3,18 @@ package ui.dashboard.components.topBar;
 import com.google.gson.Gson;
 import dto.ProgramDTO;
 import exceptions.EngineLoadException;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import okhttp3.*;
 import util.support.Dialogs;
 
-import javax.xml.transform.stream.StreamSource;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 import static util.support.Helpers.validatePath;
 
