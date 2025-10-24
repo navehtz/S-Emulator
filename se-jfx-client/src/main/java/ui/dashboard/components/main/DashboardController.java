@@ -1,5 +1,6 @@
 package ui.dashboard.components.main;
 
+import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import ui.dashboard.components.availableFunctionsTable.AvailableFunctionsTableController;
 import ui.dashboard.components.availableProgramsTable.AvailableProgramsTableController;
@@ -27,7 +28,9 @@ public class DashboardController implements Closeable {
     @FXML
     private void initialize() { }
 
-
+    public void bindUserName(StringProperty userNameProperty) {
+        topBarController.userNameProperty().bind(userNameProperty);
+    }
     @Override
     public void close() throws IOException {
         // TODO

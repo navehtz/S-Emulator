@@ -15,7 +15,7 @@
        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
      </rowConstraints>
       <children>
-         <Label text="User Name:" GridPane.halignment="LEFT" GridPane.valignment="CENTER">
+         <Label fx:id="userNameLabel" text="User Name:" GridPane.halignment="LEFT" GridPane.valignment="CENTER">
             <GridPane.margin>
                <Insets left="10.0" />
             </GridPane.margin>

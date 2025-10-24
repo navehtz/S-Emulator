@@ -21,6 +21,8 @@ import java.io.IOException;
 
 public class LoginController {
 
+    private String USERNAME_PREFIX = "User Name: ";
+
     @FXML
     public TextField userNameTextField;
 
@@ -74,7 +76,7 @@ public class LoginController {
                     );
                 } else {
                     Platform.runLater(() -> {
-                            sEmulatorAppMainController.updateUserName(userName);
+                            sEmulatorAppMainController.updateUserName(USERNAME_PREFIX + userName);
                             sEmulatorAppMainController.switchToDashboard();
                     });
                 }

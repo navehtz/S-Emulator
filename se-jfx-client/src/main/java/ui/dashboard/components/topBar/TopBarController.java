@@ -1,8 +1,10 @@
 package ui.dashboard.components.topBar;
 
 import com.google.gson.Gson;
-import dto.ProgramDTO;
+import dto.execution.ProgramDTO;
 import exceptions.EngineLoadException;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -22,6 +24,22 @@ public class TopBarController {
 
     @FXML private Label programNameLabel;
     @FXML private Button btnLoadFile;
+    @FXML private Label userNameLabel;
+
+    private SimpleStringProperty userNameProperty = new SimpleStringProperty();
+
+    @FXML
+    public void initialize() {
+        userNameLabel.textProperty().bind(userNameProperty);
+    }
+
+    public void setUserName(String userName) {
+        userNameProperty.set(userName);
+    }
+
+    public StringProperty userNameProperty() {
+        return userNameProperty;
+    }
 
     public void onLoadXml(ActionEvent actionEvent) throws EngineLoadException, IOException {
         FileChooser fileChooser = new FileChooser();
