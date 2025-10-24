@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" minHeight="200.0" minViewportHeight="700.0" minViewportWidth="1000.0" minWidth="300.0" prefViewportHeight="700.0" prefViewportWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.dashboard.components.main.DashboardController">
+<ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="200.0" minViewportHeight="700.0" minViewportWidth="1000.0" minWidth="300.0" prefHeight="715.0" prefViewportHeight="700.0" prefViewportWidth="1000.0" prefWidth="1015.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.dashboard.components.main.DashboardController">
    <content>
       <GridPane maxWidth="1.7976931348623157E308" prefHeight="761.0" prefWidth="1037.0">
           <columnConstraints>

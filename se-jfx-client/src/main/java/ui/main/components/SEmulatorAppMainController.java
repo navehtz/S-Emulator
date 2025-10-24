@@ -6,8 +6,10 @@ import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 import ui.dashboard.components.main.DashboardController;
 import ui.login.LoginController;
 
@@ -44,12 +46,26 @@ public class SEmulatorAppMainController implements Closeable {
     }
     
     private void setMainPanelTo(Parent pane) {
-        mainPanel.getChildren().clear();
-        mainPanel.getChildren().add(pane);
-        AnchorPane.setBottomAnchor(pane, 1.0);
-        AnchorPane.setTopAnchor(pane, 1.0);
-        AnchorPane.setLeftAnchor(pane, 1.0);
-        AnchorPane.setRightAnchor(pane, 1.0);
+        AnchorPane.clearConstraints(pane);
+
+        mainPanel.getChildren().setAll(pane);
+
+        pane.applyCss();
+        pane.autosize();
+
+        double prefWidth = pane.prefWidth(-1);
+        double prefHeight = pane.prefHeight(-1);
+        if (!Double.isNaN(prefWidth)) mainPanel.setPrefWidth(prefWidth);
+        if (!Double.isNaN(prefHeight)) mainPanel.setPrefHeight(prefHeight);
+
+        Scene scene = mainPanel.getScene();
+        if (scene != null && scene.getWindow() instanceof Stage stage) {
+            Platform.runLater(() -> {
+                pane.applyCss();
+                pane.autosize();
+                stage.sizeToScene();
+            });
+        }
     }
 
     @Override
@@ -79,6 +95,9 @@ public class SEmulatorAppMainController implements Closeable {
             dashboardComponent = fxmlLoader.load();
             dashboardComponentController = fxmlLoader.getController();
             dashboardComponentController.setSEmulatorAppMainController(this);
+
+            dashboardComponentController.bindUserName(currentUserName);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
