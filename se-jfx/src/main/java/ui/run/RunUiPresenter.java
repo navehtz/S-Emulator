@@ -1,8 +1,7 @@
 package ui.run;
 
-import dto.ProgramExecutorDTO;
+import dto.execution.ProgramExecutorDTO;
 import javafx.beans.property.BooleanProperty;
-import javafx.scene.control.Alert;
 import ui.support.Dialogs;
 import ui.support.RunsHistoryManager;
 import ui.support.VariablesPaneUpdater;

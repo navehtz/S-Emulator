@@ -1,8 +1,8 @@
 package engine;
 
-import dto.DebugDTO;
-import dto.ProgramDTO;
-import dto.ProgramExecutorDTO;
+import dto.execution.DebugDTO;
+import dto.execution.ProgramDTO;
+import dto.execution.ProgramExecutorDTO;
 import exceptions.EngineLoadException;
 import users.UserManager;
 

@@ -7,10 +7,10 @@ import ui.execution.components.instructionTable.InstructionTableController;
 import ui.execution.components.runHistoryTable.RunHistoryTableController;
 import ui.execution.components.summaryLine.SummaryLineController;
 import ui.execution.components.variableTable.VariablesTableController;
-import dto.DebugDTO;
-import dto.InstructionsDTO;
-import dto.ProgramDTO;
-import dto.ProgramExecutorDTO;
+import dto.execution.DebugDTO;
+import dto.execution.InstructionsDTO;
+import dto.execution.ProgramDTO;
+import dto.execution.ProgramExecutorDTO;
 import engine.Engine;
 import engine.EngineImpl;
 import exceptions.EngineLoadException;
@@ -513,7 +513,7 @@ public class MainController {
     }
 
     // After each step/resume/stepBack update
-    private void updateButtonsForSnapshot(dto.ProgramExecutorDTO snap, boolean hasMore, boolean hasHistoryBack) {
+    private void updateButtonsForSnapshot(ProgramExecutorDTO snap, boolean hasMore, boolean hasHistoryBack) {
     }
 
     private void applySnapshot(DebugDTO dbgDTO) {
@@ -544,15 +544,15 @@ public class MainController {
         }
     }
 
-    private dto.ProgramExecutorDTO toProgramExecutor(DebugDTO dbg) {
-        var stub = new dto.ProgramDTO(
+    private ProgramExecutorDTO toProgramExecutor(DebugDTO dbg) {
+        var stub = new ProgramDTO(
                 dbg.programName(),
                 List.of(), List.of(),
                 new InstructionsDTO(List.of()),
                 List.of(),
                 List.of()
         );
-        return new dto.ProgramExecutorDTO(
+        return new ProgramExecutorDTO(
                 stub,
                 dbg.variablesToValuesSorted(),
                 dbg.result(),

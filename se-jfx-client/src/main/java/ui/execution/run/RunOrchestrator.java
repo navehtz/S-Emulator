@@ -1,6 +1,6 @@
 package ui.execution.run;
 
-import dto.ProgramDTO;
+import dto.execution.ProgramDTO;
 import engine.Engine;
 import javafx.beans.property.BooleanProperty;
 

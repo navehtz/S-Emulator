@@ -1,17 +1,10 @@
 package program;
 
-import dto.InstructionDTO;
 import engine.ProgramRegistry;
-import exceptions.EngineLoadException;
-import instruction.Instruction;
 import label.Label;
 import operation.OperationView;
-import variable.Variable;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public interface Program extends OperationView, Serializable {
 

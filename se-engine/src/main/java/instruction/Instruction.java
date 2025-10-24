@@ -1,6 +1,6 @@
 package instruction;
 
-import dto.InstructionDTO;
+import dto.execution.InstructionDTO;
 import execution.ExecutionContext;
 import label.Label;
 import operation.OperationView;

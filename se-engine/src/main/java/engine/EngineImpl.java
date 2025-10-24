@@ -2,10 +2,10 @@ package engine;
 
 import debug.Debug;
 import debug.DebugImpl;
-import dto.DebugDTO;
-import dto.InstructionsDTO;
-import dto.ProgramDTO;
-import dto.ProgramExecutorDTO;
+import dto.execution.DebugDTO;
+import dto.execution.InstructionsDTO;
+import dto.execution.ProgramDTO;
+import dto.execution.ProgramExecutorDTO;
 import exceptions.EngineLoadException;
 import execution.ProgramExecutorImpl;
 import function.Function;

@@ -1,6 +1,6 @@
 package ui.execution.run;
 
-import dto.ProgramExecutorDTO;
+import dto.execution.ProgramExecutorDTO;
 import javafx.beans.property.BooleanProperty;
 import util.support.Dialogs;
 import ui.execution.support.RunsHistoryManager;

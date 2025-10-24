@@ -1,18 +1,16 @@
 package operation;
 
-import dto.InstructionDTO;
+import dto.execution.InstructionDTO;
 import engine.ProgramRegistry;
 import exceptions.EngineLoadException;
 import function.FunctionDisplayResolver;
 import instruction.Instruction;
 import instruction.LabelReferencesInstruction;
 import instruction.SyntheticInstruction;
-import instruction.synthetic.QuoteInstruction;
 import instruction.SourceVariableInstruction;
 import label.FixedLabel;
 import label.Label;
 import label.LabelImpl;
-import program.Program;
 import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;

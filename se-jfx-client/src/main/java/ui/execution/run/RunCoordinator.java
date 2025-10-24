@@ -1,7 +1,7 @@
 package ui.execution.run;
 
-import dto.ProgramDTO;
-import dto.ProgramExecutorDTO;
+import dto.execution.ProgramDTO;
+import dto.execution.ProgramExecutorDTO;
 import engine.Engine;
 import javafx.concurrent.Task;
 import javafx.stage.Window;

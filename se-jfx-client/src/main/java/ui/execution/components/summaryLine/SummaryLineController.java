@@ -1,7 +1,7 @@
 package ui.execution.components.summaryLine;
 
-import dto.InstructionDTO;
-import dto.ProgramDTO;
+import dto.execution.InstructionDTO;
+import dto.execution.ProgramDTO;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.ObjectProperty;

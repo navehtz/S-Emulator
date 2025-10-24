@@ -1,6 +1,6 @@
 package ui.behavior;
 
-import dto.InstructionDTO;
+import dto.execution.InstructionDTO;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableRow;

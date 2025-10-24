@@ -1,7 +1,7 @@
 package main.servlets.loadProgram;
 
 import com.google.gson.Gson;
-import dto.ProgramDTO;
+import dto.execution.ProgramDTO;
 import engine.Engine;
 import exceptions.EngineLoadException;
 import jakarta.servlet.annotation.WebServlet;

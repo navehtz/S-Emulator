@@ -1,6 +1,6 @@
 package ui.execution.support;
 
-import dto.ProgramExecutorDTO;
+import dto.execution.ProgramExecutorDTO;
 import javafx.scene.control.Label;
 import ui.execution.components.variableTable.VariablesTableController;
 

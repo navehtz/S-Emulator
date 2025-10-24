@@ -1,6 +1,6 @@
 package ui.execution.support;
 
-import dto.ProgramExecutorDTO;
+import dto.execution.ProgramExecutorDTO;
 import javafx.application.Platform;
 import ui.execution.components.runHistoryTable.RunHistoryTableController;
 import util.support.Dialogs;

@@ -1,6 +1,6 @@
 package debug;
 
-import dto.DebugDTO;
+import dto.execution.DebugDTO;
 import engine.ProgramRegistry;
 import execution.*;
 import instruction.Instruction;

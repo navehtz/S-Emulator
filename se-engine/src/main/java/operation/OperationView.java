@@ -1,11 +1,10 @@
 package operation;
 
-import dto.InstructionDTO;
+import dto.execution.InstructionDTO;
 import engine.ProgramRegistry;
 import exceptions.EngineLoadException;
 import instruction.Instruction;
 import label.Label;
-import program.Program;
 import variable.Variable;
 
 import java.util.List;
