@@ -19,9 +19,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public class LoginController {
+import static util.support.Constants.USERNAME_PREFIX;
 
-    private String USERNAME_PREFIX = "User Name: ";
+public class LoginController {
 
     @FXML
     public TextField userNameTextField;
@@ -70,7 +70,7 @@ public class LoginController {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.code() != 200) {
-                    String responseBody = response.body().string();
+                    String responseBody = response.body() != null ? response.body().string() : "";
                     Platform.runLater(() ->
                             errorMessageProperty.set("Something went wrong: " + responseBody)
                     );

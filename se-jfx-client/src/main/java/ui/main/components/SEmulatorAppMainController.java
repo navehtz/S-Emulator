@@ -46,6 +46,11 @@ public class SEmulatorAppMainController implements Closeable {
     }
     
     private void setMainPanelTo(Parent pane) {
+        if (pane == null) {
+            System.err.println("setMainPanelTo called with null pane (FXML failed to load)");
+            return;
+        }
+
         AnchorPane.clearConstraints(pane);
 
         mainPanel.getChildren().setAll(pane);

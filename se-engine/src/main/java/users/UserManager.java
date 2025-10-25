@@ -1,30 +1,39 @@
 package users;
 
+import dto.dashboard.UserDTO;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public class UserManager {
 
-    private final Set<String> usersSet;
+    private final Set<UserDTO> usersSet;
 
     public UserManager() {
         usersSet = new HashSet<>();
     }
 
     public synchronized void addUser(String username) {
-        usersSet.add(username);
+        UserDTO userDTO = new UserDTO(username,
+                0,
+                0,
+                0 ,
+                0,
+                0);
+        usersSet.add(userDTO);
     }
 
     public synchronized void removeUser(String username) {
-        usersSet.remove(username);
+        usersSet.removeIf(user -> user.userName().equals(username));
     }
 
-    public synchronized Set<String> getUsers() {
+    public synchronized Set<UserDTO> getUsers() {
         return Collections.unmodifiableSet(usersSet);
     }
 
     public boolean isUserExists(String username) {
-        return usersSet.contains(username);
+        return usersSet.stream()
+                .anyMatch(user -> user.userName().equals(username));
     }
 }

@@ -19,7 +19,7 @@
               <fx:include fx:id="topBar" source="../topBar/TopBar.fxml" GridPane.columnSpan="2" />
               <fx:include fx:id="programsTable" source="../availableProgramsTable/AvailableProgramsTable.fxml" GridPane.columnIndex="1" GridPane.rowIndex="1" />
               <fx:include fx:id="functionsTable" source="../availableFunctionsTable/AvailableFunctionsTable.fxml" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-              <fx:include fx:id="users" source="../availableUsersTable/AvailableUsersTable.fxml" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+              <fx:include fx:id="availableUsersTable" source="../availableUsersTable/AvailableUsersTable.fxml" GridPane.columnIndex="0" GridPane.rowIndex="1" />
               <fx:include fx:id="userHistory" source="../userHistoryTable/UserHistoryTable.fxml" GridPane.columnIndex="0" GridPane.rowIndex="2" />
            </children>
         </GridPane>
