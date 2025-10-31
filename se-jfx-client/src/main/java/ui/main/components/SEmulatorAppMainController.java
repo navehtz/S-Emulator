@@ -51,26 +51,12 @@ public class SEmulatorAppMainController implements Closeable {
             return;
         }
 
-        AnchorPane.clearConstraints(pane);
-
         mainPanel.getChildren().setAll(pane);
 
-        pane.applyCss();
-        pane.autosize();
-
-        double prefWidth = pane.prefWidth(-1);
-        double prefHeight = pane.prefHeight(-1);
-        if (!Double.isNaN(prefWidth)) mainPanel.setPrefWidth(prefWidth);
-        if (!Double.isNaN(prefHeight)) mainPanel.setPrefHeight(prefHeight);
-
-        Scene scene = mainPanel.getScene();
-        if (scene != null && scene.getWindow() instanceof Stage stage) {
-            Platform.runLater(() -> {
-                pane.applyCss();
-                pane.autosize();
-                stage.sizeToScene();
-            });
-        }
+        AnchorPane.setTopAnchor(pane, 0.0);
+        AnchorPane.setBottomAnchor(pane, 0.0);
+        AnchorPane.setLeftAnchor(pane, 0.0);
+        AnchorPane.setRightAnchor(pane, 0.0);
     }
 
     @Override
@@ -112,6 +98,14 @@ public class SEmulatorAppMainController implements Closeable {
     public void switchToDashboard() {
         setMainPanelTo(dashboardComponent);
         dashboardComponentController.setActive();
+
+        Platform.runLater(() -> {
+            var scene = mainPanel.getScene();
+            if (scene != null && scene.getWindow() instanceof Stage stage) {
+                stage.sizeToScene();
+                stage.centerOnScreen();
+            }
+        });
     }
 
     public void switchToLogin() {

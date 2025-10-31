@@ -6,6 +6,6 @@ public record AvailableProgramDTO(
         int numOfInstructions,
         int maxDegree,
         int numOfExecutions,
-        int averageCost
+        int averageCreditCost
 ) {
 }

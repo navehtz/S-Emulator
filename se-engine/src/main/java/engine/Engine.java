@@ -26,7 +26,7 @@ public interface Engine {
     void calculateExpansionForAllPrograms();
     int getNumberOfInputVariables();
     int getNumberOfInputVariables(String operationName);
-    void runProgram(int expandLevel, Long... inputs);
+    //void runProgram(int expandLevel, Long... inputs);
     void runProgram(String operationName, int expandLevel, Long... inputs);
     void initializeDebugger(String programName, int degree, List<Long> inputs);
     DebugDTO getProgramAfterStepOver();

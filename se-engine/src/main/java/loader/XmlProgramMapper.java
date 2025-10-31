@@ -68,6 +68,31 @@ final class XmlProgramMapper {
                 .build();
     }
 
+    static Operation map(SFunction sFunction) {
+        String functionName = safeTrim(sFunction.getName());
+        if (functionName == null || functionName.isEmpty()) functionName = "UnnamedFunction";
+
+        final List<Instruction> code = new ArrayList<>();
+        final Set<Variable> vars = new LinkedHashSet<>();
+        final List<Label> labels = new ArrayList<>();
+
+        List<SInstruction> sInstructions = sFunction.getInstructions();
+        if (sInstructions != null) {
+            handleInstructions(code, vars, labels, sInstructions);
+        }
+
+        String userString = safeTrim(sFunction.getUserString());
+
+        return new FunctionImpl.Builder()
+                .withName(functionName)
+                .withInstructions(code)
+                .withVariables(vars)
+                .withLabels(labels)
+                .withEntry(labels.isEmpty() ? FixedLabel.EMPTY : labels.getFirst())
+                .withUserString(userString)
+                .build();
+    }
+
     private static void handleInstructions(List<Instruction> code, Set<Variable> vars, List<Label> labels, List<SInstruction> sInstructions) {
         for (int i = 0; i < sInstructions.size(); i++) {
             SInstruction sInstruction = sInstructions.get(i);
@@ -101,31 +126,6 @@ final class XmlProgramMapper {
                 collectVarsFromQuoteArgs(c.getArgs(), vars);
             }
         }
-    }
-
-    static Operation map(SFunction sFunction) {
-        String functionName = safeTrim(sFunction.getName());
-        if (functionName == null || functionName.isEmpty()) functionName = "UnnamedFunction";
-
-        final List<Instruction> code = new ArrayList<>();
-        final Set<Variable> vars = new LinkedHashSet<>();
-        final List<Label> labels = new ArrayList<>();
-
-        List<SInstruction> sInstructions = sFunction.getInstructions();
-        if (sInstructions != null) {
-            handleInstructions(code, vars, labels, sInstructions);
-        }
-
-        String userString = safeTrim(sFunction.getUserString());
-
-        return new FunctionImpl.Builder()
-                .withName(functionName)
-                .withInstructions(code)
-                .withVariables(vars)
-                .withLabels(labels)
-                .withEntry(labels.isEmpty() ? FixedLabel.EMPTY : labels.getFirst())
-                .withUserString(userString)
-                .build();
     }
 
     private static Instruction mapSingleInstruction(SInstruction sInstruction, int ordinal) {

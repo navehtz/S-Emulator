@@ -1,5 +1,7 @@
 package execution;
 
+import architecture.ArchitectureType;
+import dto.dashboard.UserDTO;
 import engine.ProgramRegistry;
 import instruction.Instruction;
 import label.FixedLabel;
@@ -14,38 +16,36 @@ import java.util.*;
 public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 
     private final OperationView program;
-    private final ProgramRegistry programRegistry;
+    private final ArchitectureType architectureTypeSelected;
+    //private final ProgramRegistry programRegistry;
     private final ExecutionContext context;
     private List<Long> inputsValues;
     private int runDegree = 0;
     private int totalCycles = 0;
 
-    public ProgramExecutorImpl(OperationView program, ProgramRegistry registry) {
+//    public ProgramExecutorImpl(OperationView program, ProgramRegistry registry) {
+//        this.program = program;
+//        this.programRegistry = Objects.requireNonNull(registry, "Program registry cannot be null");
+//        OperationInvoker invoker = new ProgramExecutorInvoker(registry);
+//        this.context = new ExecutionContextImpl(registry, invoker);
+//        this.inputsValues = new ArrayList<>();
+//    }
+
+    public ProgramExecutorImpl(OperationView program, ArchitectureType architectureTypeSelected, ProgramRegistry registry) {
         this.program = program;
-        this.programRegistry = Objects.requireNonNull(registry, "Program registry cannot be null");
+        this.architectureTypeSelected = architectureTypeSelected;
+        //ProgramRegistry programRegistry = Objects.requireNonNull(registry, "Program registry cannot be null");
         OperationInvoker invoker = new ProgramExecutorInvoker(registry);
         this.context = new ExecutionContextImpl(registry, invoker);
         this.inputsValues = new ArrayList<>();
     }
-
-
-    // Called by the invoker the context holds, to execute a callee Operation.
-//    private long invokeCallee(OperationView callee, long... args) {
-//        ProgramExecutorImpl nestedExecutor = new ProgramExecutorImpl(callee, programRegistry);
-//        nestedExecutor.runDegree = this.runDegree;
-//
-//        Long[] boxedArgs = Arrays.stream(args).boxed().toArray(Long[]::new);
-//        nestedExecutor.run(runDegree, boxedArgs);
-//
-//        return nestedExecutor.getExecutionContext().getOperationResult();
-//    }
 
     public ExecutionContext getExecutionContext() {
         return context;
     }
 
     @Override
-    public void run(int runDegree, Long... inputs) {
+    public void run(UserDTO userDTO, int runDegree, Long... inputs) {
         Instruction currentInstruction = program.getInstructionsList().getFirst();
         Instruction nextInstruction = null;
         Label nextLabel;

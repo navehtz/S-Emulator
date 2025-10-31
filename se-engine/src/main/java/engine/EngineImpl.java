@@ -28,6 +28,8 @@ import java.util.*;
 public class EngineImpl implements Engine, Serializable {
     private final ProgramRegistry registry = new ProgramRegistry();
     private Map<String, OperationView> loadedOperations = new HashMap<>();
+    private final Map<String, Set<String>> operationToSubOperationsNames = new HashMap<>();
+    //private Map<String, Operation> nameToProgram = new HashMap<>();
     private Operation mainProgram;
     private ProgramExecutor programExecutor;
     //private ExecutionHistory executionHistory;
@@ -35,7 +37,7 @@ public class EngineImpl implements Engine, Serializable {
     private transient Path xmlPath;
     private transient Debug debug;
     private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new HashMap<>();
-    private UserManager userManager = new UserManager();
+    private final UserManager userManager = new UserManager();
 
 
     @Override
@@ -67,7 +69,7 @@ public class EngineImpl implements Engine, Serializable {
     @Override
     public void loadProgram(InputStream inputStream) throws EngineLoadException {
 
-        XmlProgramLoader loader = new XmlProgramLoader();
+        XmlProgramLoader loader = new XmlProgramLoader(registry, userManager);
         LoadResult loadResult = loader.loadAll(inputStream);
 
         for (OperationView operation : loadResult.allOperationsByName.values()) {
@@ -75,48 +77,76 @@ public class EngineImpl implements Engine, Serializable {
             operation.initialize();
         }
 
-        this.mainProgram = loadResult.getMainProgram();
-        this.registry.clear();
+        //this.mainProgram = loadResult.getMainProgram();
+        //this.registry.clear();
         this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
         this.registry.registerAll(loadResult.allOperationsByName);
         for (OperationView opView : loadedOperations.values()) {
             opView.setRegistry(this.registry);
         }
-        this.mainProgram.setRegistry(this.registry);
+        //this.mainProgram.setRegistry(this.registry);
+        operationToSubOperationsNames.putIfAbsent(loadResult.getMainProgram().getName(), loadResult.getAllByName().keySet());
 
         FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
 
         calculateExpansionForAllPrograms();
     }
 
+//    @Override
+//    public void runProgram(int degree, Long... inputs) {
+//        Map<String, OperationView> clonedOperations = new HashMap<>();
+//        for (Map.Entry<String, OperationView> entry : loadedOperations.entrySet()) {
+//            clonedOperations.put(entry.getKey(), entry.getValue().deepClone());
+//        }
+//
+//        ProgramRegistry runRegistry = new ProgramRegistry();
+//        runRegistry.registerAll(clonedOperations);
+//
+//        for (OperationView op : clonedOperations.values()) {
+//            op.setRegistry(runRegistry);
+//        }
+//
+//        for (OperationView operation : clonedOperations.values()) {
+//            operation.expandProgram(degree);
+//        }
+//
+//
+//        OperationView mainClone = clonedOperations.get(mainProgram.getName());
+//
+//        programExecutor = new ProgramExecutorImpl(mainClone, runRegistry);
+//
+//        programExecutor.run(degree, inputs);
+//        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
+//        executionHistory.addProgramToHistory(programExecutor);
+//        programToExecutionHistory.putIfAbsent(mainProgram.getName(), executionHistory);
+//
+//    }
+
     @Override
-    public void runProgram(int degree, Long... inputs) {
-        Map<String, OperationView> clonedOperations = new HashMap<>();
-        for (Map.Entry<String, OperationView> entry : loadedOperations.entrySet()) {
-            clonedOperations.put(entry.getKey(), entry.getValue().deepClone());
+    public void runProgram(String operationName, int degree, Long... inputs) {
+        // clone all operations for this run
+        Map<String, OperationView> cloned = new HashMap<>();
+
+        //for (var e : loadedOperations.entrySet()) cloned.put(e.getKey(), e.getValue().deepClone());
+        for (String operationKey : operationToSubOperationsNames.get(operationName)) {
+            OperationView operation = loadedOperations.get(operationKey);
+            if (operation == null) throw new IllegalArgumentException("Program not found: " + operationKey);
+            cloned.put(operationKey, operation.deepClone());
         }
+        // expand all
+        for (OperationView op : cloned.values()) op.expandProgram(degree);
 
         ProgramRegistry runRegistry = new ProgramRegistry();
-        runRegistry.registerAll(clonedOperations);
+        runRegistry.registerAll(cloned);
 
-        for (OperationView op : clonedOperations.values()) {
-            op.setRegistry(runRegistry);
-        }
+        OperationView target = cloned.get(operationName);
+        if (target == null) throw new IllegalArgumentException("Program not found: " + operationName);
 
-        for (OperationView operation : clonedOperations.values()) {
-            operation.expandProgram(degree);
-        }
-
-
-        OperationView mainClone = clonedOperations.get(mainProgram.getName());
-
-        programExecutor = new ProgramExecutorImpl(mainClone, runRegistry);
-
+        programExecutor = new ProgramExecutorImpl(target, runRegistry);
         programExecutor.run(degree, inputs);
-        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
+        ExecutionHistory executionHistory = programToExecutionHistory
+                .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
         executionHistory.addProgramToHistory(programExecutor);
-        programToExecutionHistory.putIfAbsent(mainProgram.getName(), executionHistory);
-
     }
 
     @Override
@@ -207,7 +237,7 @@ public class EngineImpl implements Engine, Serializable {
                 mainProgram.calculateDegreeToProgram()
         );
 
-        for (OperationView function : registry.allPrograms()) {
+        for (OperationView function : registry.getAllPrograms()) {
             this.nameAndDegreeToProgram.put(
                     function.getName(),
                     function.calculateDegreeToProgram()
@@ -267,8 +297,8 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public List<String> getAllFunctionsNames() {
-        return registry.allPrograms().stream().map(OperationView::getName).toList();
+    public List<String> getAllFunctionsNames() { //TODO:Check how to change
+        return registry.getAllPrograms().stream().map(OperationView::getName).toList();
     }
 
     @Override
@@ -294,27 +324,6 @@ public class EngineImpl implements Engine, Serializable {
             }
         }
         return out;
-    }
-
-    @Override
-    public void runProgram(String operationName, int degree, Long... inputs) {
-        // clone all operations for this run
-        Map<String, OperationView> cloned = new HashMap<>();
-        for (var e : loadedOperations.entrySet()) cloned.put(e.getKey(), e.getValue().deepClone());
-        // expand all
-        for (OperationView op : cloned.values()) op.expandProgram(degree);
-
-        ProgramRegistry runRegistry = new ProgramRegistry();
-        runRegistry.registerAll(cloned);
-
-        OperationView target = cloned.get(operationName);
-        if (target == null) throw new IllegalArgumentException("Program not found: " + operationName);
-
-        programExecutor = new ProgramExecutorImpl(target, runRegistry);
-        programExecutor.run(degree, inputs);
-        ExecutionHistory executionHistory = programToExecutionHistory
-                .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
-        executionHistory.addProgramToHistory(programExecutor);
     }
 
     @Override
