@@ -14,7 +14,7 @@ import java.util.Map;
 public interface Engine {
 
     void loadProgram(Path Path) throws EngineLoadException;
-    void loadProgram(InputStream inputStream) throws EngineLoadException;
+    void loadProgram(InputStream inputStream, String uploaderName) throws EngineLoadException;
 
     ProgramDTO getProgramToDisplay();  // throws if no program loaded
     ProgramDTO getExpandedProgramToDisplay(int degree);
@@ -27,13 +27,13 @@ public interface Engine {
     int getNumberOfInputVariables();
     int getNumberOfInputVariables(String operationName);
     //void runProgram(int expandLevel, Long... inputs);
-    void runProgram(String operationName, int expandLevel, Long... inputs);
-    void initializeDebugger(String programName, int degree, List<Long> inputs);
-    DebugDTO getProgramAfterStepOver();
-    DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException;
-    DebugDTO getProgramAfterStepBack();
-    DebugDTO getInitSnapshot();
-    void stopDebugPress();
+    void runProgram(String operationName, String architectureRepresentation, int expandLevel, String userName, Long... inputs);
+//    void initializeDebugger(String programName, int degree, List<Long> inputs);
+//    DebugDTO getProgramAfterStepOver();
+//    DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException;
+//    DebugDTO getProgramAfterStepBack();
+//    DebugDTO getInitSnapshot();
+//    void stopDebugPress();
     List<String> getAllFunctionsNames();
     Map<String, String> getAllUserStringToFunctionName();
     UserManager getUserManager();

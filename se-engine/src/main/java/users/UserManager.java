@@ -32,6 +32,10 @@ public class UserManager {
         return Collections.unmodifiableList((List<? extends UserDTO>) nameToUser.values());
     }
 
+    public synchronized UserDTO getUserByName(String username) {
+        return nameToUser.get(username);
+    }
+
     public boolean isUserExists(String username) {
         return nameToUser.containsKey(username);
     }

@@ -34,8 +34,8 @@ public class AvailableUsersTableController extends AbstractRefreshableController
     @FXML private TableColumn<UserDTO, String> colUserName;
     @FXML private TableColumn<UserDTO, Integer> colPrograms;
     @FXML private TableColumn<UserDTO, Integer> colFunctions;
-    @FXML private TableColumn<UserDTO, Integer> colCurrentCredits;
-    @FXML private TableColumn<UserDTO, Integer> colUsedCredits;
+    @FXML private TableColumn<UserDTO, Long> colCurrentCredits;
+    @FXML private TableColumn<UserDTO, Long> colUsedCredits;
     @FXML private TableColumn<UserDTO, Integer> colExecutions;
 
     private final ObservableList<UserDTO> usersList = FXCollections.observableArrayList();

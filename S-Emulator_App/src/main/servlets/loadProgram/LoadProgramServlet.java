@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import main.utils.ServletUtils;
+import main.utils.SessionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -44,7 +45,9 @@ public class LoadProgramServlet extends HttpServlet {
         byte[] xmlBytes = request.getInputStream().readAllBytes();
         try (var in = new ByteArrayInputStream(xmlBytes)) {
             Engine engine = ServletUtils.getEngine(getServletContext());
-            engine.loadProgram(in);
+            String username = SessionUtils.getUsername(request);
+
+            engine.loadProgram(in, username);
         }
         catch (EngineLoadException e) {
             System.out.println("Error loading program");

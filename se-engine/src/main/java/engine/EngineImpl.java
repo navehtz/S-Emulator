@@ -1,7 +1,8 @@
 package engine;
 
-import debug.Debug;
-import debug.DebugImpl;
+import architecture.ArchitectureType;
+//import debug.Debug;
+//import debug.DebugImpl;
 import dto.execution.DebugDTO;
 import dto.execution.InstructionsDTO;
 import dto.execution.ProgramDTO;
@@ -35,7 +36,7 @@ public class EngineImpl implements Engine, Serializable {
     //private ExecutionHistory executionHistory;
     private final Map<String, ExecutionHistory> programToExecutionHistory = new HashMap<>();
     private transient Path xmlPath;
-    private transient Debug debug;
+    //private transient Debug debug;
     private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new HashMap<>();
     private final UserManager userManager = new UserManager();
 
@@ -67,10 +68,10 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public void loadProgram(InputStream inputStream) throws EngineLoadException {
+    public void loadProgram(InputStream inputStream, String uploaderName) throws EngineLoadException {
 
         XmlProgramLoader loader = new XmlProgramLoader(registry, userManager);
-        LoadResult loadResult = loader.loadAll(inputStream);
+        LoadResult loadResult = loader.loadAll(inputStream, uploaderName);
 
         for (OperationView operation : loadResult.allOperationsByName.values()) {
             operation.validateProgram();
@@ -123,27 +124,30 @@ public class EngineImpl implements Engine, Serializable {
 //    }
 
     @Override
-    public void runProgram(String operationName, int degree, Long... inputs) {
+    public void runProgram(String operationName, String architectureRepresentation, int degree, String userName, Long... inputs) {
         // clone all operations for this run
         Map<String, OperationView> cloned = new HashMap<>();
-
-        //for (var e : loadedOperations.entrySet()) cloned.put(e.getKey(), e.getValue().deepClone());
+        // Old: for (var e : loadedOperations.entrySet()) cloned.put(e.getKey(), e.getValue().deepClone());
         for (String operationKey : operationToSubOperationsNames.get(operationName)) {
             OperationView operation = loadedOperations.get(operationKey);
             if (operation == null) throw new IllegalArgumentException("Program not found: " + operationKey);
             cloned.put(operationKey, operation.deepClone());
         }
+
         // expand all
         for (OperationView op : cloned.values()) op.expandProgram(degree);
 
         ProgramRegistry runRegistry = new ProgramRegistry();
         runRegistry.registerAll(cloned);
 
-        OperationView target = cloned.get(operationName);
-        if (target == null) throw new IllegalArgumentException("Program not found: " + operationName);
+        OperationView targetProgram = cloned.get(operationName);
+        if (targetProgram == null) throw new IllegalArgumentException("Program not found: " + operationName);
 
-        programExecutor = new ProgramExecutorImpl(target, runRegistry);
-        programExecutor.run(degree, inputs);
+        ArchitectureType architectureSelected = ArchitectureType.fromRepresentation(architectureRepresentation);
+        userManager.incrementExecutions(userName);
+        userManager.subtractCredits(userName, architectureSelected.getCreditsCost());
+        programExecutor = new ProgramExecutorImpl(targetProgram, architectureSelected, registry, userName);
+        programExecutor.run(userName, degree, inputs);
         ExecutionHistory executionHistory = programToExecutionHistory
                 .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
         executionHistory.addProgramToHistory(programExecutor);
@@ -333,64 +337,64 @@ public class EngineImpl implements Engine, Serializable {
         return op.getInputVariables().size();
     }
 
-    @Override
-    public void initializeDebugger(String programName, int degree, List<Long> inputs) {
-        Map<String, OperationView> cloned = new HashMap<>();
-        for (var entry : loadedOperations.entrySet()) {
-            cloned.put(entry.getKey(), entry.getValue().deepClone());
-        }
-
-        for (OperationView op : cloned.values()) {
-            op.setRegistry(registry);
-            op.expandProgram(degree);
-        }
-
-        ProgramRegistry runRegistry = new ProgramRegistry();
-        runRegistry.registerAll(cloned);
-        for (OperationView op : cloned.values()) {
-            op.setRegistry(runRegistry);
-        }
-
-        OperationView target = cloned.get(programName);
-        if (target == null) {
-            throw new IllegalArgumentException("Program not found: " + programName);
-        }
-
-        this.debug = new DebugImpl(target, runRegistry, degree, inputs != null ? inputs : List.of() );
-    }
-
-    @Override
-    public DebugDTO getProgramAfterStepOver() {
-        DebugDTO debugDTO = debug.stepOver();    // Step Over
-        return debugDTO;
-    }
-
-    private void addDebugResultToHistoryMap(DebugDTO debugDTO) {
-    }
-
-    @Override
-    public DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException {
-        DebugDTO debugDTO = debug.resume(breakPoints);  // Resume
-
-        return debugDTO;
-    }
-
-    @Override
-    public DebugDTO getProgramAfterStepBack() {
-        return debug.stepBack();
-    }
-
-    @Override
-    public void stopDebugPress() {
-        DebugDTO debugDTO = debug.stop();
-    }
-
-    @Override
-    public DebugDTO getInitSnapshot() {
-        if (debug == null) throw new IllegalStateException("Debugger not initialized");
-        return debug.init();
-    }
-
+//    @Override
+//    public void initializeDebugger(String programName, int degree, List<Long> inputs) {
+//        Map<String, OperationView> cloned = new HashMap<>();
+//        for (var entry : loadedOperations.entrySet()) {
+//            cloned.put(entry.getKey(), entry.getValue().deepClone());
+//        }
+//
+//        for (OperationView op : cloned.values()) {
+//            op.setRegistry(registry);
+//            op.expandProgram(degree);
+//        }
+//
+//        ProgramRegistry runRegistry = new ProgramRegistry();
+//        runRegistry.registerAll(cloned);
+//        for (OperationView op : cloned.values()) {
+//            op.setRegistry(runRegistry);
+//        }
+//
+//        OperationView target = cloned.get(programName);
+//        if (target == null) {
+//            throw new IllegalArgumentException("Program not found: " + programName);
+//        }
+//
+//        this.debug = new DebugImpl(target, runRegistry, degree, inputs != null ? inputs : List.of() );
+//    }
+//
+//    @Override
+//    public DebugDTO getProgramAfterStepOver() {
+//        DebugDTO debugDTO = debug.stepOver();    // Step Over
+//        return debugDTO;
+//    }
+//
+//    private void addDebugResultToHistoryMap(DebugDTO debugDTO) {
+//    }
+//
+//    @Override
+//    public DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException {
+//        DebugDTO debugDTO = debug.resume(breakPoints);  // Resume
+//
+//        return debugDTO;
+//    }
+//
+//    @Override
+//    public DebugDTO getProgramAfterStepBack() {
+//        return debug.stepBack();
+//    }
+//
+//    @Override
+//    public void stopDebugPress() {
+//        DebugDTO debugDTO = debug.stop();
+//    }
+//
+//    @Override
+//    public DebugDTO getInitSnapshot() {
+//        if (debug == null) throw new IllegalStateException("Debugger not initialized");
+//        return debug.init();
+//    }
+//
     public UserManager getUserManager() {
         return userManager;
     }

@@ -36,8 +36,8 @@ import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import ui.execution.debug.DebugOrchestrator;
-import ui.execution.debug.DebugUiPresenter;
+//import ui.execution.debug.DebugOrchestrator;
+//import ui.execution.debug.DebugUiPresenter;
 import ui.execution.run.RunOrchestrator;
 import ui.execution.run.RunUiPresenter;
 import ui.execution.support.RunsHistoryManager;
@@ -84,7 +84,7 @@ public class MainController {
 
     private RunOrchestrator runOrchestrator;
     private RunsHistoryManager runsHistoryManager;
-    private DebugOrchestrator debugOrchestrator;
+    //private DebugOrchestrator debugOrchestrator;
     private final Map<String, Long> lastVarsSnapshot = new HashMap<>();
 
     private SequentialTransition pulseAnimation;
@@ -183,23 +183,23 @@ public class MainController {
                 this::selectedOperationKey
         );
 
-        DebugUiPresenter debugPresenter = new DebugUiPresenter(
-                isDebugInProgress,
-                variablesPaneUpdater,
-                runsHistoryManager,
-                this::updateInputsPane,
-                this::applySnapshot,
-                this::enterDebugMode
-        );
-
-        this.debugOrchestrator = new DebugOrchestrator(
-                engine,
-                this::getOwnerWindowOrNull,
-                this::getSelectedDegree,
-                isDebugInProgress,
-                debugPresenter,
-                this::selectedOperationKey
-        );
+//        DebugUiPresenter debugPresenter = new DebugUiPresenter(
+//                isDebugInProgress,
+//                variablesPaneUpdater,
+//                runsHistoryManager,
+//                this::updateInputsPane,
+//                this::applySnapshot,
+//                this::enterDebugMode
+//        );
+//
+//        this.debugOrchestrator = new DebugOrchestrator(
+//                engine,
+//                this::getOwnerWindowOrNull,
+//                this::getSelectedDegree,
+//                isDebugInProgress,
+//                debugPresenter,
+//                this::selectedOperationKey
+//        );
     }
 
     private void initUiWiring() {
@@ -392,50 +392,50 @@ public class MainController {
         btnRun.setEffect(null);
         btnDebug.setEffect(null);
     }
-    @FXML private void onDebug(ActionEvent e)      {
-        debugOrchestrator.debug();
-        btnRun.setEffect(null);
-        btnDebug.setEffect(null);
-    }
-    @FXML private void onStop(ActionEvent e)       {
-        try {
-            engine.stopDebugPress();
-        } finally {
-            leaveDebugMode();
-        }
-    }
-
-    @FXML private void onResume(ActionEvent e)     {
-        try {
-            var breakpoints = mainInstrTableController.getBreakpoints();
-            var d = engine.getProgramAfterResume(breakpoints);
-            applySnapshot(d);
-        } catch (InterruptedException ex) {
-            // user cancelled, ignore
-        } catch (Exception ex) {
-            Dialogs.error("Resume failed", ex.getMessage(), getOwnerWindowOrNull());
-            leaveDebugMode();
-        }
-    }
-
-    @FXML private void onStepOver(ActionEvent e)   {
-        try {
-            var d = engine.getProgramAfterStepOver();
-            applySnapshot(d);
-        } catch (Exception exception) {
-            Dialogs.error("Step Over failed", exception.getMessage(), getOwnerWindowOrNull());
-            leaveDebugMode();
-        }
-    }
-
-    @FXML private void onStepBack(ActionEvent actionEvent) {
-        try {
-            var d = engine.getProgramAfterStepBack();
-            applySnapshot(d);
-        } catch (Exception ex) {
-            Dialogs.error("Step Back failed", ex.getMessage(), getOwnerWindowOrNull());
-        }
-    }
+//    @FXML private void onDebug(ActionEvent e)      {
+//        debugOrchestrator.debug();
+//        btnRun.setEffect(null);
+//        btnDebug.setEffect(null);
+//    }
+//    @FXML private void onStop(ActionEvent e)       {
+//        try {
+//            engine.stopDebugPress();
+//        } finally {
+//            leaveDebugMode();
+//        }
+//    }
+//
+//    @FXML private void onResume(ActionEvent e)     {
+//        try {
+//            var breakpoints = mainInstrTableController.getBreakpoints();
+//            var d = engine.getProgramAfterResume(breakpoints);
+//            applySnapshot(d);
+//        } catch (InterruptedException ex) {
+//            // user cancelled, ignore
+//        } catch (Exception ex) {
+//            Dialogs.error("Resume failed", ex.getMessage(), getOwnerWindowOrNull());
+//            leaveDebugMode();
+//        }
+//    }
+//
+//    @FXML private void onStepOver(ActionEvent e)   {
+//        try {
+//            var d = engine.getProgramAfterStepOver();
+//            applySnapshot(d);
+//        } catch (Exception exception) {
+//            Dialogs.error("Step Over failed", exception.getMessage(), getOwnerWindowOrNull());
+//            leaveDebugMode();
+//        }
+//    }
+//
+//    @FXML private void onStepBack(ActionEvent actionEvent) {
+//        try {
+//            var d = engine.getProgramAfterStepBack();
+//            applySnapshot(d);
+//        } catch (Exception ex) {
+//            Dialogs.error("Step Back failed", ex.getMessage(), getOwnerWindowOrNull());
+//        }
+//    }
 
     private int getSelectedDegree() {
         if (degreeSelector == null || degreeSelector.getValue() == null) return 0;

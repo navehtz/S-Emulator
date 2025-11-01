@@ -1,7 +1,6 @@
 package execution;
 
 import architecture.ArchitectureType;
-import dto.dashboard.UserDTO;
 import engine.ProgramRegistry;
 import instruction.Instruction;
 import label.FixedLabel;
@@ -31,12 +30,12 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 //        this.inputsValues = new ArrayList<>();
 //    }
 
-    public ProgramExecutorImpl(OperationView program, ArchitectureType architectureTypeSelected, ProgramRegistry registry) {
+    public ProgramExecutorImpl(OperationView program, ArchitectureType architectureTypeSelected, ProgramRegistry registry, String userName) {
         this.program = program;
         this.architectureTypeSelected = architectureTypeSelected;
         //ProgramRegistry programRegistry = Objects.requireNonNull(registry, "Program registry cannot be null");
-        OperationInvoker invoker = new ProgramExecutorInvoker(registry);
-        this.context = new ExecutionContextImpl(registry, invoker);
+        OperationInvoker invoker = new ProgramExecutorInvoker(registry, architectureTypeSelected);
+        this.context = new ExecutionContextImpl(registry, invoker, userName);
         this.inputsValues = new ArrayList<>();
     }
 
@@ -45,7 +44,7 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
     }
 
     @Override
-    public void run(UserDTO userDTO, int runDegree, Long... inputs) {
+    public void run(String userName, int runDegree, Long... inputs) {
         Instruction currentInstruction = program.getInstructionsList().getFirst();
         Instruction nextInstruction = null;
         Label nextLabel;
@@ -57,6 +56,7 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
         do {
             nextLabel = currentInstruction.execute(context);
             totalCycles += currentInstruction.getCycleOfInstruction();
+
 
             if (nextLabel == FixedLabel.EMPTY) {
                 int indexOfNextInstruction = program.getInstructionsList().indexOf(currentInstruction) + 1;
