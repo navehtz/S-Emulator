@@ -17,6 +17,7 @@ public interface Engine {
     void loadProgram(InputStream inputStream, String uploaderName) throws EngineLoadException;
 
     ProgramDTO getProgramToDisplay();  // throws if no program loaded
+    ProgramDTO getProgramByNameToDisplay(String programName);
     ProgramDTO getExpandedProgramToDisplay(int degree);
     ProgramExecutorDTO getProgramToDisplayAfterRun();
     List<ProgramExecutorDTO> getHistoryToDisplayByProgramName(String programName);

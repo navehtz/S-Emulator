@@ -3,6 +3,7 @@ package main.servlets.run;
 import com.google.gson.JsonObject;
 import dto.execution.ProgramDTO;
 import dto.execution.ProgramRunRequestDTO;
+import dto.execution.RunState;
 import engine.Engine;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -62,7 +63,7 @@ public class runProgramServlet extends HttpServlet {
         return jsonBody;
     }
 
-    private ProgramRunRequest buildProgramRunRequest(JsonObject jsonBody, String username, Engine engine, HttpServletResponse response) throws IOException {
+    private ProgramRunRequestDTO buildProgramRunRequest(JsonObject jsonBody, String username, Engine engine, HttpServletResponse response) throws IOException {
 
         String programName = jsonBody.get(PROGRAM_NAME_QUERY_PARAM).getAsString();
         String architecture = jsonBody.get(CHOSEN_ARCHITECTURE_STR_QUERY_PARAM).getAsString();
@@ -75,16 +76,16 @@ public class runProgramServlet extends HttpServlet {
         List<Long> inputValues = validateInputs(jsonBody, response);
         if (inputValues == null) return null;
 
-        ProgramDTO programDTO = engine.getProgramDTOByName(programName);
+        ProgramDTO programDTO = engine.getProgramByNameToDisplay(programName);
         if (!validateProgramExists(programDTO, response)) return null;
 
-        return new ProgramRunRequest(programName, degree, architecture, username, inputValues);
+        return new ProgramRunRequestDTO(programName, degree, architecture, username, inputValues);
     }
 
     private void writeSuccessResponse(HttpServletResponse response, String runId) throws IOException {
         Map<String, Object> jsonResponse = new HashMap<>();
         jsonResponse.put("runId", runId);
-        jsonResponse.put("state", ProgramRunState.PENDING.name());
+        jsonResponse.put("state", RunState.PENDING.name());
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");

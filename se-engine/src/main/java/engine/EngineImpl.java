@@ -164,6 +164,11 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
+    public ProgramDTO getProgramByNameToDisplay(String programName) {
+        return buildProgramDTO(registry.getProgramByName(programName));
+    }
+
+    @Override
     public ProgramExecutorDTO getProgramToDisplayAfterRun() {
         ProgramDTO programDTO = buildProgramDTO(programExecutor.getProgram());
 
