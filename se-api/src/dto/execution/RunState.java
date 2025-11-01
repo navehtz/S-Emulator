@@ -2,9 +2,8 @@ package dto.execution;
 
 public enum RunState {
     PENDING,
-    RUNNING,
-    PAUSED,
+    IN_PROGRESS,
     DONE,
+    Cancelled,
     ERROR,
-    CANCELLED
 }

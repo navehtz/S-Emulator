@@ -2,10 +2,9 @@ package dto.execution;
 
 public record ExecutionStatusDTO (
     String id,
-    RunState state,
-    String ownerUser,
     String programName,
-    String functionName,
+    String userName,
+    RunState state,
     int progressPercent,
     String message
 ) {}

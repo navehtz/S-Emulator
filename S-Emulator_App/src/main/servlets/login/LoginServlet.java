@@ -5,14 +5,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import main.constants.Constants;
+import main.utils.Constants;
 import main.utils.SessionUtils;
 import main.utils.ServletUtils;
 import users.UserManager;
 
 import java.io.IOException;
 
-import static main.constants.Constants.USERNAME;
+import static main.utils.Constants.USERNAME;
 
 @WebServlet(name = "LoginServlet", urlPatterns = "/login")
 public class LoginServlet extends HttpServlet {
