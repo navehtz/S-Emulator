@@ -11,7 +11,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -24,7 +23,6 @@ import util.support.Constants;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class AvailableUsersTableController extends AbstractRefreshableController {
@@ -71,17 +69,17 @@ public class AvailableUsersTableController extends AbstractRefreshableController
 
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                handleFailure("Network error: " + e.getMessage());
+                handleNetworkFailure("Network error: " + e.getMessage());
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                try (ResponseBody responseBody = response.body()) {
+                try (response; ResponseBody responseBody = response.body()) {
                     final String responseBodyString = responseBody != null ? responseBody.string() : "";
 
                     if (!response.isSuccessful()) {
                         int responseCode = response.code();
-                        handleFailure("HTTP " + responseCode + " " + response.message() +
+                        handleNetworkFailure("HTTP " + responseCode + " " + response.message() +
                                 (responseBodyString.isBlank() ? "" : " | " + responseBodyString));
                         if (responseCode == 401 || responseCode == 403) {
                             Platform.runLater(AvailableUsersTableController.this::stopAutoRefresh);
@@ -95,8 +93,6 @@ public class AvailableUsersTableController extends AbstractRefreshableController
                     Platform.runLater(() -> {
                         replaceIfChanged(incomingUsersDTOsList);
                     });
-                } finally {
-                    response.close();
                 }
             }
         });
@@ -108,18 +104,9 @@ public class AvailableUsersTableController extends AbstractRefreshableController
         }
     }
 
-    private boolean isEqualLists(List<UserDTO> list1, List<UserDTO> list2) {
-        if (list1 == null || list2 == null) return false;
-        if (list1.size() != list2.size()) return false;
-        for (int i = 0; i < list1.size(); i++) {
-            if (!Objects.equals(list1.get(i), list2.get(i))) return false;
-        }
-        return true;
-    }
-
-    private void handleFailure(String msg) {
+    private void handleNetworkFailure(String message) {
         int n = consecutiveFails.incrementAndGet();
-        System.err.println("[Users Poll] " + msg + " (fail #" + n + ")");
+        System.err.println("[Users Poll] " + message + " (fail #" + n + ")");
         if (n >= MAX_FAILS_BEFORE_STOP) {
             System.err.println("[Users Poll] Reached " + MAX_FAILS_BEFORE_STOP + " consecutive failures. Stopping.");
             Platform.runLater(this::stopAutoRefresh);
