@@ -27,35 +27,34 @@ public class LoginServlet extends HttpServlet {
 
         if (usernameFromSession == null) { //user is not logged in yet
 
-        String usernameFromParameter = request.getParameter(USERNAME);
-        if (usernameFromParameter == null || usernameFromParameter.isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_CONFLICT);
-        } else {
-            //normalize the username value
-            usernameFromParameter = usernameFromParameter.trim();
+            String usernameFromParameter = request.getParameter(USERNAME);
+            if (usernameFromParameter == null || usernameFromParameter.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
+            } else {
+                //normalize the username value
+                usernameFromParameter = usernameFromParameter.trim();
 
-            synchronized (this) {
-                if (userManager.isUserExists(usernameFromParameter)) {
-                    String errorMessage = "Username " + usernameFromParameter + " already exists. Please enter a different username.";
+                synchronized (this) {
+                    if (userManager.isUserExists(usernameFromParameter)) {
+                        String errorMessage = "Username " + usernameFromParameter + " already exists. Please enter a different username.";
 
-                    // stands for unauthorized as there is already such user with this name
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getOutputStream().print(errorMessage);
-                }
-                else {
-                    //add the new user to the users list
-                    userManager.addUser(usernameFromParameter);
-                    //set the username in a session so it will be available on each request
-                    //the true parameter means that if a session object does not exists yet
-                    //create a new one
-                    request.getSession(true).setAttribute(Constants.USERNAME, usernameFromParameter);
+                        // stands for unauthorized as there is already such user with this name
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.getOutputStream().print(errorMessage);
+                    } else {
+                        //add the new user to the user's list
+                        userManager.addUser(usernameFromParameter);
+                        //set the username in a session so it will be available on each request,
+                        //the true parameter means that if a session object does not exist yet
+                        //create a new one
+                        request.getSession(true).setAttribute(Constants.USERNAME, usernameFromParameter);
 
-                    //redirect the request to the dashboard - in order to actually change the URL
-                    System.out.println("On login, request URI is: " + request.getRequestURI());
-                    response.setStatus(HttpServletResponse.SC_OK);
+                        //redirect the request to the dashboard - in order to actually change the URL
+                        System.out.println("On login, request URI is: " + request.getRequestURI());
+                        response.setStatus(HttpServletResponse.SC_OK);
+                    }
                 }
             }
-        }
         } else {
             //user is already logged in
             response.setStatus(HttpServletResponse.SC_OK);

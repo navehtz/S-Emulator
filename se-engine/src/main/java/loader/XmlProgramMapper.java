@@ -36,7 +36,7 @@ final class XmlProgramMapper {
     private XmlProgramMapper() {
     }
 
-    static Operation map(SProgram sProgram) {
+    static Operation map(SProgram sProgram, String uploaderName) {
         // ---- name ----
         String programName = safeTrim(sProgram.getName());
         if (programName == null || programName.isEmpty()) {
@@ -53,6 +53,7 @@ final class XmlProgramMapper {
             // Build an empty program consistently via Builder
             return new ProgramImpl.Builder()
                     .withName(programName)
+                    .withUserUploaded(uploaderName)
                     .build();
         }
 
@@ -65,10 +66,11 @@ final class XmlProgramMapper {
                 .withVariables(vars)
                 .withLabels(labels)
                 .withEntry(labels.isEmpty() ? FixedLabel.EMPTY : labels.getFirst())
+                .withUserUploaded(uploaderName)
                 .build();
     }
 
-    static Operation map(SFunction sFunction) {
+    static Operation map(SFunction sFunction, String mainProgramName, String uploaderName) {
         String functionName = safeTrim(sFunction.getName());
         if (functionName == null || functionName.isEmpty()) functionName = "UnnamedFunction";
 
@@ -90,6 +92,8 @@ final class XmlProgramMapper {
                 .withLabels(labels)
                 .withEntry(labels.isEmpty() ? FixedLabel.EMPTY : labels.getFirst())
                 .withUserString(userString)
+                .withMainProgramName(mainProgramName)
+                .withUserUploaded(uploaderName)
                 .build();
     }
 

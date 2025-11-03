@@ -46,47 +46,48 @@ public class XmlProgramLoader {
         }
     }
 
-    public Operation load(Path xmlPath) throws EngineLoadException {
-        validatePath(xmlPath);
-        SProgram sProgram = unmarshal(xmlPath);
-        return XmlProgramMapper.map(sProgram);
-    }
+//    public Operation load(Path xmlPath) throws EngineLoadException {
+//        validatePath(xmlPath);
+//        SProgram sProgram = unmarshal(xmlPath);
+//        return XmlProgramMapper.map(sProgram);
+//    }
 
-    public LoadResult loadAll(Path xmlPath) throws EngineLoadException {
-        validatePath(xmlPath);
-        SProgram sProgram = unmarshal(xmlPath);
-        Operation mainProgram = XmlProgramMapper.map(sProgram);
-
-        //Map<String, Operation> allOperationsByName = new HashMap<>();
-        putUnique(registry, mainProgram);
-
-        List<SFunction> sFunctions = sProgram.getFunctions();
-
-        if(sFunctions != null) {
-            for (SFunction sFunction : sFunctions) {
-                if(sFunction == null) continue;
-                Operation functionOperation = XmlProgramMapper.map(sFunction);
-                putUnique(registry, functionOperation);
-            }
-        }
-
-        return new LoadResult(mainProgram, Collections.unmodifiableMap(registry.getAllProgramsByName()));
-    }
+//    public LoadResult loadAll(Path xmlPath) throws EngineLoadException {
+//        validatePath(xmlPath);
+//        SProgram sProgram = unmarshal(xmlPath);
+//        Operation mainProgram = XmlProgramMapper.map(sProgram);
+//
+//        //Map<String, Operation> allOperationsByName = new HashMap<>();
+//        putUnique(registry, mainProgram);
+//
+//        List<SFunction> sFunctions = sProgram.getFunctions();
+//
+//        if(sFunctions != null) {
+//            for (SFunction sFunction : sFunctions) {
+//                if(sFunction == null) continue;
+//                Operation functionOperation = XmlProgramMapper.map(sFunction);
+//                putUnique(registry, functionOperation);
+//            }
+//        }
+//
+//        return new LoadResult(mainProgram, Collections.unmodifiableMap(registry.getAllProgramsByName()));
+//    }
 
     public LoadResult loadAll(InputStream inputStream, String uploaderName) throws EngineLoadException {
         //validatePath(xmlPath);
         SProgram sProgram = unmarshal(inputStream);
-        Operation mainProgram = XmlProgramMapper.map(sProgram);
+        Operation mainProgram = XmlProgramMapper.map(sProgram, uploaderName);
 
         //Map<String, Operation> allOperationsByName = new HashMap<>();
         putUnique(registry, mainProgram);
+        userManager.incrementPrograms(uploaderName);
 
         List<SFunction> sFunctions = sProgram.getFunctions();
 
         if(sFunctions != null) {
             for (SFunction sFunction : sFunctions) {
                 if(sFunction == null) continue;
-                Operation functionOperation = XmlProgramMapper.map(sFunction);
+                Operation functionOperation = XmlProgramMapper.map(sFunction, mainProgram.getName(), uploaderName);
                 putUnique(registry, functionOperation);
                 userManager.incrementSubFunctions(uploaderName);
             }

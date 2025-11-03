@@ -4,18 +4,21 @@ import dto.execution.DebugDTO;
 import dto.execution.ProgramDTO;
 import dto.execution.ProgramExecutorDTO;
 import exceptions.EngineLoadException;
+import operation.OperationView;
 import users.UserManager;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public interface Engine {
 
-    void loadProgram(Path Path) throws EngineLoadException;
-    void loadProgram(InputStream inputStream, String uploaderName) throws EngineLoadException;
+    //void loadProgram(Path Path) throws EngineLoadException;
+    String loadProgram(InputStream inputStream, String uploaderName) throws EngineLoadException;
 
+    Collection<OperationView> getAllOperations();
     ProgramDTO getProgramToDisplay();  // throws if no program loaded
     ProgramDTO getProgramByNameToDisplay(String programName);
     ProgramDTO getExpandedProgramToDisplay(int degree);

@@ -31,6 +31,7 @@ public abstract class Operation implements OperationView, Serializable {
     protected final Set<Label> labelsAddedAfterExtension;     // keep order after expansion
     protected final Set<Label> referencedLabels;
     protected Label entry;
+    protected final String userUploaded;
 
 
     protected int nextLabelNumber = 1;
@@ -40,6 +41,9 @@ public abstract class Operation implements OperationView, Serializable {
     protected Operation(Builder<?,?> builder) {
         this.operationName = (builder.operationName == null || builder.operationName.isBlank())
                 ? "Unnamed Program" : builder.operationName;
+
+        this.userUploaded = builder.userUploaded == null ?
+                "Unnamed User" : builder.userUploaded;
 
         this.operationInstructions = new ArrayList<>();
         this.labelToInstruction = new LinkedHashMap<>();
@@ -88,6 +92,7 @@ public abstract class Operation implements OperationView, Serializable {
         protected final List<Label> labels = new ArrayList<>();
         protected final Set<Label> referencedLabels = new LinkedHashSet<>();
         protected Label entry;
+        protected String userUploaded;
 
         protected abstract B self();
         public abstract T build();
@@ -149,6 +154,11 @@ public abstract class Operation implements OperationView, Serializable {
             this.entry = entry;
             return self();
         }
+
+        public B withUserUploaded(String userUploaded) {
+            this.userUploaded = userUploaded;
+            return self();
+        }
     }
 
     // --------- cloning ----------
@@ -175,6 +185,10 @@ public abstract class Operation implements OperationView, Serializable {
     // --------- Program API ----------
     public String getName() {
         return this.operationName;
+    }
+
+    public String getUserUploaded() {
+        return this.userUploaded;
     }
 
     @Override

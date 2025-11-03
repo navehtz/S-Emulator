@@ -13,4 +13,5 @@ public interface Function extends OperationView {
 
     String getName();
     String getUserString();
+    String getMainProgramName();
 }

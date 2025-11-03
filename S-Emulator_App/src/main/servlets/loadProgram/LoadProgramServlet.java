@@ -20,13 +20,14 @@ public class LoadProgramServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String mainProgramName = null;
         try {
-            processRequest(request, response);
+            mainProgramName = processRequest(request, response);
         } catch (EngineLoadException e) {
             throw new RuntimeException(e);
         }
 
-        ProgramDTO baseProgram =ServletUtils.getEngine(getServletContext()).getProgramToDisplay();
+        ProgramDTO baseProgram =ServletUtils.getEngine(getServletContext()).getProgramByNameToDisplay(mainProgramName);
 
         Gson gson = new Gson();
         String jsonResponse = gson.toJson(baseProgram);
@@ -41,13 +42,14 @@ public class LoadProgramServlet extends HttpServlet {
         }
     }
 
-    private void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, EngineLoadException {
+    private String processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, EngineLoadException {
         byte[] xmlBytes = request.getInputStream().readAllBytes();
         try (var in = new ByteArrayInputStream(xmlBytes)) {
             Engine engine = ServletUtils.getEngine(getServletContext());
             String username = SessionUtils.getUsername(request);
 
-            engine.loadProgram(in, username);
+            String mainProgramName = engine.loadProgram(in, username);
+            return mainProgramName;
         }
         catch (EngineLoadException e) {
             System.out.println("Error loading program");

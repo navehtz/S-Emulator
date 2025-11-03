@@ -36,6 +36,7 @@ public final class ProgramImpl extends Operation implements Program {
         }
     }
 
+    @Override
     public ProgramRegistry getRegistry() {
         return registry;
     }

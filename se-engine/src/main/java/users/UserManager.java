@@ -4,6 +4,7 @@ import dto.dashboard.UserDTO;
 import exceptions.CreditsException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class UserManager {
 
@@ -29,7 +30,7 @@ public class UserManager {
     }
 
     public synchronized List<UserDTO> getUsers() {
-        return Collections.unmodifiableList((List<? extends UserDTO>) nameToUser.values());
+        return nameToUser.values().stream().toList();
     }
 
     public synchronized UserDTO getUserByName(String username) {

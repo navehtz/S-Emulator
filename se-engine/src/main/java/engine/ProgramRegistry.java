@@ -14,7 +14,7 @@ public class ProgramRegistry implements Serializable {
     private final Map<String, OperationView> programsByName = new HashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public void register(Operation op) {
+    public void register(OperationView op) {
         lock.writeLock().lock();
         try {
             programsByName.put(op.getName(), op);

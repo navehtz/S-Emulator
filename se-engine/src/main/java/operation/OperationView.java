@@ -63,5 +63,7 @@ public interface OperationView {
 
     void updateVariableAndLabel(Instruction instruction);
 
+    String getUserUploaded();
+
 }
 

@@ -41,34 +41,34 @@ public class EngineImpl implements Engine, Serializable {
     private final UserManager userManager = new UserManager();
 
 
+//    @Override
+//    public void loadProgram(Path xmlPath) throws EngineLoadException {
+//        this.xmlPath = xmlPath;
+//
+//        XmlProgramLoader loader = new XmlProgramLoader();
+//        LoadResult loadResult = loader.loadAll(xmlPath);
+//
+//        for (OperationView operation : loadResult.allOperationsByName.values()) {
+//            operation.validateProgram();
+//            operation.initialize();
+//        }
+//
+//        this.mainProgram = loadResult.getMainProgram();
+//        this.registry.clear();
+//        this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+//        this.registry.registerAll(loadResult.allOperationsByName);
+//        for (OperationView opView : loadedOperations.values()) {
+//            opView.setRegistry(this.registry);
+//        }
+//        this.mainProgram.setRegistry(this.registry);
+//
+//        FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
+//
+//        calculateExpansionForAllPrograms();
+//    }
+
     @Override
-    public void loadProgram(Path xmlPath) throws EngineLoadException {
-        this.xmlPath = xmlPath;
-
-        XmlProgramLoader loader = new XmlProgramLoader();
-        LoadResult loadResult = loader.loadAll(xmlPath);
-
-        for (OperationView operation : loadResult.allOperationsByName.values()) {
-            operation.validateProgram();
-            operation.initialize();
-        }
-
-        this.mainProgram = loadResult.getMainProgram();
-        this.registry.clear();
-        this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
-        this.registry.registerAll(loadResult.allOperationsByName);
-        for (OperationView opView : loadedOperations.values()) {
-            opView.setRegistry(this.registry);
-        }
-        this.mainProgram.setRegistry(this.registry);
-
-        FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
-
-        calculateExpansionForAllPrograms();
-    }
-
-    @Override
-    public void loadProgram(InputStream inputStream, String uploaderName) throws EngineLoadException {
+    public String loadProgram(InputStream inputStream, String uploaderName) throws EngineLoadException {
 
         XmlProgramLoader loader = new XmlProgramLoader(registry, userManager);
         LoadResult loadResult = loader.loadAll(inputStream, uploaderName);
@@ -80,7 +80,8 @@ public class EngineImpl implements Engine, Serializable {
 
         //this.mainProgram = loadResult.getMainProgram();
         //this.registry.clear();
-        this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+        //this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+        this.loadedOperations.putAll(loadResult.allOperationsByName);
         this.registry.registerAll(loadResult.allOperationsByName);
         for (OperationView opView : loadedOperations.values()) {
             opView.setRegistry(this.registry);
@@ -91,6 +92,8 @@ public class EngineImpl implements Engine, Serializable {
         FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
 
         calculateExpansionForAllPrograms();
+
+        return loadResult.getMainProgram().getName();
     }
 
 //    @Override
@@ -156,6 +159,11 @@ public class EngineImpl implements Engine, Serializable {
     @Override
     public int getNumberOfInputVariables() {
         return mainProgram.getInputVariables().size();
+    }
+
+    @Override
+    public Collection<OperationView> getAllOperations() {
+        return List.copyOf(registry.getAllPrograms());
     }
 
     @Override
@@ -241,15 +249,15 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public void calculateExpansionForAllPrograms() {
-        this.nameAndDegreeToProgram.put(
-                mainProgram.getName(),
-                mainProgram.calculateDegreeToProgram()
-        );
+//        this.nameAndDegreeToProgram.put(
+//                mainProgram.getName(),
+//                mainProgram.calculateDegreeToProgram()
+//        );
 
-        for (OperationView function : registry.getAllPrograms()) {
+        for (OperationView operation : registry.getAllPrograms()) {
             this.nameAndDegreeToProgram.put(
-                    function.getName(),
-                    function.calculateDegreeToProgram()
+                    operation.getName(),
+                    operation.calculateDegreeToProgram()
             );
         }
     }
@@ -306,7 +314,7 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public List<String> getAllFunctionsNames() { //TODO:Check how to change
+    public List<String> getAllFunctionsNames() {
         return registry.getAllPrograms().stream().map(OperationView::getName).toList();
     }
 
