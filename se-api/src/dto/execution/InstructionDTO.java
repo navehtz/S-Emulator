@@ -10,7 +10,9 @@ public record InstructionDTO(
     String referenceLabelStr,
     String targetVariableStr,
     String sourceVariableStr,
-    InstructionDTO origin
+    InstructionDTO origin,
+    String architectureStr,
+    int architectureRank
 ) {}
 
 

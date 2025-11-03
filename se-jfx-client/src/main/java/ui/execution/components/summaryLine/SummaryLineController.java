@@ -13,11 +13,20 @@ import java.util.List;
 
 public class SummaryLineController {
 
+    public Label totalInstructions;
+    public Label iArchInstructions;
+    public Label amountIArch;
+    public Label iiArchInstructions;
+    public Label amountIIArch;
+    public Label iiiArchInstructions;
+    public Label amountIIIArch;
+    public Label ivArchInstructions;
+    public Label amountIVArch;
     private ObjectProperty<ProgramDTO> currentSelectedProgramProperty;
 
     @FXML private Label amountTotal;
-    @FXML private Label amountBasic;
-    @FXML private Label amountSynthetic;
+//    @FXML private Label amountBasic;
+//    @FXML private Label amountSynthetic;
 
 
     public void setProperty(ObjectProperty<ProgramDTO> programProperty) {
@@ -41,8 +50,8 @@ public class SummaryLineController {
 
         // Bind labels to the string bindings
         amountTotal.textProperty().bind(totalCountBinding.asString());
-        amountBasic.textProperty().bind(basicCountBinding.asString());
-        amountSynthetic.textProperty().bind(syntheticCountBinding.asString());
+        //amountBasic.textProperty().bind(basicCountBinding.asString());
+        //amountSynthetic.textProperty().bind(syntheticCountBinding.asString());
     }
 
     private int computeTotalInstructionsCount(ProgramDTO program) {

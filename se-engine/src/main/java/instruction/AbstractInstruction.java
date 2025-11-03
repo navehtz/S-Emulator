@@ -120,7 +120,9 @@ public abstract class AbstractInstruction implements Instruction {
                 referenceLabelStr,
                 getTargetVariable().getRepresentation(),
                 sourceVariableStr,
-                parentDto
+                parentDto,
+                instructionData.getArchitectureType().getRepresentation(),
+                instructionData.getArchitectureType().getRank()
         );
     }
 

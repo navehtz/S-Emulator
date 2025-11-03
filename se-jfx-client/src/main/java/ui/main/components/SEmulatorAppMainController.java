@@ -43,7 +43,6 @@ public class SEmulatorAppMainController implements Closeable {
     public void initialize() {
         loadLoginPage();
         loadDashboardPage();
-        loadExecutionPage();
     }
 
     public void updateUserName(String userName) {
@@ -137,6 +136,17 @@ public class SEmulatorAppMainController implements Closeable {
         Platform.runLater(() -> {
             dashboardComponentController.setInActive();
             loadExecutionPage();
+        });
+    }
+
+    public void switchToExecutionPage(String programName) {
+        Platform.runLater(() -> {
+            dashboardComponentController.setInActive();
+            loadExecutionPage();
+
+            if (executionPageController != null && programName != null) {
+                executionPageController.loadProgramForExecution(programName);
+            }
         });
     }
 

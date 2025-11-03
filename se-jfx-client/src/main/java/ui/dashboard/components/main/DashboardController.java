@@ -31,7 +31,11 @@ public class DashboardController implements Closeable {
 
     @FXML
     private void initialize() {
-        programsTableController.setOnExecuteProgram();
+        programsTableController.setOnExecuteProgram(row -> {
+            if (sEmulatorAppMainController != null && row != null && !row.programName().isBlank()) {
+                sEmulatorAppMainController.switchToExecutionPage(row.programName());
+            }
+        });
     }
 
     public void bindUserName(StringProperty userNameProperty) {

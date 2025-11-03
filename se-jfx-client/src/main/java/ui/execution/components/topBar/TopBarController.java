@@ -13,10 +13,16 @@ public class TopBarController {
     @FXML private Label userNameLabel;
 
     private SimpleStringProperty userNameProperty = new SimpleStringProperty();
+    private Runnable onBackToDashboard;
+
 
     @FXML
     public void initialize() {
         userNameLabel.textProperty().bind(userNameProperty);
+    }
+
+    public void setOnBackToDashboard(Runnable onBackToDashboard) {
+        this.onBackToDashboard = onBackToDashboard;
     }
 
     public StringProperty userNameProperty() {
@@ -25,6 +31,7 @@ public class TopBarController {
 
     @FXML
     private void backToDashboardClicked(ActionEvent event) {
-        // TODO
+        if (onBackToDashboard != null) onBackToDashboard.run();
     }
+
 }

@@ -1,6 +1,9 @@
 // src/main/java/ui/MainController.java
 package ui.execution.components.main;
 
+import com.google.gson.Gson;
+import okhttp3.*;
+import org.jetbrains.annotations.NotNull;
 import ui.execution.components.dynamicInputs.DynamicInputsController;
 import ui.execution.components.instructionHistoryChain.InstructionHistoryChainController;
 import ui.execution.components.instructionTable.InstructionTableController;
@@ -33,10 +36,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.*;
 
 import javafx.util.Duration;
-import okhttp3.Call;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 //import ui.execution.debug.DebugOrchestrator;
 //import ui.execution.debug.DebugUiPresenter;
 //import ui.execution.run.RunOrchestrator;
@@ -44,11 +43,14 @@ import okhttp3.Response;
 import ui.execution.support.RunsHistoryManager;
 import ui.execution.support.VariablesPaneUpdater;
 import ui.main.components.SEmulatorAppMainController;
+import util.http.HttpClientUtil;
+import util.support.Constants;
 import util.support.Dialogs;
 import util.behavior.HighlightingBehavior;
 import util.themes.Theme;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -59,14 +61,14 @@ public class ExecutionPageController {
     @FXML private InstructionHistoryChainController historyInstrTableController;
     @FXML private VariablesTableController varsPaneController;
     @FXML private DynamicInputsController inputsPaneController;
-    @FXML private RunHistoryTableController runsPaneController;
+    //@FXML private RunHistoryTableController runsPaneController;
     @FXML private SummaryLineController summaryLineController;
     @FXML private TopBarController topBarController;
 
-    @FXML private Label programNameLabel;
-    @FXML private ComboBox<String> contextSelector;
-    @FXML private ComboBox<Integer> degreeSelector;
-    @FXML private ComboBox<String> highlightSelector;
+    //@FXML private Label programNameLabel;
+    //@FXML private ComboBox<String> contextSelector;
+    //@FXML private ComboBox<Integer> degreeSelector;
+    //@FXML private ComboBox<String> highlightSelector;
     //@FXML private Button btnLoadFile;
     @FXML private Button btnRun;
     @FXML private Button btnDebug;
@@ -77,8 +79,8 @@ public class ExecutionPageController {
     @FXML private Label cyclesLabel;
     @FXML private ScrollPane rootScroll;
     @FXML private BorderPane rootContent;
-    @FXML private CheckBox checkBoxAnimations;
-    @FXML private ComboBox<String> themeSelector;
+    //@FXML private CheckBox checkBoxAnimations;
+    //@FXML private ComboBox<String> themeSelector;
 
     //private final Engine engine = new EngineImpl();
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
@@ -108,11 +110,11 @@ public class ExecutionPageController {
     private void initialize() {
         initCollaborators();
         initUiWiring();
-        new HighlightingBehavior().wire(
-                mainInstrTableController.getTable(),
-                highlightSelector,
-                mainInstrTableController::commandTextOf
-        );
+//        new HighlightingBehavior().wire(
+//                mainInstrTableController.getTable(),
+//                topBarController.highlightSelector,
+//                mainInstrTableController::commandTextOf
+//        );
 
         rootScroll.viewportBoundsProperty().addListener((obs, oldVal, newVal) -> {
             double designWidth = 1100.0;
@@ -121,56 +123,56 @@ public class ExecutionPageController {
             rootContent.setPrefHeight(Math.max(designHeight, newVal.getHeight()));
         });
 
-        rightPane.setMinWidth(400);
-        rightPane.setPrefWidth(400);
-        rightPane.setMaxWidth(500);
+//        rightPane.setMinWidth(400);
+//        rightPane.setPrefWidth(400);
+//        rightPane.setMaxWidth(500);
 
-        animationsEnabled.bind(checkBoxAnimations.selectedProperty());
-        animationsEnabled.addListener((obs, was, isNow) -> {
-            if (isNow && !(isRunInProgress.get() || isDebugInProgress.get())) {
-                animateLoadFileButton();
-            }
-            else {
-                stopAllAnimations();
-            }
-        });
-
-        Platform.runLater(() -> {
-           if (animationsEnabled.get()) {
-               animateLoadFileButton();
-           }
-        });
-
-        themeSelector.getItems().setAll(
-                Theme.LIGHT.toString(),
-                Theme.DARK.toString(),
-                Theme.YELLOW_BLUE.toString()
-        );
-        var prefs = java.util.prefs.Preferences.userNodeForPackage(getClass());
-        String saved = prefs.get(PREF_KEY_THEME, Theme.LIGHT.toString());
-        themeSelector.getItems().setAll(Theme.LIGHT.toString(), Theme.DARK.toString(), Theme.YELLOW_BLUE.toString());
-        themeSelector.getSelectionModel().select(saved);
-
-        // apply current once UI is ready
-        Platform.runLater(() -> applySelectedTheme(saved));
-
-        // react to changes
-        themeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                applySelectedTheme(newVal);
-                prefs.put(PREF_KEY_THEME, newVal);
-            }
-        });
+//        animationsEnabled.bind(checkBoxAnimations.selectedProperty());
+//        animationsEnabled.addListener((obs, was, isNow) -> {
+//            if (isNow && !(isRunInProgress.get() || isDebugInProgress.get())) {
+//                //animateLoadFileButton();
+//            }
+//            else {
+//                stopAllAnimations();
+//            }
+//        });
+//
+//        Platform.runLater(() -> {
+//           if (animationsEnabled.get()) {
+//               //animateLoadFileButton();
+//           }
+//        });
+//
+//        themeSelector.getItems().setAll(
+//                Theme.LIGHT.toString(),
+//                Theme.DARK.toString(),
+//                Theme.YELLOW_BLUE.toString()
+//        );
+//        var prefs = java.util.prefs.Preferences.userNodeForPackage(getClass());
+//        String saved = prefs.get(PREF_KEY_THEME, Theme.LIGHT.toString());
+//        themeSelector.getItems().setAll(Theme.LIGHT.toString(), Theme.DARK.toString(), Theme.YELLOW_BLUE.toString());
+//        themeSelector.getSelectionModel().select(saved);
+//
+//        // apply current once UI is ready
+//        Platform.runLater(() -> applySelectedTheme(saved));
+//
+//        // react to changes
+//        themeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
+//            if (newVal != null) {
+//                applySelectedTheme(newVal);
+//                prefs.put(PREF_KEY_THEME, newVal);
+//            }
+//        });
     }
 
     private void initCollaborators() {
         VariablesPaneUpdater variablesPaneUpdater = new VariablesPaneUpdater(varsPaneController, cyclesLabel);
-        runsHistoryManager = new RunsHistoryManager(runsPaneController);
-        runsHistoryManager.setCurrentProgramKeySupplier(this::selectedOperationKey);
+//        runsHistoryManager = new RunsHistoryManager(runsPaneController);
+//        runsHistoryManager.setCurrentProgramKeySupplier(this::selectedOperationKey);
         summaryLineController.setProperty(currentProgramDTO);
         summaryLineController.initializeBindings();
-        runsPaneController.setOnShowStatus(runsHistoryManager::showStatusPopup);
-        runsPaneController.setOnRerun(row -> onRerunRow(row));
+//        runsPaneController.setOnShowStatus(runsHistoryManager::showStatusPopup);
+//        runsPaneController.setOnRerun(row -> onRerunRow(row));
 
 
 //        RunUiPresenter runUiPresenter = new RunUiPresenter(
@@ -208,8 +210,8 @@ public class ExecutionPageController {
     }
 
     private void initUiWiring() {
-        initDegreeSelectorHandler();
-        initContextSelectorHandler();
+        //initDegreeSelectorHandler();
+        //initContextSelectorHandler();
         initRunAndDebugButtonsDisableBinding();
 
         btnStop.disableProperty().bind(isDebugInProgress.not());
@@ -224,72 +226,73 @@ public class ExecutionPageController {
         return (btnRun.getScene() != null) ? btnRun.getScene().getWindow() : null;
     }
 
-    private void initDegreeSelectorHandler() {
-        degreeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal == null) return;
-            String selectedContext = contextSelector.getValue() != null
-                    ? contextSelector.getValue()
-                    : engine.getProgramToDisplay().programName();
-            if (selectedContext == null) return;
-            String selectedFunction = engine.getAllUserStringToFunctionName().get(selectedContext);
-            ProgramDTO expanded = engine.getExpandedProgramDTO(selectedFunction, newVal);
-            updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
-            clearExecutionData();
-            populateHighlightSelectorFromCurrentProgram();
-            if (isDebugInProgress.get()) {
-                isDebugInProgress.set(false);
-            }
-        });
-    }
+//    private void initDegreeSelectorHandler() {
+//        degreeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
+//            if (newVal == null) return;
+//            String selectedContext = contextSelector.getValue() != null
+//                    ? contextSelector.getValue()
+//                    : engine.getProgramToDisplay().programName();
+//            if (selectedContext == null) return;
+//            String selectedFunction = engine.getAllUserStringToFunctionName().get(selectedContext);
+//            ProgramDTO expanded = engine.getExpandedProgramDTO(selectedFunction, newVal);
+//            ProgramDTO TODO = currentProgramDTO.get();
+//            updateCurrentProgramAndMainInstrTable(TODO); // updates currentProgram + mainInstr table
+//            clearExecutionData();
+//            populateHighlightSelectorFromCurrentProgram();
+//            if (isDebugInProgress.get()) {
+//                isDebugInProgress.set(false);
+//            }
+//        });
+//    }
 
-    private void initContextSelectorHandler() {
-        contextSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal == null) return;
+//    private void initContextSelectorHandler() {
+//        contextSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
+//            if (newVal == null) return;
+//
+//            int currentDegree = degreeSelector.getValue() != null ? degreeSelector.getValue() : 0;
+//            String selectedFunction = engine.getAllUserStringToFunctionName().get(newVal);
+//
+//            int maxDegreeForContext;
+//            try {
+//                maxDegreeForContext = engine.getMaxDegree(selectedFunction);
+//            } catch (Exception e) {
+//                degreeSelector.getItems().setAll(0);
+//                degreeSelector.getSelectionModel().select(Integer.valueOf(0));
+//                return;
+//            }
+//
+//            var degrees = java.util.stream.IntStream.rangeClosed(0, maxDegreeForContext)
+//                    .boxed().toList();
+//            degreeSelector.getItems().setAll(degrees);
+//
+//            int selectedDegree = (currentDegree <= maxDegreeForContext) ? currentDegree : 0;
+//            degreeSelector.getSelectionModel().select(Integer.valueOf(selectedDegree));
+//
+//            ProgramDTO expanded = engine.getExpandedProgramDTO(selectedFunction, degreeSelector.getValue() != null ? degreeSelector.getValue() : 0);
+//            updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
+//            clearExecutionData();
+//            populateHighlightSelectorFromCurrentProgram();
+//
+//            runsHistoryManager.onContextChanged(selectedFunction);
+//
+//            if (isDebugInProgress.get()) {
+//                isDebugInProgress.set(false);
+//            }
+//
+////            //TODO: Change to real history of function
+////            runsHistoryManager.clearHistory();
+//        });
+//    }
 
-            int currentDegree = degreeSelector.getValue() != null ? degreeSelector.getValue() : 0;
-            String selectedFunction = engine.getAllUserStringToFunctionName().get(newVal);
-
-            int maxDegreeForContext;
-            try {
-                maxDegreeForContext = engine.getMaxDegree(selectedFunction);
-            } catch (Exception e) {
-                degreeSelector.getItems().setAll(0);
-                degreeSelector.getSelectionModel().select(Integer.valueOf(0));
-                return;
-            }
-
-            var degrees = java.util.stream.IntStream.rangeClosed(0, maxDegreeForContext)
-                    .boxed().toList();
-            degreeSelector.getItems().setAll(degrees);
-
-            int selectedDegree = (currentDegree <= maxDegreeForContext) ? currentDegree : 0;
-            degreeSelector.getSelectionModel().select(Integer.valueOf(selectedDegree));
-
-            ProgramDTO expanded = engine.getExpandedProgramDTO(selectedFunction, degreeSelector.getValue() != null ? degreeSelector.getValue() : 0);
-            updateCurrentProgramAndMainInstrTable(expanded); // updates currentProgram + mainInstr table
-            clearExecutionData();
-            populateHighlightSelectorFromCurrentProgram();
-
-            runsHistoryManager.onContextChanged(selectedFunction);
-
-            if (isDebugInProgress.get()) {
-                isDebugInProgress.set(false);
-            }
-
-//            //TODO: Change to real history of function
-//            runsHistoryManager.clearHistory();
-        });
-    }
-
-    private void populateHighlightSelectorFromCurrentProgram() {
-        ProgramDTO currentProgram = getCurrentProgram();
-        if (currentProgram == null) {
-            highlightSelector.getItems().clear();
-        } else {
-            highlightSelector.getItems().setAll(currentProgram.allVariables());
-            highlightSelector.getItems().addAll(currentProgram.labelsStr());
-        }
-    }
+//    private void populateHighlightSelectorFromCurrentProgram() {
+//        ProgramDTO currentProgram = getCurrentProgram();
+//        if (currentProgram == null) {
+//            highlightSelector.getItems().clear();
+//        } else {
+//            highlightSelector.getItems().setAll(currentProgram.allVariables());
+//            highlightSelector.getItems().addAll(currentProgram.labelsStr());
+//        }
+//    }
 
     private void initRunAndDebugButtonsDisableBinding() {
         btnRun.disableProperty().bind(
@@ -303,63 +306,63 @@ public class ExecutionPageController {
         );
     }
 
-    // ===== Handlers used in ExecutionPage.fxml =====
+    // ===== Handlers used in executionPage.fxml =====
 
 
     @FXML private void onRun(ActionEvent e) {
-        runOrchestrator.run(getCurrentProgram());
-        btnRun.setEffect(null);
-        btnDebug.setEffect(null);
+//        runOrchestrator.run(getCurrentProgram());
+//        btnRun.setEffect(null);
+//        btnDebug.setEffect(null);
     }
     @FXML private void onDebug(ActionEvent e)      {
-        debugOrchestrator.debug();
-        btnRun.setEffect(null);
-        btnDebug.setEffect(null);
+//        debugOrchestrator.debug();
+//        btnRun.setEffect(null);
+//        btnDebug.setEffect(null);
     }
     @FXML private void onStop(ActionEvent e)       {
-        try {
-            engine.stopDebugPress();
-        } finally {
-            leaveDebugMode();
-        }
+//        try {
+//            engine.stopDebugPress();
+//        } finally {
+//            leaveDebugMode();
+//        }
     }
 
     @FXML private void onResume(ActionEvent e)     {
-        try {
-            var breakpoints = mainInstrTableController.getBreakpoints();
-            var d = engine.getProgramAfterResume(breakpoints);
-            applySnapshot(d);
-        } catch (InterruptedException ex) {
-            // user cancelled, ignore
-        } catch (Exception ex) {
-            Dialogs.error("Resume failed", ex.getMessage(), getOwnerWindowOrNull());
-            leaveDebugMode();
-        }
+//        try {
+//            var breakpoints = mainInstrTableController.getBreakpoints();
+//            var d = engine.getProgramAfterResume(breakpoints);
+//            applySnapshot(d);
+//        } catch (InterruptedException ex) {
+//            // user cancelled, ignore
+//        } catch (Exception ex) {
+//            Dialogs.error("Resume failed", ex.getMessage(), getOwnerWindowOrNull());
+//            leaveDebugMode();
+//        }
     }
 
     @FXML private void onStepOver(ActionEvent e)   {
-        try {
-            var d = engine.getProgramAfterStepOver();
-            applySnapshot(d);
-        } catch (Exception exception) {
-            Dialogs.error("Step Over failed", exception.getMessage(), getOwnerWindowOrNull());
-            leaveDebugMode();
-        }
+//        try {
+//            var d = engine.getProgramAfterStepOver();
+//            applySnapshot(d);
+//        } catch (Exception exception) {
+//            Dialogs.error("Step Over failed", exception.getMessage(), getOwnerWindowOrNull());
+//            leaveDebugMode();
+//        }
     }
 
     @FXML private void onStepBack(ActionEvent actionEvent) {
-        try {
-            var d = engine.getProgramAfterStepBack();
-            applySnapshot(d);
-        } catch (Exception ex) {
-            Dialogs.error("Step Back failed", ex.getMessage(), getOwnerWindowOrNull());
-        }
+//        try {
+//            var d = engine.getProgramAfterStepBack();
+//            applySnapshot(d);
+//        } catch (Exception ex) {
+//            Dialogs.error("Step Back failed", ex.getMessage(), getOwnerWindowOrNull());
+//        }
     }
 
-    private int getSelectedDegree() {
-        if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
-        return degreeSelector.getValue();
-    }
+//    private int getSelectedDegree() {
+//        if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
+//        return degreeSelector.getValue();
+//    }
 
     private void updateCurrentProgramAndMainInstrTable(ProgramDTO dto) {
         this.currentProgramDTO.set(dto);
@@ -414,14 +417,14 @@ public class ExecutionPageController {
         return c;
     }
 
-    private String selectedOperationKey() {
-        String selectedOperationString = contextSelector.getValue();
-        if (selectedOperationString == null || selectedOperationString.isBlank()) {
-            return engine.getProgramToDisplay().programName(); // main program fallback
-        }
-
-        return engine.getAllUserStringToFunctionName().getOrDefault(selectedOperationString, selectedOperationString);
-    }
+//    private String selectedOperationKey() {
+//        String selectedOperationString = contextSelector.getValue();
+//        if (selectedOperationString == null || selectedOperationString.isBlank()) {
+//            return engine.getProgramToDisplay().programName(); // main program fallback
+//        }
+//
+//        return engine.getAllUserStringToFunctionName().getOrDefault(selectedOperationString, selectedOperationString);
+//    }
 
     private void enterDebugMode() {
         isDebugInProgress.set(true);
@@ -435,33 +438,33 @@ public class ExecutionPageController {
     private void updateButtonsForSnapshot(ProgramExecutorDTO snap, boolean hasMore, boolean hasHistoryBack) {
     }
 
-    private void applySnapshot(DebugDTO dbgDTO) {
-        mainInstrTableController.markCurrentInstruction(dbgDTO.currentInstructionNumber());
-
-        Set<String> changedVariables = new HashSet<>();
-        Map<String, Long> variablesStateNow = dbgDTO.variablesToValuesSorted();
-        for (var e : variablesStateNow.entrySet()) {
-            Long variableStateBefore = lastVarsSnapshot.get(e.getKey());
-            if (variableStateBefore == null || !variableStateBefore.equals(e.getValue()))
-                changedVariables.add(e.getKey());
-        }
-
-        // remember for next time
-        lastVarsSnapshot.clear();
-        lastVarsSnapshot.putAll(variablesStateNow);
-        var programExecutor = toProgramExecutor(dbgDTO);
-        // update right panes
-        updateInputsPane(programExecutor);                          // if you prefer to only set on session start, remove this line
-        new VariablesPaneUpdater(varsPaneController, cyclesLabel).update(programExecutor, changedVariables);
-
-        boolean hasHistory = dbgDTO.currentInstructionNumber() > 0;
-        updateButtonsForSnapshot(programExecutor, dbgDTO.hasMoreInstructions(), hasHistory);
-
-        if (!dbgDTO.hasMoreInstructions()) {
-            runsHistoryManager.append(programExecutor);
-            leaveDebugMode();
-        }
-    }
+//    private void applySnapshot(DebugDTO dbgDTO) {
+//        mainInstrTableController.markCurrentInstruction(dbgDTO.currentInstructionNumber());
+//
+//        Set<String> changedVariables = new HashSet<>();
+//        Map<String, Long> variablesStateNow = dbgDTO.variablesToValuesSorted();
+//        for (var e : variablesStateNow.entrySet()) {
+//            Long variableStateBefore = lastVarsSnapshot.get(e.getKey());
+//            if (variableStateBefore == null || !variableStateBefore.equals(e.getValue()))
+//                changedVariables.add(e.getKey());
+//        }
+//
+//        // remember for next time
+//        lastVarsSnapshot.clear();
+//        lastVarsSnapshot.putAll(variablesStateNow);
+//        var programExecutor = toProgramExecutor(dbgDTO);
+//        // update right panes
+//        updateInputsPane(programExecutor);                          // if you prefer to only set on session start, remove this line
+//        new VariablesPaneUpdater(varsPaneController, cyclesLabel).update(programExecutor, changedVariables);
+//
+//        boolean hasHistory = dbgDTO.currentInstructionNumber() > 0;
+//        updateButtonsForSnapshot(programExecutor, dbgDTO.hasMoreInstructions(), hasHistory);
+//
+//        if (!dbgDTO.hasMoreInstructions()) {
+//            runsHistoryManager.append(programExecutor);
+//            leaveDebugMode();
+//        }
+//    }
 
     private ProgramExecutorDTO toProgramExecutor(DebugDTO dbg) {
         var stub = new ProgramDTO(
@@ -481,66 +484,66 @@ public class ExecutionPageController {
         );
     }
 
-    private void onRerunRow(RunHistoryTableController.RunRow row) {
-        String programKey = row.programKey();
+//    private void onRerunRow(RunHistoryTableController.RunRow row) {
+//        String programKey = row.programKey();
+//
+//        String displayFunction = engine.getAllUserStringToFunctionName()
+//                .entrySet().stream()
+//                .filter(e -> e.getValue().equals(programKey))
+//                .map(Map.Entry::getKey)
+//                .findFirst()
+//                .orElse(programKey);
+//
+//        contextSelector.getSelectionModel().select(displayFunction);
+//
+//        // Set degree to the run’s degree
+//        degreeSelector.getSelectionModel().select(Integer.valueOf(row.degree()));
+//
+//        // Clear panes for a fresh session
+//        clearExecutionData();
+//
+//        // Seed inputs so the next Run/Debug dialog is prefilled
+//        //runOrchestrator.seedPrefillInputs(programKey, row.inputs());
+//
+//        pulseRunAndDebugButtons();
+//    }
 
-        String displayFunction = engine.getAllUserStringToFunctionName()
-                .entrySet().stream()
-                .filter(e -> e.getValue().equals(programKey))
-                .map(Map.Entry::getKey)
-                .findFirst()
-                .orElse(programKey);
-
-        contextSelector.getSelectionModel().select(displayFunction);
-
-        // Set degree to the run’s degree
-        degreeSelector.getSelectionModel().select(Integer.valueOf(row.degree()));
-
-        // Clear panes for a fresh session
-        clearExecutionData();
-
-        // Seed inputs so the next Run/Debug dialog is prefilled
-        //runOrchestrator.seedPrefillInputs(programKey, row.inputs());
-
-        pulseRunAndDebugButtons();
-    }
-
-    private void animateLoadFileButton() {
-        if (!animationsEnabled.get()) return;
-        btnLoadFile.setOpacity(0);
-        //btnLoadFile.setTranslateY(14);
-
-        // Drop shadow (soft)
-        DropShadow ds = new DropShadow(30, Color.rgb(0,0,0,0.30));
-        btnLoadFile.setEffect(ds);
-
-        // Intro: fade + slide
-        FadeTransition fade = new FadeTransition(Duration.millis(420), btnLoadFile);
-        fade.setFromValue(0);
-        fade.setToValue(1);
-
-        // Pulse after intro (scale up , then back)
-        ScaleTransition pulseUp = new ScaleTransition(Duration.millis(200), btnLoadFile);
-        pulseUp.setToX(1.04);
-        pulseUp.setToY(1.04);
-
-        ScaleTransition pulseDown = new ScaleTransition(Duration.millis(200), btnLoadFile);
-        pulseDown.setToX(1.0);
-        pulseDown.setToY(1.0);
-
-        pulseAnimation = new SequentialTransition(
-                new PauseTransition(Duration.seconds(2.0)),
-                pulseUp, pulseDown
-        );
-        pulseAnimation.setCycleCount(Animation.INDEFINITE);
-
-        introAnimation = new SequentialTransition(
-                new PauseTransition(Duration.millis(200)),
-                new ParallelTransition(fade)
-        );
-        introAnimation.setOnFinished(e -> pulseAnimation.play());
-        introAnimation.play();
-    }
+//    private void animateLoadFileButton() {
+//        if (!animationsEnabled.get()) return;
+//        btnLoadFile.setOpacity(0);
+//        //btnLoadFile.setTranslateY(14);
+//
+//        // Drop shadow (soft)
+//        DropShadow ds = new DropShadow(30, Color.rgb(0,0,0,0.30));
+//        btnLoadFile.setEffect(ds);
+//
+//        // Intro: fade + slide
+//        FadeTransition fade = new FadeTransition(Duration.millis(420), btnLoadFile);
+//        fade.setFromValue(0);
+//        fade.setToValue(1);
+//
+//        // Pulse after intro (scale up , then back)
+//        ScaleTransition pulseUp = new ScaleTransition(Duration.millis(200), btnLoadFile);
+//        pulseUp.setToX(1.04);
+//        pulseUp.setToY(1.04);
+//
+//        ScaleTransition pulseDown = new ScaleTransition(Duration.millis(200), btnLoadFile);
+//        pulseDown.setToX(1.0);
+//        pulseDown.setToY(1.0);
+//
+//        pulseAnimation = new SequentialTransition(
+//                new PauseTransition(Duration.seconds(2.0)),
+//                pulseUp, pulseDown
+//        );
+//        pulseAnimation.setCycleCount(Animation.INDEFINITE);
+//
+//        introAnimation = new SequentialTransition(
+//                new PauseTransition(Duration.millis(200)),
+//                new ParallelTransition(fade)
+//        );
+//        introAnimation.setOnFinished(e -> pulseAnimation.play());
+//        introAnimation.play();
+//    }
 
     private void pulseRunAndDebugButtons() {
         if (!animationsEnabled.get()) return;
@@ -628,9 +631,44 @@ public class ExecutionPageController {
 
     public void setSEmulatorAppMainController(SEmulatorAppMainController sEmulatorAppMainController) {
         this.sEmulatorAppMainController = sEmulatorAppMainController;
+        topBarController.setOnBackToDashboard(sEmulatorAppMainController::switchToDashboard);
     }
 
     public void bindUserName(StringProperty userNameProperty) {
         topBarController.userNameProperty().bind(userNameProperty);
+    }
+
+    public void loadProgramForExecution(String programName) {
+        if (programName == null || programName.isBlank()) return;
+
+        //programNameLabel.setText(programName);
+
+        String url = Constants.FULL_SERVER_PATH + "/program-dto?programName=" + programName; //TODO: Maybe encode with URLEncoder
+
+        HttpClientUtil.runAsync(url, new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() -> Dialogs.error("Failed to load program", e.getMessage(), getOwnerWindowOrNull()));
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (response; ResponseBody responseBody = response.body()) {
+                    if(!response.isSuccessful()) {
+                        Platform.runLater(() -> Dialogs.error("Failed to load program", "Server returned " + response.code(), getOwnerWindowOrNull()));
+                        return;
+                    }
+
+                    String json = responseBody != null ? responseBody.string() : "";
+                    ProgramDTO programDTO = new Gson().fromJson(json, ProgramDTO.class);
+
+                    Platform.runLater(() -> {
+                        currentProgramDTO.set(programDTO);
+                        mainInstrTableController.setItems(programDTO.instructions().programInstructionsDTOList());
+                        //populateHighlightSelectorFromCurrentProgram();
+                    });
+                }
+            }
+        });
     }
 }

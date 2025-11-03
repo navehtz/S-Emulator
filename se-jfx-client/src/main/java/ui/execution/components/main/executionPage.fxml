@@ -11,7 +11,7 @@
          <!-- ===== TOP BAR ===== -->
          <top>
             <VBox spacing="4">
-               <fx:include fx:id="toolBar" maxWidth="1.7976931348623157E308" source="../topBar/TopBar.fxml" />
+               <fx:include fx:id="topBar" maxWidth="1.7976931348623157E308" source="../topBar/TopBar.fxml" />
             </VBox>
          </top>
 

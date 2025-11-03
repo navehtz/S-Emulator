@@ -25,7 +25,7 @@
                      <Insets right="10.0" />
                   </HBox.margin>
                </Button>
-                  <Label text="User Name:" />
+                  <Label fx:id="userNameLabel" text="User Name:" />
             </children>
          </HBox>
             <Label text="S-Emulator - Execution" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />

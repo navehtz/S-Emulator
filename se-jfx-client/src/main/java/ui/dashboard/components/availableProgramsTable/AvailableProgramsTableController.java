@@ -8,6 +8,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
@@ -22,7 +23,6 @@ import ui.execution.components.runHistoryTable.RunHistoryTableController;
 import util.http.HttpClientUtil;
 import util.support.Constants;
 
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -69,13 +69,13 @@ public class AvailableProgramsTableController extends AbstractRefreshableControl
         programsTable.setItems(programsList);
 
         btnExecuteProgram.disableProperty().bind(programsTable.getSelectionModel().selectedItemProperty().isNull());
-        btnExecuteProgram.setOnAction(event -> {
-            var selectedRow = programsTable.getSelectionModel().getSelectedItem();
-            if (selectedRow != null) {
-                // TODO: route to execute page
-                System.out.println("Execute program: " + selectedRow.programName());
-            }
-        });
+//        btnExecuteProgram.setOnAction(event -> {
+//            var selectedRow = programsTable.getSelectionModel().getSelectedItem();
+//            if (selectedRow != null) {
+//                // TODO: route to execute page
+//                System.out.println("Execute program: " + selectedRow.programName());
+//            }
+//        });
     }
 
     @Override
@@ -117,9 +117,9 @@ public class AvailableProgramsTableController extends AbstractRefreshableControl
         }
     }
 
+
     public void setOnExecuteProgram(Consumer<AvailableProgramDTO> handler) {
         this.executeProgramHandler = handler;
     }
-
 
 }
