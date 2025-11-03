@@ -1,7 +1,8 @@
 package engine;
 
-import debug.Debug;
-import debug.DebugImpl;
+import architecture.ArchitectureType;
+//import debug.Debug;
+//import debug.DebugImpl;
 import dto.execution.DebugDTO;
 import dto.execution.InstructionsDTO;
 import dto.execution.ProgramDTO;
@@ -28,95 +29,131 @@ import java.util.*;
 public class EngineImpl implements Engine, Serializable {
     private final ProgramRegistry registry = new ProgramRegistry();
     private Map<String, OperationView> loadedOperations = new HashMap<>();
+    private final Map<String, Set<String>> operationToSubOperationsNames = new HashMap<>();
+    //private Map<String, Operation> nameToProgram = new HashMap<>();
     private Operation mainProgram;
     private ProgramExecutor programExecutor;
     //private ExecutionHistory executionHistory;
     private final Map<String, ExecutionHistory> programToExecutionHistory = new HashMap<>();
     private transient Path xmlPath;
-    private transient Debug debug;
+    //private transient Debug debug;
     private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new HashMap<>();
-    private UserManager userManager = new UserManager();
+    private final UserManager userManager = new UserManager();
 
+
+//    @Override
+//    public void loadProgram(Path xmlPath) throws EngineLoadException {
+//        this.xmlPath = xmlPath;
+//
+//        XmlProgramLoader loader = new XmlProgramLoader();
+//        LoadResult loadResult = loader.loadAll(xmlPath);
+//
+//        for (OperationView operation : loadResult.allOperationsByName.values()) {
+//            operation.validateProgram();
+//            operation.initialize();
+//        }
+//
+//        this.mainProgram = loadResult.getMainProgram();
+//        this.registry.clear();
+//        this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+//        this.registry.registerAll(loadResult.allOperationsByName);
+//        for (OperationView opView : loadedOperations.values()) {
+//            opView.setRegistry(this.registry);
+//        }
+//        this.mainProgram.setRegistry(this.registry);
+//
+//        FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
+//
+//        calculateExpansionForAllPrograms();
+//    }
 
     @Override
-    public void loadProgram(Path xmlPath) throws EngineLoadException {
-        this.xmlPath = xmlPath;
+    public String loadProgram(InputStream inputStream, String uploaderName) throws EngineLoadException {
 
-        XmlProgramLoader loader = new XmlProgramLoader();
-        LoadResult loadResult = loader.loadAll(xmlPath);
+        XmlProgramLoader loader = new XmlProgramLoader(registry, userManager);
+        LoadResult loadResult = loader.loadAll(inputStream, uploaderName);
 
         for (OperationView operation : loadResult.allOperationsByName.values()) {
             operation.validateProgram();
             operation.initialize();
         }
 
-        this.mainProgram = loadResult.getMainProgram();
-        this.registry.clear();
-        this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+        //this.mainProgram = loadResult.getMainProgram();
+        //this.registry.clear();
+        //this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+        this.loadedOperations.putAll(loadResult.allOperationsByName);
         this.registry.registerAll(loadResult.allOperationsByName);
         for (OperationView opView : loadedOperations.values()) {
             opView.setRegistry(this.registry);
         }
-        this.mainProgram.setRegistry(this.registry);
+        //this.mainProgram.setRegistry(this.registry);
+        operationToSubOperationsNames.putIfAbsent(loadResult.getMainProgram().getName(), loadResult.getAllByName().keySet());
 
         FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
 
         calculateExpansionForAllPrograms();
+
+        return loadResult.getMainProgram().getName();
     }
 
+//    @Override
+//    public void runProgram(int degree, Long... inputs) {
+//        Map<String, OperationView> clonedOperations = new HashMap<>();
+//        for (Map.Entry<String, OperationView> entry : loadedOperations.entrySet()) {
+//            clonedOperations.put(entry.getKey(), entry.getValue().deepClone());
+//        }
+//
+//        ProgramRegistry runRegistry = new ProgramRegistry();
+//        runRegistry.registerAll(clonedOperations);
+//
+//        for (OperationView op : clonedOperations.values()) {
+//            op.setRegistry(runRegistry);
+//        }
+//
+//        for (OperationView operation : clonedOperations.values()) {
+//            operation.expandProgram(degree);
+//        }
+//
+//
+//        OperationView mainClone = clonedOperations.get(mainProgram.getName());
+//
+//        programExecutor = new ProgramExecutorImpl(mainClone, runRegistry);
+//
+//        programExecutor.run(degree, inputs);
+//        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
+//        executionHistory.addProgramToHistory(programExecutor);
+//        programToExecutionHistory.putIfAbsent(mainProgram.getName(), executionHistory);
+//
+//    }
+
     @Override
-    public void loadProgram(InputStream inputStream) throws EngineLoadException {
-
-        XmlProgramLoader loader = new XmlProgramLoader();
-        LoadResult loadResult = loader.loadAll(inputStream);
-
-        for (OperationView operation : loadResult.allOperationsByName.values()) {
-            operation.validateProgram();
-            operation.initialize();
+    public void runProgram(String operationName, String architectureRepresentation, int degree, String userName, Long... inputs) {
+        // clone all operations for this run
+        Map<String, OperationView> cloned = new HashMap<>();
+        // Old: for (var e : loadedOperations.entrySet()) cloned.put(e.getKey(), e.getValue().deepClone());
+        for (String operationKey : operationToSubOperationsNames.get(operationName)) {
+            OperationView operation = loadedOperations.get(operationKey);
+            if (operation == null) throw new IllegalArgumentException("Program not found: " + operationKey);
+            cloned.put(operationKey, operation.deepClone());
         }
 
-        this.mainProgram = loadResult.getMainProgram();
-        this.registry.clear();
-        this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
-        this.registry.registerAll(loadResult.allOperationsByName);
-        for (OperationView opView : loadedOperations.values()) {
-            opView.setRegistry(this.registry);
-        }
-        this.mainProgram.setRegistry(this.registry);
-
-        FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
-
-        calculateExpansionForAllPrograms();
-    }
-
-    @Override
-    public void runProgram(int degree, Long... inputs) {
-        Map<String, OperationView> clonedOperations = new HashMap<>();
-        for (Map.Entry<String, OperationView> entry : loadedOperations.entrySet()) {
-            clonedOperations.put(entry.getKey(), entry.getValue().deepClone());
-        }
+        // expand all
+        for (OperationView op : cloned.values()) op.expandProgram(degree);
 
         ProgramRegistry runRegistry = new ProgramRegistry();
-        runRegistry.registerAll(clonedOperations);
+        runRegistry.registerAll(cloned);
 
-        for (OperationView op : clonedOperations.values()) {
-            op.setRegistry(runRegistry);
-        }
+        OperationView targetProgram = cloned.get(operationName);
+        if (targetProgram == null) throw new IllegalArgumentException("Program not found: " + operationName);
 
-        for (OperationView operation : clonedOperations.values()) {
-            operation.expandProgram(degree);
-        }
-
-
-        OperationView mainClone = clonedOperations.get(mainProgram.getName());
-
-        programExecutor = new ProgramExecutorImpl(mainClone, runRegistry);
-
-        programExecutor.run(degree, inputs);
-        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
+        ArchitectureType architectureSelected = ArchitectureType.fromRepresentation(architectureRepresentation);
+        userManager.incrementExecutions(userName);
+        userManager.subtractCredits(userName, architectureSelected.getCreditsCost());
+        programExecutor = new ProgramExecutorImpl(targetProgram, architectureSelected, registry, userName);
+        programExecutor.run(userName, degree, inputs);
+        ExecutionHistory executionHistory = programToExecutionHistory
+                .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
         executionHistory.addProgramToHistory(programExecutor);
-        programToExecutionHistory.putIfAbsent(mainProgram.getName(), executionHistory);
-
     }
 
     @Override
@@ -125,8 +162,18 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
+    public Collection<OperationView> getAllOperations() {
+        return List.copyOf(registry.getAllPrograms());
+    }
+
+    @Override
     public ProgramDTO getProgramToDisplay() {
         return buildProgramDTO(mainProgram);
+    }
+
+    @Override
+    public ProgramDTO getProgramByNameToDisplay(String programName) {
+        return buildProgramDTO(registry.getProgramByName(programName));
     }
 
     @Override
@@ -202,15 +249,15 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public void calculateExpansionForAllPrograms() {
-        this.nameAndDegreeToProgram.put(
-                mainProgram.getName(),
-                mainProgram.calculateDegreeToProgram()
-        );
+//        this.nameAndDegreeToProgram.put(
+//                mainProgram.getName(),
+//                mainProgram.calculateDegreeToProgram()
+//        );
 
-        for (OperationView function : registry.allPrograms()) {
+        for (OperationView operation : registry.getAllPrograms()) {
             this.nameAndDegreeToProgram.put(
-                    function.getName(),
-                    function.calculateDegreeToProgram()
+                    operation.getName(),
+                    operation.calculateDegreeToProgram()
             );
         }
     }
@@ -268,7 +315,7 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public List<String> getAllFunctionsNames() {
-        return registry.allPrograms().stream().map(OperationView::getName).toList();
+        return registry.getAllPrograms().stream().map(OperationView::getName).toList();
     }
 
     @Override
@@ -297,91 +344,70 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public void runProgram(String operationName, int degree, Long... inputs) {
-        // clone all operations for this run
-        Map<String, OperationView> cloned = new HashMap<>();
-        for (var e : loadedOperations.entrySet()) cloned.put(e.getKey(), e.getValue().deepClone());
-        // expand all
-        for (OperationView op : cloned.values()) op.expandProgram(degree);
-
-        ProgramRegistry runRegistry = new ProgramRegistry();
-        runRegistry.registerAll(cloned);
-
-        OperationView target = cloned.get(operationName);
-        if (target == null) throw new IllegalArgumentException("Program not found: " + operationName);
-
-        programExecutor = new ProgramExecutorImpl(target, runRegistry);
-        programExecutor.run(degree, inputs);
-        ExecutionHistory executionHistory = programToExecutionHistory
-                .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
-        executionHistory.addProgramToHistory(programExecutor);
-    }
-
-    @Override
     public int getNumberOfInputVariables(String operationName) {
         OperationView op = loadedOperations.get(operationName);
         if (op == null) throw new IllegalArgumentException("Program not found: " + operationName);
         return op.getInputVariables().size();
     }
 
-    @Override
-    public void initializeDebugger(String programName, int degree, List<Long> inputs) {
-        Map<String, OperationView> cloned = new HashMap<>();
-        for (var entry : loadedOperations.entrySet()) {
-            cloned.put(entry.getKey(), entry.getValue().deepClone());
-        }
-
-        for (OperationView op : cloned.values()) {
-            op.setRegistry(registry);
-            op.expandProgram(degree);
-        }
-
-        ProgramRegistry runRegistry = new ProgramRegistry();
-        runRegistry.registerAll(cloned);
-        for (OperationView op : cloned.values()) {
-            op.setRegistry(runRegistry);
-        }
-
-        OperationView target = cloned.get(programName);
-        if (target == null) {
-            throw new IllegalArgumentException("Program not found: " + programName);
-        }
-
-        this.debug = new DebugImpl(target, runRegistry, degree, inputs != null ? inputs : List.of() );
-    }
-
-    @Override
-    public DebugDTO getProgramAfterStepOver() {
-        DebugDTO debugDTO = debug.stepOver();    // Step Over
-        return debugDTO;
-    }
-
-    private void addDebugResultToHistoryMap(DebugDTO debugDTO) {
-    }
-
-    @Override
-    public DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException {
-        DebugDTO debugDTO = debug.resume(breakPoints);  // Resume
-
-        return debugDTO;
-    }
-
-    @Override
-    public DebugDTO getProgramAfterStepBack() {
-        return debug.stepBack();
-    }
-
-    @Override
-    public void stopDebugPress() {
-        DebugDTO debugDTO = debug.stop();
-    }
-
-    @Override
-    public DebugDTO getInitSnapshot() {
-        if (debug == null) throw new IllegalStateException("Debugger not initialized");
-        return debug.init();
-    }
-
+//    @Override
+//    public void initializeDebugger(String programName, int degree, List<Long> inputs) {
+//        Map<String, OperationView> cloned = new HashMap<>();
+//        for (var entry : loadedOperations.entrySet()) {
+//            cloned.put(entry.getKey(), entry.getValue().deepClone());
+//        }
+//
+//        for (OperationView op : cloned.values()) {
+//            op.setRegistry(registry);
+//            op.expandProgram(degree);
+//        }
+//
+//        ProgramRegistry runRegistry = new ProgramRegistry();
+//        runRegistry.registerAll(cloned);
+//        for (OperationView op : cloned.values()) {
+//            op.setRegistry(runRegistry);
+//        }
+//
+//        OperationView target = cloned.get(programName);
+//        if (target == null) {
+//            throw new IllegalArgumentException("Program not found: " + programName);
+//        }
+//
+//        this.debug = new DebugImpl(target, runRegistry, degree, inputs != null ? inputs : List.of() );
+//    }
+//
+//    @Override
+//    public DebugDTO getProgramAfterStepOver() {
+//        DebugDTO debugDTO = debug.stepOver();    // Step Over
+//        return debugDTO;
+//    }
+//
+//    private void addDebugResultToHistoryMap(DebugDTO debugDTO) {
+//    }
+//
+//    @Override
+//    public DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException {
+//        DebugDTO debugDTO = debug.resume(breakPoints);  // Resume
+//
+//        return debugDTO;
+//    }
+//
+//    @Override
+//    public DebugDTO getProgramAfterStepBack() {
+//        return debug.stepBack();
+//    }
+//
+//    @Override
+//    public void stopDebugPress() {
+//        DebugDTO debugDTO = debug.stop();
+//    }
+//
+//    @Override
+//    public DebugDTO getInitSnapshot() {
+//        if (debug == null) throw new IllegalStateException("Debugger not initialized");
+//        return debug.init();
+//    }
+//
     public UserManager getUserManager() {
         return userManager;
     }

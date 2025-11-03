@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<ScrollPane fx:id="rootScroll" fitToHeight="true" fitToWidth="true" pannable="true" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.execution.components.main.MainController">
+<ScrollPane fx:id="rootScroll" fitToHeight="true" fitToWidth="true" pannable="true" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.execution.components.main.ExecutionPageController">
    <content>
       <BorderPane fx:id="rootContent" maxHeight="Infinity" maxWidth="Infinity" minHeight="400" minWidth="900.0" prefHeight="700.0" prefWidth="1100.0">
 
@@ -71,7 +71,6 @@
                            </VBox>
                         </content>
                      </TitledPane>
-                     <Button alignment="CENTER_RIGHT" contentDisplay="RIGHT" mnemonicParsing="false" text="Back to Dashboard" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
    
                      <!-- Cycles row -->
                      <HBox alignment="CENTER" prefHeight="25.0" prefWidth="132.0" spacing="6" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">

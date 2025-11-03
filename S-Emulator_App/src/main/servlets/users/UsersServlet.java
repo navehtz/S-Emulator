@@ -38,6 +38,8 @@ public class UsersServlet extends HttpServlet {
 
         try (var out = response.getWriter()) {
             out.print(gson.toJson(userManager.getUsers()));
+        } catch (Exception e) {
+            System.out.println("Error getting users " + e.getMessage());
         }
     }
 }

@@ -11,10 +11,12 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import ui.dashboard.components.main.DashboardController;
+import ui.execution.components.main.ExecutionPageController;
 import ui.login.LoginController;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URL;
 
 import static util.support.Constants.*;
@@ -26,6 +28,8 @@ public class SEmulatorAppMainController implements Closeable {
 
     private Parent dashboardComponent;
     private DashboardController dashboardComponentController;
+    private Parent executionComponent;
+    private ExecutionPageController executionPageController;
 
     @FXML private AnchorPane mainPanel;
 
@@ -39,6 +43,7 @@ public class SEmulatorAppMainController implements Closeable {
     public void initialize() {
         loadLoginPage();
         loadDashboardPage();
+        loadExecutionPage();
     }
 
     public void updateUserName(String userName) {
@@ -51,26 +56,12 @@ public class SEmulatorAppMainController implements Closeable {
             return;
         }
 
-        AnchorPane.clearConstraints(pane);
-
         mainPanel.getChildren().setAll(pane);
 
-        pane.applyCss();
-        pane.autosize();
-
-        double prefWidth = pane.prefWidth(-1);
-        double prefHeight = pane.prefHeight(-1);
-        if (!Double.isNaN(prefWidth)) mainPanel.setPrefWidth(prefWidth);
-        if (!Double.isNaN(prefHeight)) mainPanel.setPrefHeight(prefHeight);
-
-        Scene scene = mainPanel.getScene();
-        if (scene != null && scene.getWindow() instanceof Stage stage) {
-            Platform.runLater(() -> {
-                pane.applyCss();
-                pane.autosize();
-                stage.sizeToScene();
-            });
-        }
+        AnchorPane.setTopAnchor(pane, 0.0);
+        AnchorPane.setBottomAnchor(pane, 0.0);
+        AnchorPane.setLeftAnchor(pane, 0.0);
+        AnchorPane.setRightAnchor(pane, 0.0);
     }
 
     @Override
@@ -112,6 +103,41 @@ public class SEmulatorAppMainController implements Closeable {
     public void switchToDashboard() {
         setMainPanelTo(dashboardComponent);
         dashboardComponentController.setActive();
+
+        Platform.runLater(() -> {
+            var scene = mainPanel.getScene();
+            if (scene != null && scene.getWindow() instanceof Stage stage) {
+                stage.sizeToScene();
+                stage.centerOnScreen();
+            }
+        });
+    }
+
+    public void loadExecutionPage() {
+        if (executionComponent != null) {
+            setMainPanelTo(executionComponent);
+            return;
+        }
+
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(EXECUTION_PAGE_FXML_RESOURCE_LOCATION));
+            executionComponent = fxmlLoader.load();
+            executionPageController = fxmlLoader.getController();
+            executionPageController.setSEmulatorAppMainController(this);
+            executionPageController.bindUserName(currentUserName);
+
+            setMainPanelTo(executionComponent);
+        } catch (IOException ioException) {
+            throw new UncheckedIOException("Failed to load Execution page", ioException);
+
+        }
+    }
+
+    public void switchToExecutionPage() {
+        Platform.runLater(() -> {
+            dashboardComponentController.setInActive();
+            loadExecutionPage();
+        });
     }
 
     public void switchToLogin() {

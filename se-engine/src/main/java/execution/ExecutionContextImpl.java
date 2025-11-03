@@ -16,15 +16,16 @@ import java.util.stream.Collectors;
 public class ExecutionContextImpl implements ExecutionContext, Serializable {
 
     private final Map<Variable, Long> variableToValue;
-
+    private final String userName;
     private final ProgramRegistry registry;
     private final OperationInvoker invoker;
     private int lastInvocationCycles = 0;
 
-    public ExecutionContextImpl(ProgramRegistry registry, OperationInvoker invoker) {
+    public ExecutionContextImpl(ProgramRegistry registry, OperationInvoker invoker, String userName) {
         this.variableToValue = new HashMap<>();
         this.registry = registry;
         this.invoker = invoker;
+        this.userName = userName;
     }
 
     @Override
@@ -93,23 +94,23 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
     }
 
     @Override
-    public long invokeOperation(String name, long... args) {
+    public long invokeOperation(String operationName, long... args) {
         if (registry == null) {
             throw new IllegalStateException("No ProgramRegistry bound to ExecutionContext");
         }
 
-        OperationView op = registry.getProgramByName(name);
-        return invokeOperation(op, args);
+        OperationView op = registry.getProgramByName(operationName);
+        return invokeOperation(op, userName, args);
     }
 
     @Override
-    public long invokeOperation(OperationView op, long... args) {
+    public long invokeOperation(OperationView op, String userName, long... args) {
         if (registry == null) {
             throw new IllegalStateException("No ProgramRegistry bound to ExecutionContext");
         }
 
         this.lastInvocationCycles = invoker.getLastCycles();
-        return invoker.invokeOperation(op, args);
+        return invoker.invokeOperation(op, userName, args);
     }
 
     @Override

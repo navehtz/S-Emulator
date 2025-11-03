@@ -12,12 +12,14 @@ import javafx.scene.control.Label;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import okhttp3.*;
+import util.http.HttpClientUtil;
 import util.support.Dialogs;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static util.support.Constants.FULL_SERVER_PATH;
 import static util.support.Helpers.validatePath;
 
 public class TopBarController {
@@ -70,18 +72,17 @@ public class TopBarController {
         final Path programPath = Path.of(selectedFile.getAbsolutePath()).toAbsolutePath().normalize();
         validatePath(programPath);
 
-        OkHttpClient client = new OkHttpClient();
-        String BASE_URL = "http://localhost:8080" + "/S-Emulator_App_Web"; //TODO: consts
+        //OkHttpClient client = new OkHttpClient();
 
         MediaType mediaType = MediaType.parse("application/xml");
         RequestBody requestBody = RequestBody.create(selectedFile, mediaType);
 
         Request request = new Request.Builder()
-                .url(BASE_URL + "/loadProgram")
+                .url(FULL_SERVER_PATH + "/loadProgram")
                 .post(requestBody)
                 .build();
 
-        try ( Response response = client.newCall(request).execute() ) {
+        try ( Response response = HttpClientUtil.HTTP_CLIENT.newCall(request).execute() ) {
             String responseBody = response.body() != null ? response.body().string() : "";
             String contentType = response.header("Content-Type", "");
 

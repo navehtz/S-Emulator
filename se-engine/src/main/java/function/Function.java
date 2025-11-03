@@ -11,6 +11,7 @@ public interface Function extends OperationView {
     List<Variable> parameters();
     Optional<Variable> returnVariable();
 
-    public String getName();
-    public String getUserString();
+    String getName();
+    String getUserString();
+    String getMainProgramName();
 }

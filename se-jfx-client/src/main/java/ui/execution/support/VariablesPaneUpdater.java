@@ -37,6 +37,6 @@ public class VariablesPaneUpdater {
     public void update(ProgramExecutorDTO exec, Set<String> changedNames) {
         varsPaneController.setVariables(exec.variablesToValuesSorted());
         varsPaneController.highlightChanged(changedNames);
-        cyclesLabel.setText(String.valueOf(exec.totalCycles())); //TODO: Check
+        cyclesLabel.setText(String.valueOf(exec.totalCycles()));
     }
 }

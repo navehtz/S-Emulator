@@ -107,6 +107,7 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
         String renderedArgs = functionArguments.stream()   // List<QuoteArg>
                 .map(QuoteArg::render)
                 .collect(java.util.stream.Collectors.joining(","));
+
         return getTargetVariable().getRepresentation()
                 + " <- ("
                 + shownName
@@ -158,27 +159,27 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
     }
 
     private Function resolveCallee() {
-        // Resolve through the owning operation's registry.
-        // If your ProgramImpl is the owner: ((ProgramImpl)getProgramOfThisInstruction()).getRegistry().getByName(name)
-        // and cast to Function.
-        OperationView owner = getProgramOfThisInstruction(); // set in Operation.addInstruction(...)
-        if (owner == null) throw new IllegalStateException("QuoteInstruction has no owning Operation");
-        ProgramRegistry reg = owner.getRegistry();
-        if (reg == null && owner instanceof Operation) {
-            throw new IllegalStateException("No ProgramRegistry bound to owning Operation: " +
-                    owner.getName() + ". Please ensure registry is properly set after cloning operations.");
-        }
-        if (reg == null) {
-            throw new IllegalStateException("No ProgramRegistry bound to owning Operation");
-        }
-        OperationView callee;
+        ProgramRegistry registry = getRegistry();
+        OperationView operation = findByNameOrNull(registry, functionName);
         try {
-            callee = reg.getProgramByName(functionName);
+            operation = registry.getProgramByName(functionName);
         } catch (IllegalArgumentException e) {
             throw new IllegalStateException("Cannot resolve function: " + functionName, e);
         }
-        if (callee == null) throw new IllegalStateException("Cannot resolve function: " + functionName);
-        return (Function) callee;
+        if (!(operation instanceof Function fun))
+            throw new IllegalStateException("Cannot resolve function: " + functionName);
+        return fun;
+    }
+
+    private ProgramRegistry getRegistry() {
+        OperationView owner = getProgramOfThisInstruction(); // set in Operation.addInstruction(...)
+        if (owner == null) throw new IllegalStateException("QuoteInstruction has no owning Operation");
+        ProgramRegistry registry = owner.getRegistry();
+        if (registry == null && owner instanceof Operation) {
+            throw new IllegalStateException("No ProgramRegistry bound to owning Operation: " +
+                    owner.getName() + ". Please ensure registry is properly set after cloning operations.");
+        }
+        return registry;
     }
 
     private void mapQuoteFunctionVariables(Function calleeFunction) {
@@ -270,7 +271,7 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
             throw new IllegalStateException("Function RESULT not mapped");
         }
         Label endLabel = labelToNewLabelMap.getOrDefault(FixedLabel.EXIT, FixedLabel.EMPTY);
-        expandedInstructions.add(new AssignmentInstruction(getTargetVariable(), endLabel, mappedY, this, instructionNumber)); //TODO:Check if needed ++
+        expandedInstructions.add(new AssignmentInstruction(getTargetVariable(), endLabel, mappedY, this, instructionNumber));
     }
 
     @Override
@@ -286,11 +287,21 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
 
     private String resolveUserString(String calleeName) {
         OperationView owner = getProgramOfThisInstruction();
-        if (owner instanceof program.ProgramImpl pr && pr.getRegistry() != null) {
-            var op = pr.getRegistry().getProgramByName(calleeName);
-            if (op instanceof function.Function f) return f.getUserString();
+        if (owner == null) return null;
+
+        ProgramRegistry registry = owner.getRegistry();
+        if (registry != null) return null;
+
+        OperationView operation = findByNameOrNull(registry, calleeName);
+        if (operation instanceof Function fun) {
+            String userString = fun.getUserString();
+            return  (userString == null || userString.isBlank())? null : userString;
         }
         return null;
     }
 
+    private static OperationView findByNameOrNull(ProgramRegistry registry, String name) {
+        if (registry == null || name == null || name.isBlank()) return null;
+        return registry.getAllProgramsByName().get(name); // never throws
+    }
 }

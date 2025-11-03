@@ -54,7 +54,7 @@ public class LoginController {
         String finalUrl = HttpUrl
                         .parse(Constants.LOGIN_PAGE)
                         .newBuilder()
-                        .addQueryParameter("username", userName)
+                        .addQueryParameter("username", userName) //TODO: Constant
                         .build()
                         .toString();
 

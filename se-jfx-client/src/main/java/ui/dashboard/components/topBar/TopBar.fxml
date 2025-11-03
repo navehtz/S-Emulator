@@ -15,9 +15,9 @@
        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
      </rowConstraints>
       <children>
-         <Label fx:id="userNameLabel" text="User Name:" GridPane.halignment="LEFT" GridPane.valignment="CENTER">
+         <Label fx:id="userNameLabel" text="User Name:">
             <GridPane.margin>
-               <Insets left="10.0" />
+               <Insets left="5.0" />
             </GridPane.margin>
          </Label>
          <Label text="S-Emulator - Dashboard" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
@@ -65,7 +65,7 @@
       
                            <Label maxHeight="1.7976931348623157E308" prefHeight="25.0" prefWidth="53.0" text="File path:" HBox.hgrow="ALWAYS">
                <HBox.margin>
-                  <Insets left="5.0" />
+                  <Insets left="10.0" />
                </HBox.margin>
             </Label>
                  <Label fx:id="programNameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="509.0" text="(none)" />

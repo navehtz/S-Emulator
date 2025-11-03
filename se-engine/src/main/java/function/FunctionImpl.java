@@ -14,6 +14,7 @@ public final class FunctionImpl extends Operation implements Function {
     private final List<Variable> parameters;
     private final Variable returnVariable; // nullable
     private final Label resolvedEntry;
+    private final String mainProgramName;
 
     private FunctionImpl(Builder b) {
         super(b);
@@ -21,6 +22,7 @@ public final class FunctionImpl extends Operation implements Function {
         this.parameters = List.copyOf(b.parameters);
         this.returnVariable = b.returnVariable;
         this.resolvedEntry = (this.entry != null) ? this.entry : firstLabeledInstruction();
+        this.mainProgramName =  b.mainProgramName;
     }
 
     @Override
@@ -39,6 +41,9 @@ public final class FunctionImpl extends Operation implements Function {
     }
 
     @Override
+    public String getMainProgramName() { return mainProgramName;}
+
+    @Override
     public Optional<Label> getEntry() {
         return Optional.of(resolvedEntry);
     }
@@ -47,6 +52,7 @@ public final class FunctionImpl extends Operation implements Function {
         private final List<Variable> parameters = new ArrayList<>();
         private Variable returnVariable;
         private String userString;
+        private String mainProgramName;
 
         @Override
         protected Builder self() {
@@ -71,6 +77,11 @@ public final class FunctionImpl extends Operation implements Function {
 
         public Builder withUserString(String userString) {
             this.userString = userString;
+            return this;
+        }
+
+        public Builder withMainProgramName(String mainProgramName) {
+            this.mainProgramName = mainProgramName;
             return this;
         }
 

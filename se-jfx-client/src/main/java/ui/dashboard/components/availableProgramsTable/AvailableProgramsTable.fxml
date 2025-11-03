@@ -8,20 +8,20 @@
    <content>
       <VBox alignment="TOP_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
          <children>
-            <TableView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+            <TableView fx:id="programsTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
               <columns>
-                <TableColumn prefWidth="75.0" text="Name" />
-                <TableColumn prefWidth="75.0" text="User Uploaded" />
-                  <TableColumn prefWidth="75.0" text="No. Instructions" />
-                  <TableColumn prefWidth="75.0" text="Max Degree" />
-                  <TableColumn prefWidth="75.0" text="No. Executions" />
-                  <TableColumn prefWidth="75.0" text="Average Cost" />
+                <TableColumn fx:id="colProgramName" prefWidth="120.0" text="Name" />
+                <TableColumn fx:id="colUserUploaded" prefWidth="120.0" text="User Uploaded" />
+                  <TableColumn fx:id="colNumInstructions" prefWidth="120.0" text="No. Instructions" />
+                  <TableColumn fx:id="colMaxDegree" prefWidth="120.0" text="Max Degree" />
+                  <TableColumn fx:id="colNumExecutions" prefWidth="120.0" text="No. Executions" />
+                  <TableColumn fx:id="colAverageCreditCost" prefWidth="120.0" text="Average Cost" />
               </columns>
                <columnResizePolicy>
                   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                </columnResizePolicy>
             </TableView>
-            <Button mnemonicParsing="false" text="Execute Program">
+            <Button fx:id="btnExecuteProgram" mnemonicParsing="false" onAction="#btnExecutrProgramClicked" text="Execute Program">
                <VBox.margin>
                   <Insets top="5.0" />
                </VBox.margin>

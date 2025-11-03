@@ -4,7 +4,7 @@ public record UserDTO (
     String userName,
     int numProgramsUploaded,
     int numFunctionsUploaded,
-    int currentCredits,
-    int usedCredits,
+    long currentCredits,
+    long usedCredits,
     int numOfExecutions
     ) {}

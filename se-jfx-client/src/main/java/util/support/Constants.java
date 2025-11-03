@@ -12,6 +12,7 @@ public class Constants {
     public final static String MAIN_PAGE_FXML_RESOURCE_LOCATION = "/ui/main/components/s-emulator-app-main.fxml";
     public final static String LOGIN_PAGE_FXML_RESOURCE_LOCATION = "/ui/login/login.fxml";
     public final static String DASHBOARD_FXML_RESOURCE_LOCATION = "/ui/dashboard/components/main/dashboard.fxml";
+    public final static String EXECUTION_PAGE_FXML_RESOURCE_LOCATION = "/ui/execution/execution.fxml";
 
     // Server resources locations
     public final static String BASE_DOMAIN = "localhost";
