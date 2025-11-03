@@ -36,13 +36,16 @@ public abstract class AbstractRefreshableController  {
     }
 
     protected <T> void replaceIfChanged(ObservableList<T> targetList, List<T> incomingList) {
-        if (!isEqualLists(targetList, incomingList)) {
-            targetList.setAll(incomingList);
+        List<T> safeIncomingList = incomingList != null ? incomingList : List.of();
+        if (!isEqualLists(targetList, safeIncomingList)) {
+            targetList.setAll(safeIncomingList);
         }
     }
 
     protected static <T> boolean isEqualLists(List<T> list1, List<T> list2) {
-        if (list1 == null || list2 == null) return false;
+        if (list1 == null || list2 == null) {
+            return list1 == list2 || list1 != null && list1.isEmpty();
+        }
         if (list1.size() != list2.size()) return false;
         for (int i = 0; i < list1.size(); i++) {
             if (!Objects.equals(list1.get(i), list2.get(i))) return false;

@@ -6,6 +6,7 @@ import ui.execution.components.instructionHistoryChain.InstructionHistoryChainCo
 import ui.execution.components.instructionTable.InstructionTableController;
 import ui.execution.components.runHistoryTable.RunHistoryTableController;
 import ui.execution.components.summaryLine.SummaryLineController;
+import ui.execution.components.topBar.TopBarController;
 import ui.execution.components.variableTable.VariablesTableController;
 import dto.execution.DebugDTO;
 import dto.execution.InstructionsDTO;
@@ -38,10 +39,11 @@ import okhttp3.Request;
 import okhttp3.Response;
 //import ui.execution.debug.DebugOrchestrator;
 //import ui.execution.debug.DebugUiPresenter;
-import ui.execution.run.RunOrchestrator;
-import ui.execution.run.RunUiPresenter;
+//import ui.execution.run.RunOrchestrator;
+//import ui.execution.run.RunUiPresenter;
 import ui.execution.support.RunsHistoryManager;
 import ui.execution.support.VariablesPaneUpdater;
+import ui.main.components.SEmulatorAppMainController;
 import util.support.Dialogs;
 import util.behavior.HighlightingBehavior;
 import util.themes.Theme;
@@ -50,7 +52,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
 
-public class MainController {
+public class ExecutionPageController {
 
     @FXML private VBox rightPane;
     @FXML private InstructionTableController mainInstrTableController;
@@ -59,12 +61,13 @@ public class MainController {
     @FXML private DynamicInputsController inputsPaneController;
     @FXML private RunHistoryTableController runsPaneController;
     @FXML private SummaryLineController summaryLineController;
+    @FXML private TopBarController topBarController;
 
     @FXML private Label programNameLabel;
     @FXML private ComboBox<String> contextSelector;
     @FXML private ComboBox<Integer> degreeSelector;
     @FXML private ComboBox<String> highlightSelector;
-    @FXML private Button btnLoadFile;
+    //@FXML private Button btnLoadFile;
     @FXML private Button btnRun;
     @FXML private Button btnDebug;
     @FXML private Button btnStop;
@@ -77,13 +80,13 @@ public class MainController {
     @FXML private CheckBox checkBoxAnimations;
     @FXML private ComboBox<String> themeSelector;
 
-    private final Engine engine = new EngineImpl();
+    //private final Engine engine = new EngineImpl();
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
     private final BooleanProperty isRunInProgress = new SimpleBooleanProperty(false);
     private final BooleanProperty isDebugInProgress = new SimpleBooleanProperty(false);
 
-    private RunOrchestrator runOrchestrator;
-    private RunsHistoryManager runsHistoryManager;
+    //private RunOrchestrator runOrchestrator;
+    //private RunsHistoryManager runsHistoryManager;
     //private DebugOrchestrator debugOrchestrator;
     private final Map<String, Long> lastVarsSnapshot = new HashMap<>();
 
@@ -97,6 +100,8 @@ public class MainController {
     public BooleanProperty isRunInProgressProperty() { return isRunInProgress; }
     public BooleanProperty isDebugInProgressProperty() { return isDebugInProgress; }
     public ProgramDTO getCurrentProgram() { return currentProgramDTO.get(); }
+
+    private SEmulatorAppMainController sEmulatorAppMainController;
 
 
     @FXML
@@ -168,20 +173,20 @@ public class MainController {
         runsPaneController.setOnRerun(row -> onRerunRow(row));
 
 
-        RunUiPresenter runUiPresenter = new RunUiPresenter(
-                isRunInProgress,
-                variablesPaneUpdater,
-                runsHistoryManager,
-                this::updateInputsPane);
-
-        this.runOrchestrator = new RunOrchestrator(
-                engine,
-                this::getOwnerWindowOrNull,
-                this::getSelectedDegree,
-                isRunInProgress,
-                runUiPresenter,
-                this::selectedOperationKey
-        );
+//        RunUiPresenter runUiPresenter = new RunUiPresenter(
+//                isRunInProgress,
+//                variablesPaneUpdater,
+//                runsHistoryManager,
+//                this::updateInputsPane);
+//
+//        this.runOrchestrator = new RunOrchestrator(
+//                engine,
+//                this::getOwnerWindowOrNull,
+//                this::getSelectedDegree,
+//                isRunInProgress,
+//                runUiPresenter,
+//                this::selectedOperationKey
+//        );
 
 //        DebugUiPresenter debugPresenter = new DebugUiPresenter(
 //                isDebugInProgress,
@@ -298,144 +303,58 @@ public class MainController {
         );
     }
 
-    // ===== Handlers used in MainView.fxml =====
-    @FXML private void onLoadXml(ActionEvent e) throws EngineLoadException {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Program XML");
+    // ===== Handlers used in ExecutionPage.fxml =====
 
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("xml files", "*.xml"),
-                new FileChooser.ExtensionFilter("all files", "*.*")
-        );
-
-        final Window window = contextSelector.getScene().getWindow();
-        final File selectedFile = fileChooser.showOpenDialog(window);
-
-        if (selectedFile == null) {
-            Dialogs.warning("No file selected", "Please choose an XML file.", window);
-            return;
-        }
-
-        final String name = selectedFile.getName().toLowerCase();
-
-        if (!(name.endsWith(".xml"))) {
-            Dialogs.warning("Invalid File", "Please choose an XML file.", window);
-            return;
-        }
-
-        programNameLabel.setText(selectedFile.getAbsolutePath());
-
-        final Path programPath = Path.of(selectedFile.getAbsolutePath());
-
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() throws Exception{
-//                engine.loadProgram(programPath);
-//                return null;
-                OkHttpClient client = new OkHttpClient();
-                String url = "http://localhost:8080/load-xml";
-                Request request = new Request.Builder()
-                        .url(url)
-                        .build();
-                Call call = client.newCall(request);
-                Response response = call.execute();
-                return null;
-            }
-        };
-
-        task.setOnSucceeded(ev -> {
-
-            ProgramDTO baseProgram = engine.getProgramToDisplay();
-            updateCurrentProgramAndMainInstrTable(baseProgram);
-
-            if (pulseAnimation != null) pulseAnimation.stop(); // Stop the pulsing
-            btnLoadFile.setScaleX(1);
-            btnLoadFile.setScaleY(1);
-            btnLoadFile.setEffect(null); // Remove the glow
-
-            try {
-                List<String> contextNames = new ArrayList<>(engine.getAllUserStringToFunctionName().keySet());
-                contextSelector.getItems().setAll(contextNames);
-                //contextSelector.getItems().setAll(engine.getAllFunctionsNames());
-                contextSelector.getSelectionModel().select(baseProgram.programName());
-
-                degreeSelector.getItems().setAll(
-                        java.util.stream.IntStream.rangeClosed(0, engine.getMaxDegree()).boxed().toList()
-                );
-                degreeSelector.getSelectionModel().selectFirst();
-            } catch (EngineLoadException ex) {
-                throw new RuntimeException(ex);
-            }
-
-            highlightSelector.getItems().setAll(baseProgram.allVariables());
-            highlightSelector.getItems().addAll(baseProgram.labelsStr());
-
-            clearExecutionData();
-            runsHistoryManager.clearHistory();
-        });
-
-        task.setOnFailed(ev -> {
-            Throwable err = rootCause(task.getException());
-            err.printStackTrace(); // useful in console
-            Dialogs.error("Load failed", String.valueOf(err.getMessage()), getOwnerWindowOrNull());
-        });
-
-        showLoadingPopup(task, window);
-
-        Thread loadThread = new Thread(task, "load-xml-task");
-        loadThread.setDaemon(true);
-        loadThread.start();
-    }
 
     @FXML private void onRun(ActionEvent e) {
         runOrchestrator.run(getCurrentProgram());
         btnRun.setEffect(null);
         btnDebug.setEffect(null);
     }
-//    @FXML private void onDebug(ActionEvent e)      {
-//        debugOrchestrator.debug();
-//        btnRun.setEffect(null);
-//        btnDebug.setEffect(null);
-//    }
-//    @FXML private void onStop(ActionEvent e)       {
-//        try {
-//            engine.stopDebugPress();
-//        } finally {
-//            leaveDebugMode();
-//        }
-//    }
-//
-//    @FXML private void onResume(ActionEvent e)     {
-//        try {
-//            var breakpoints = mainInstrTableController.getBreakpoints();
-//            var d = engine.getProgramAfterResume(breakpoints);
-//            applySnapshot(d);
-//        } catch (InterruptedException ex) {
-//            // user cancelled, ignore
-//        } catch (Exception ex) {
-//            Dialogs.error("Resume failed", ex.getMessage(), getOwnerWindowOrNull());
-//            leaveDebugMode();
-//        }
-//    }
-//
-//    @FXML private void onStepOver(ActionEvent e)   {
-//        try {
-//            var d = engine.getProgramAfterStepOver();
-//            applySnapshot(d);
-//        } catch (Exception exception) {
-//            Dialogs.error("Step Over failed", exception.getMessage(), getOwnerWindowOrNull());
-//            leaveDebugMode();
-//        }
-//    }
-//
-//    @FXML private void onStepBack(ActionEvent actionEvent) {
-//        try {
-//            var d = engine.getProgramAfterStepBack();
-//            applySnapshot(d);
-//        } catch (Exception ex) {
-//            Dialogs.error("Step Back failed", ex.getMessage(), getOwnerWindowOrNull());
-//        }
-//    }
+    @FXML private void onDebug(ActionEvent e)      {
+        debugOrchestrator.debug();
+        btnRun.setEffect(null);
+        btnDebug.setEffect(null);
+    }
+    @FXML private void onStop(ActionEvent e)       {
+        try {
+            engine.stopDebugPress();
+        } finally {
+            leaveDebugMode();
+        }
+    }
+
+    @FXML private void onResume(ActionEvent e)     {
+        try {
+            var breakpoints = mainInstrTableController.getBreakpoints();
+            var d = engine.getProgramAfterResume(breakpoints);
+            applySnapshot(d);
+        } catch (InterruptedException ex) {
+            // user cancelled, ignore
+        } catch (Exception ex) {
+            Dialogs.error("Resume failed", ex.getMessage(), getOwnerWindowOrNull());
+            leaveDebugMode();
+        }
+    }
+
+    @FXML private void onStepOver(ActionEvent e)   {
+        try {
+            var d = engine.getProgramAfterStepOver();
+            applySnapshot(d);
+        } catch (Exception exception) {
+            Dialogs.error("Step Over failed", exception.getMessage(), getOwnerWindowOrNull());
+            leaveDebugMode();
+        }
+    }
+
+    @FXML private void onStepBack(ActionEvent actionEvent) {
+        try {
+            var d = engine.getProgramAfterStepBack();
+            applySnapshot(d);
+        } catch (Exception ex) {
+            Dialogs.error("Step Back failed", ex.getMessage(), getOwnerWindowOrNull());
+        }
+    }
 
     private int getSelectedDegree() {
         if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
@@ -581,7 +500,7 @@ public class MainController {
         clearExecutionData();
 
         // Seed inputs so the next Run/Debug dialog is prefilled
-        runOrchestrator.seedPrefillInputs(programKey, row.inputs());
+        //runOrchestrator.seedPrefillInputs(programKey, row.inputs());
 
         pulseRunAndDebugButtons();
     }
@@ -705,5 +624,13 @@ public class MainController {
             return;
         }
         sheets.add(url.toExternalForm());
+    }
+
+    public void setSEmulatorAppMainController(SEmulatorAppMainController sEmulatorAppMainController) {
+        this.sEmulatorAppMainController = sEmulatorAppMainController;
+    }
+
+    public void bindUserName(StringProperty userNameProperty) {
+        topBarController.userNameProperty().bind(userNameProperty);
     }
 }

@@ -42,9 +42,6 @@ public class AvailableUsersTableController extends AbstractRefreshableController
     private static final Type usersListType =
             TypeToken.getParameterized(List.class, UserDTO.class).getType();
 
-    private final AtomicInteger consecutiveFails = new AtomicInteger(0);
-    private final int MAX_FAILS_BEFORE_STOP = 3;
-
     @FXML
     public void initialize() {
         colUserName.setCellValueFactory(cd -> new ReadOnlyStringWrapper(cd.getValue().userName()));
@@ -82,16 +79,19 @@ public class AvailableUsersTableController extends AbstractRefreshableController
                         handleNetworkFailure("HTTP " + responseCode + " " + response.message() +
                                 (responseBodyString.isBlank() ? "" : " | " + responseBodyString));
                         if (responseCode == 401 || responseCode == 403) {
-                            Platform.runLater(AvailableUsersTableController.this::stopAutoRefresh);
+                            handleUnauthorizedStop();
                         }
                         return;
                     }
 
-
                     List<UserDTO> incomingUsersDTOsList = gson.fromJson(responseBodyString, usersListType);
-                    consecutiveFails.set(0);
+                    if (incomingUsersDTOsList == null) {
+                        incomingUsersDTOsList = List.of();
+                    }
+                    resetFailures();
+                    List<UserDTO> finalIncomingUsersDTOsList = incomingUsersDTOsList;
                     Platform.runLater(() -> {
-                        replaceIfChanged(incomingUsersDTOsList);
+                        replaceIfChanged(finalIncomingUsersDTOsList);
                     });
                 }
             }
@@ -99,17 +99,11 @@ public class AvailableUsersTableController extends AbstractRefreshableController
     }
 
     private void replaceIfChanged(List<UserDTO> incomingUsersDTOsList) {
-        if (!isEqualLists(usersList, incomingUsersDTOsList)) {
-            usersList.setAll(incomingUsersDTOsList);
-        }
+        super.replaceIfChanged(usersList, incomingUsersDTOsList);
     }
 
-    private void handleNetworkFailure(String message) {
-        int n = consecutiveFails.incrementAndGet();
-        System.err.println("[Users Poll] " + message + " (fail #" + n + ")");
-        if (n >= MAX_FAILS_BEFORE_STOP) {
-            System.err.println("[Users Poll] Reached " + MAX_FAILS_BEFORE_STOP + " consecutive failures. Stopping.");
-            Platform.runLater(this::stopAutoRefresh);
-        }
+    @Override
+    protected String logTag() {
+        return "Users Poll";
     }
 }

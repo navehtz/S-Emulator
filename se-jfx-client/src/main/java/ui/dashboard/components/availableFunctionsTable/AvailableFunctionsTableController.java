@@ -65,7 +65,7 @@ public class AvailableFunctionsTableController extends AbstractRefreshableContro
 
     @Override
     protected void fetchOnce() {
-        String url = Constants.FULL_SERVER_PATH + "/functionsList";
+        String url = Constants.FULL_SERVER_PATH + "/functions";
         HttpClientUtil.runAsync(url, new Callback() {
             @Override public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 handleNetworkFailure("Network error: " + e.getMessage());

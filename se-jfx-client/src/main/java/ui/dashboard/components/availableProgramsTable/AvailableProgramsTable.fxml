@@ -21,7 +21,7 @@
                   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                </columnResizePolicy>
             </TableView>
-            <Button fx:id="btnExecuteProgram" mnemonicParsing="false" text="Execute Program">
+            <Button fx:id="btnExecuteProgram" mnemonicParsing="false" onAction="#btnExecutrProgramClicked" text="Execute Program">
                <VBox.margin>
                   <Insets top="5.0" />
                </VBox.margin>

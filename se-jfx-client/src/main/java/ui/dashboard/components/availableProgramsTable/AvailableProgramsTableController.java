@@ -18,13 +18,16 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 import ui.dashboard.components.refreshables.AbstractRefreshableController;
+import ui.execution.components.runHistoryTable.RunHistoryTableController;
 import util.http.HttpClientUtil;
 import util.support.Constants;
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 public class AvailableProgramsTableController extends AbstractRefreshableController {
 
@@ -38,6 +41,10 @@ public class AvailableProgramsTableController extends AbstractRefreshableControl
     @FXML private TableColumn<AvailableProgramDTO, Integer> colAverageCreditCost;
 
     @FXML private Button btnExecuteProgram;
+
+    private Consumer<AvailableProgramDTO> executeProgramHandler;
+//    public record ProgramRow(String name, String user, int instructions, int naxDegree, int executions, int averageCost) {
+//    }
 
     private final ObservableList<AvailableProgramDTO> programsList = FXCollections.observableArrayList();
 
@@ -101,6 +108,18 @@ public class AvailableProgramsTableController extends AbstractRefreshableControl
         });
     }
 
+    @FXML private void btnExecuteProgramClicked(ActionEvent event) {
+        AvailableProgramDTO selectedRow = programsTable.getSelectionModel().getSelectedItem();
+        if (selectedRow == null) return;
+
+        if (executeProgramHandler != null) {
+            executeProgramHandler.accept(selectedRow);
+        }
+    }
+
+    public void setOnExecuteProgram(Consumer<AvailableProgramDTO> handler) {
+        this.executeProgramHandler = handler;
+    }
 
 
 }

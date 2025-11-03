@@ -19,9 +19,8 @@ import java.io.IOException;
 public class DashboardController implements Closeable {
 
     @FXML TopBarController topBarController;
-    @FXML AvailableProgramsTableController availableProgramsTableController;
-    @FXML AvailableFunctionsTableController availableFunctionsTableController;
-    @FXML private TitledPane availableUsersTable;
+    @FXML AvailableProgramsTableController programsTableController;
+    @FXML AvailableFunctionsTableController functionsTableController;
     @FXML AvailableUsersTableController availableUsersTableController;
     @FXML UserHistoryTableController userHistoryTableController;
 
@@ -32,11 +31,13 @@ public class DashboardController implements Closeable {
 
     @FXML
     private void initialize() {
+        programsTableController.setOnExecuteProgram();
     }
 
     public void bindUserName(StringProperty userNameProperty) {
         topBarController.userNameProperty().bind(userNameProperty);
     }
+
     @Override
     public void close() throws IOException {
         // TODO
@@ -46,12 +47,16 @@ public class DashboardController implements Closeable {
     public void setActive() {
         // TODO
         availableUsersTableController.startAutoRefresh(Constants.REFRESH_RATE);
+        programsTableController.startAutoRefresh(Constants.REFRESH_RATE);
+        functionsTableController.startAutoRefresh(Constants.REFRESH_RATE);
     }
 
     public void setInActive() {
         try {
             // TODO
             availableUsersTableController.stopAutoRefresh();
+            programsTableController.stopAutoRefresh();
+            functionsTableController.stopAutoRefresh();
         } catch (Exception ignored) {}
     }
 
