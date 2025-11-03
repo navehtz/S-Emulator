@@ -36,6 +36,12 @@ public class DashboardController implements Closeable {
                 sEmulatorAppMainController.switchToExecutionPage(row.programName());
             }
         });
+
+        functionsTableController.setOnExecuteFunction(row -> {
+            if (sEmulatorAppMainController != null && row != null && !row.functionName().isBlank()) {
+                sEmulatorAppMainController.switchToExecutionPage(row.functionName());
+            }
+        });
     }
 
     public void bindUserName(StringProperty userNameProperty) {

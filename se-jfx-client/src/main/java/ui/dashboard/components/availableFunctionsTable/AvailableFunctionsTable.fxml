@@ -20,7 +20,7 @@
                   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                </columnResizePolicy>
             </TableView>
-            <Button fx:id="btnExecuteFunction" mnemonicParsing="false" text="Execute Function">
+            <Button fx:id="btnExecuteFunction" mnemonicParsing="false" onAction="#btnExecuteFunctionClicked" text="Execute Function">
                <VBox.margin>
                   <Insets top="5.0" />
                </VBox.margin>

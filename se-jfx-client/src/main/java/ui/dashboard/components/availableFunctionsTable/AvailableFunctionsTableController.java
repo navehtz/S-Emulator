@@ -3,11 +3,13 @@ package ui.dashboard.components.availableFunctionsTable;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import dto.dashboard.AvailableFunctionDTO;
+import dto.dashboard.AvailableProgramDTO;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
@@ -24,6 +26,7 @@ import util.support.Constants;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class AvailableFunctionsTableController extends AbstractRefreshableController {
 
@@ -35,6 +38,8 @@ public class AvailableFunctionsTableController extends AbstractRefreshableContro
     @FXML private TableColumn<AvailableFunctionDTO, Integer> colNumInstructions;
     @FXML private TableColumn<AvailableFunctionDTO, Integer> colMaxDegree;
     @FXML private Button btnExecuteFunction;
+
+    private Consumer<AvailableFunctionDTO> executeFunctionHandler;
 
     private final ObservableList<AvailableFunctionDTO> functionsList = FXCollections.observableArrayList();
     private static final Gson GSON = new Gson();
@@ -54,13 +59,6 @@ public class AvailableFunctionsTableController extends AbstractRefreshableContro
         functionsTable.setItems(functionsList);
 
         btnExecuteFunction.disableProperty().bind(functionsTable.getSelectionModel().selectedItemProperty().isNull());
-        btnExecuteFunction.setOnAction(e -> {
-            var selectedRow = functionsTable.getSelectionModel().getSelectedItem();
-            if (selectedRow != null) {
-                // TODO: route to execute page
-                System.out.println("Execute function: " + selectedRow.functionName());
-            }
-        });
     }
 
     @Override
@@ -86,5 +84,19 @@ public class AvailableFunctionsTableController extends AbstractRefreshableContro
                 }
             }
         });
+    }
+
+    @FXML private void btnExecuteFunctionClicked(ActionEvent event) {
+        AvailableFunctionDTO selectedRow = functionsTable.getSelectionModel().getSelectedItem();
+        if (selectedRow == null) return;
+
+        if (executeFunctionHandler != null) {
+            executeFunctionHandler.accept(selectedRow);
+        }
+    }
+
+
+    public void setOnExecuteFunction(Consumer<AvailableFunctionDTO> handler) {
+        this.executeFunctionHandler = handler;
     }
 }
