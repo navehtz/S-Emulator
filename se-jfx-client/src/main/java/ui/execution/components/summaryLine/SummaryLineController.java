@@ -48,10 +48,24 @@ public class SummaryLineController {
         IntegerBinding syntheticCountBinding = Bindings.createIntegerBinding(
                 () -> totalCountBinding.get() - basicCountBinding.get(), totalCountBinding, basicCountBinding);
 
+        IntegerBinding archICountBinding = Bindings.createIntegerBinding(
+                () -> computeArchICount(currentSelectedProgramProperty.get()), currentSelectedProgramProperty);
+
+        IntegerBinding archIICountBinding = Bindings.createIntegerBinding(
+                () -> computeArchIICount(currentSelectedProgramProperty.get()), currentSelectedProgramProperty);
+
+        IntegerBinding archIIICountBinding = Bindings.createIntegerBinding(
+                () -> computeArchIIICount(currentSelectedProgramProperty.get()), currentSelectedProgramProperty);
+
+        IntegerBinding archIVCountBinding = Bindings.createIntegerBinding(
+                () -> computeArchIVCount(currentSelectedProgramProperty.get()), currentSelectedProgramProperty);
+
         // Bind labels to the string bindings
         amountTotal.textProperty().bind(totalCountBinding.asString());
-        //amountBasic.textProperty().bind(basicCountBinding.asString());
-        //amountSynthetic.textProperty().bind(syntheticCountBinding.asString());
+        amountIArch.textProperty().bind(archICountBinding.asString());
+        amountIIArch.textProperty().bind(archIICountBinding.asString());
+        amountIIIArch.textProperty().bind(archIIICountBinding.asString());
+        amountIVArch.textProperty().bind(archIVCountBinding.asString());
     }
 
     private int computeTotalInstructionsCount(ProgramDTO program) {
@@ -74,6 +88,58 @@ public class SummaryLineController {
         // Filter all instructions where instructionTypeStr equals "B"
         return (int) list.stream()
                 .filter(instr -> "B".equals(instr.instructionTypeStr()))
+                .count();
+    }
+
+    private int computeArchICount(ProgramDTO program) {
+        if (program == null || program.instructions() == null) {
+            return 0;
+        }
+
+        List<InstructionDTO> list = program.instructions().programInstructionsDTOList();
+        if (list == null) return 0;
+
+        return (int) list.stream()
+                .filter(instr -> "I".equals(instr.architectureStr()))
+                .count();
+    }
+
+    private int computeArchIICount(ProgramDTO program) {
+        if (program == null || program.instructions() == null) {
+            return 0;
+        }
+
+        List<InstructionDTO> list = program.instructions().programInstructionsDTOList();
+        if (list == null) return 0;
+
+        return (int) list.stream()
+                .filter(instr -> "II".equals(instr.architectureStr()))
+                .count();
+    }
+
+    private int computeArchIIICount(ProgramDTO program) {
+        if (program == null || program.instructions() == null) {
+            return 0;
+        }
+
+        List<InstructionDTO> list = program.instructions().programInstructionsDTOList();
+        if (list == null) return 0;
+
+        return (int) list.stream()
+                .filter(instr -> "III".equals(instr.architectureStr()))
+                .count();
+    }
+
+    private int computeArchIVCount(ProgramDTO program) {
+        if (program == null || program.instructions() == null) {
+            return 0;
+        }
+
+        List<InstructionDTO> list = program.instructions().programInstructionsDTOList();
+        if (list == null) return 0;
+
+        return (int) list.stream()
+                .filter(instr -> "IV".equals(instr.architectureStr()))
                 .count();
     }
 }

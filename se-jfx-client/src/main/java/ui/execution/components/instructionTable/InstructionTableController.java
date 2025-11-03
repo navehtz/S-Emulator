@@ -31,7 +31,7 @@ public class InstructionTableController {
     @FXML private TableColumn<InstructionDTO, String> colLabel;
     @FXML private TableColumn<InstructionDTO, String> colCommand;
     @FXML private TableColumn<InstructionDTO, Number> colCycles;
-    @FXML private TableColumn<InstructionDTO, Number> colArchitecture;
+    @FXML private TableColumn<InstructionDTO, String> colArchitecture;
 
     private final ObservableList<InstructionDTO> rows = FXCollections.observableArrayList();
 
@@ -46,7 +46,7 @@ public class InstructionTableController {
         colLabel.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().labelStr()));
         colCommand.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().command()));
         colCycles.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().cycleNumber()));
-        colArchitecture.setCellValueFactory(d -> new SimpleIntegerProperty(d.getValue().architectureRank()));
+        colArchitecture.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().architectureStr()));
         table.setItems(rows);
 
         colBp.setCellValueFactory(d -> new SimpleIntegerProperty(1));

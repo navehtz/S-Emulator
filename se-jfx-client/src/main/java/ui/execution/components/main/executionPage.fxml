@@ -73,7 +73,7 @@
                      </TitledPane>
    
                      <!-- Cycles row -->
-                     <HBox alignment="CENTER" prefHeight="25.0" prefWidth="132.0" spacing="6" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                     <HBox alignment="CENTER" prefHeight="25.0" prefWidth="132.0" spacing="6" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
                         <Label alignment="CENTER" text="Cycles:">
                            <HBox.margin>
                               <Insets left="5.0" />
