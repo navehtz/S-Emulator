@@ -4,6 +4,7 @@ import operation.Operation;
 import operation.OperationView;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,9 +40,7 @@ public class ProgramRegistry implements Serializable {
             if (operation == null) {
                 throw new IllegalArgumentException("No program with name: " + name);
             }
-            else {
-                return operation;
-            }
+            return operation;
         } finally {
             lock.readLock().unlock();
         }
@@ -50,7 +49,7 @@ public class ProgramRegistry implements Serializable {
     public Collection<OperationView> getAllPrograms() {
         lock.readLock().lock();
         try {
-            return programsByName.values();
+            return new ArrayList<>(programsByName.values());
         } finally {
             lock.readLock().unlock();
         }
@@ -69,6 +68,15 @@ public class ProgramRegistry implements Serializable {
         lock.readLock().lock();
         try {
             return new HashMap<>(programsByName);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    public OperationView findProgramByNameOrNull(String name) {
+        lock.readLock().lock();
+        try {
+            return programsByName.get(name);
         } finally {
             lock.readLock().unlock();
         }

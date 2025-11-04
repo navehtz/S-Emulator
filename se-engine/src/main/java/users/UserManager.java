@@ -41,7 +41,7 @@ public class UserManager {
         return nameToUser.containsKey(username);
     }
 
-    public void incrementPrograms(String userName) {
+    public synchronized void incrementPrograms(String userName) {
         nameToUser.computeIfPresent(userName,
                 (k, user) -> new UserDTO(
                         user.userName(),
@@ -53,7 +53,7 @@ public class UserManager {
                 ));
     }
 
-    public void incrementSubFunctions(String username) {
+    public synchronized void incrementSubFunctions(String username) {
         nameToUser.computeIfPresent(username,
                 (k, user) -> new UserDTO(
                         user.userName(),
@@ -65,7 +65,7 @@ public class UserManager {
                 ));
     }
 
-    public void addCredits(String userName, long creditsToAdd) {
+    public synchronized void addCredits(String userName, long creditsToAdd) {
         nameToUser.computeIfPresent(userName,
                 (k, user) -> new UserDTO(
                         user.userName(),
@@ -77,7 +77,7 @@ public class UserManager {
                 ));
     }
 
-    public void subtractCredits(String userName, long creditsToSubtract) {
+    public synchronized void subtractCredits(String userName, long creditsToSubtract) {
         long newCredits;
         long newUsedCredits;
 
@@ -106,7 +106,7 @@ public class UserManager {
                 ));
     }
 
-    public void incrementExecutions(String userName) {
+    public synchronized void incrementExecutions(String userName) {
         nameToUser.computeIfPresent(userName,
                 (k, user) -> new UserDTO(
                         user.userName(),
@@ -118,7 +118,7 @@ public class UserManager {
                 ));
     }
 
-    public boolean hasEnoughCredits(String userName, long creditsToSubtract) {
+    public synchronized boolean hasEnoughCredits(String userName, long creditsToSubtract) {
         return nameToUser.get(userName).currentCredits() - creditsToSubtract >= 0;
     }
 }

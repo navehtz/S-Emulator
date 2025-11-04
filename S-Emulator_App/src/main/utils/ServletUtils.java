@@ -7,20 +7,22 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import static main.utils.Constants.INT_PARAMETER_ERROR;
 
-public class ServletUtils {
+public final class ServletUtils {
 
     private static final String ENGINE_ATTRIBUTE_NAME = "engine";
 
-    private static final Object engineLock = new Object();
+    //private static final Object engineLock = new Object();
 
     public static Engine getEngine(ServletContext servletContext) {
 
-        synchronized (engineLock) {
-            if (servletContext.getAttribute(ENGINE_ATTRIBUTE_NAME) == null) {
-                servletContext.setAttribute(ENGINE_ATTRIBUTE_NAME, new EngineImpl());
+        synchronized (ServletUtils.class) {
+            Engine engine = (Engine) servletContext.getAttribute(ENGINE_ATTRIBUTE_NAME);
+            if (engine == null) {
+                engine = new EngineImpl();
+                servletContext.setAttribute(ENGINE_ATTRIBUTE_NAME, engine);
             }
+            return engine;
         }
-        return (EngineImpl) servletContext.getAttribute(ENGINE_ATTRIBUTE_NAME);
     }
 
 

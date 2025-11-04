@@ -24,12 +24,13 @@ import variable.Variable;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class EngineImpl implements Engine, Serializable {
     private final ProgramRegistry registry = new ProgramRegistry();
-    private Map<String, OperationView> loadedOperations = new HashMap<>();
-    private final Map<String, Set<String>> operationToSubOperationsNames = new HashMap<>();
+    private Map<String, OperationView> loadedOperations = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> operationToSubOperationsNames = new ConcurrentHashMap<>();
     //private Map<String, Operation> nameToProgram = new HashMap<>();
     private Operation mainProgram;
     private ProgramExecutor programExecutor;
@@ -37,7 +38,7 @@ public class EngineImpl implements Engine, Serializable {
     private final Map<String, ExecutionHistory> programToExecutionHistory = new HashMap<>();
     private transient Path xmlPath;
     //private transient Debug debug;
-    private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new HashMap<>();
+    private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new ConcurrentHashMap<>();
     private final UserManager userManager = new UserManager();
 
 
