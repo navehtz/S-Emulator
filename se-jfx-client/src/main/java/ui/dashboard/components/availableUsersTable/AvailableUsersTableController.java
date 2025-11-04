@@ -107,4 +107,8 @@ public class AvailableUsersTableController extends AbstractRefreshableController
     protected String logTag() {
         return "Users Poll";
     }
+
+    public void refreshNow() {
+        fetchUsersOnce();
+    }
 }

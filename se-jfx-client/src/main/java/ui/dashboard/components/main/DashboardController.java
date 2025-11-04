@@ -42,6 +42,8 @@ public class DashboardController implements Closeable {
                 sEmulatorAppMainController.switchToExecutionPage(row.functionName());
             }
         });
+
+        topBarController.setOnChargeCredits(() -> availableUsersTableController.refreshNow());
     }
 
     public void bindUserName(StringProperty userNameProperty) {

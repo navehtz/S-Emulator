@@ -1,26 +1,27 @@
 package ui.dashboard.components.topBar;
 
-import com.google.gson.Gson;
+import dto.dashboard.UserDTO;
 import dto.execution.ProgramDTO;
 import exceptions.EngineLoadException;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import okhttp3.*;
+import org.jetbrains.annotations.NotNull;
 import util.http.HttpClientUtil;
 import util.support.Dialogs;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
 
-import static util.support.Constants.FULL_SERVER_PATH;
-import static util.support.Constants.GSON_INSTANCE;
+import static util.support.Constants.*;
 import static util.support.Helpers.validatePath;
 
 public class TopBarController {
@@ -28,12 +29,21 @@ public class TopBarController {
     @FXML private Label programNameLabel;
     @FXML private Button btnLoadFile;
     @FXML private Label userNameLabel;
+    @FXML private Label availableCreditsLabel;
+    @FXML private Button btnChargeCredits;
 
     private SimpleStringProperty userNameProperty = new SimpleStringProperty();
+    private Runnable onChargeCredits;
+
+    public void setOnChargeCredits(Runnable runnable) {
+        this.onChargeCredits = runnable;
+    }
 
     @FXML
     public void initialize() {
         userNameLabel.textProperty().bind(userNameProperty);
+
+        refreshCreditsFromServer();
     }
 
     public void setUserName(String userName) {
@@ -103,6 +113,118 @@ public class TopBarController {
 
     private Window getOwnerWindowOrNull() {
         return (btnLoadFile.getScene() != null) ? btnLoadFile.getScene().getWindow() : null;
+    }
+
+    @FXML
+    private void onChargeCredits() {
+        TextInputDialog textInputDialog = new TextInputDialog();
+        textInputDialog.setTitle("Charge Credits");
+        textInputDialog.setHeaderText("Enter the number of credits to charge");
+        textInputDialog.setContentText("Credits:");
+
+        TextField textField = textInputDialog.getEditor();
+        handleTextField(textField);
+        Button okButton = (Button) textInputDialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.disableProperty().bind(textField.textProperty().isEmpty());
+
+        Platform.runLater(textField::requestFocus);
+
+        Optional<String> result = textInputDialog.showAndWait();
+        if (result.isEmpty()) {
+            return;
+        }
+
+        String creditsStr = result.get();
+        if (creditsStr.isEmpty()) {
+            return;
+        }
+
+        long amountOfCredits = Long.parseLong(creditsStr);
+        sendChargeCreditsRequest(amountOfCredits);
+    }
+
+    private void handleTextField(TextField textField) {
+        int maxLen = 18;
+        textField.setTextFormatter(new TextFormatter<String>(change -> {
+            String newText = change.getControlNewText();
+
+            if (!newText.matches("\\d*")) {
+                return null;
+            }
+
+            if (newText.length() > maxLen) {
+                return null;
+            }
+
+            if (newText.startsWith("0") && newText.length() > 1) {
+                return null;
+            }
+
+            if (!newText.isEmpty()) {
+                try {
+                    Long.parseLong(newText);
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
+            return change;
+        }));
+    }
+
+    private void sendChargeCreditsRequest(long amountOfCredits) {
+        String url = FULL_SERVER_PATH + "/credits?" + CREDITS_AMOUNT_QUERY_PARAM + "=" + amountOfCredits;
+
+        Request request = new Request.Builder()
+                .url(url)
+                .put(RequestBody.create(null, new byte[0]))
+                .build();
+
+        HttpClientUtil.runAsync(request, new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() ->
+                        Dialogs.error("Charge failed", e.getMessage(), availableCreditsLabel.getScene().getWindow()));
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (response; ResponseBody responseBody = response.body()) {
+                    if (!response.isSuccessful()) {
+                        Platform.runLater(() ->
+                                Dialogs.error("Charge failed", response.code() + " " + response.message(), availableCreditsLabel.getScene().getWindow()));
+                        return;
+                    }
+
+                    UserDTO userDTO = GSON_INSTANCE.fromJson(responseBody.string(), UserDTO.class);
+                    if (userDTO == null) {
+                        Platform.runLater(() ->
+                                Dialogs.error("Charge failed", "Invalid response body", availableCreditsLabel.getScene().getWindow()));
+                    }
+                    Platform.runLater(() -> {
+                        assert userDTO != null;
+                        availableCreditsLabel.setText(String.valueOf(userDTO.currentCredits()));
+                    });
+                }
+            }
+        });
+    }
+
+    private void refreshCreditsFromServer() {
+        String url = FULL_SERVER_PATH + "/credits";
+
+        HttpClientUtil.runAsync(url, new Callback() {
+            @Override public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.err.println("[TopBar] credits fetch failed: " + e.getMessage());
+            }
+            @Override public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (response; ResponseBody responseBody = response.body()) {
+                    if (!response.isSuccessful()) return;
+                    String json = responseBody != null ? responseBody.string() : "";
+                    UserDTO user = GSON_INSTANCE.fromJson(json, UserDTO.class);
+                    Platform.runLater(() -> availableCreditsLabel.setText(String.valueOf(user.currentCredits())));
+                }
+            }
+        });
     }
 }
 

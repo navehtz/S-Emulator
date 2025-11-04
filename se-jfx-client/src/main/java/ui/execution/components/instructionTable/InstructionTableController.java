@@ -82,11 +82,10 @@ public class InstructionTableController {
         }
     }
 
-    public void setItems(Iterable<InstructionDTO> items) {
-        rows.clear();
-        for (InstructionDTO r : items) rows.add(r);
+    public void setItems(List<InstructionDTO> items) {
+        rows.setAll(items);
 
-        var valid = rows.stream().map(InstructionDTO::instructionNumber).collect(java.util.stream.Collectors.toSet());
+        var valid = items.stream().map(InstructionDTO::instructionNumber).collect(java.util.stream.Collectors.toSet());
         breakpoints.removeIf(k -> !valid.contains(k.instructionNumber));
         table.refresh(); // repaint BP column states
     }

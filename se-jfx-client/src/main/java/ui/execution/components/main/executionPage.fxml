@@ -88,7 +88,7 @@
                         <fx:include fx:id="varsPane" source="../variableTable/VariablesTable.fxml" />
                         <VBox minHeight="100.0" prefHeight="473.0" prefWidth="164.0">
                            <children>
-                              <ComboBox prefHeight="25.0" prefWidth="161.0" promptText="Select Architecture:">
+                              <ComboBox fx:id="architectureSelector" prefHeight="25.0" prefWidth="161.0" promptText="Select Architecture:">
                                  <VBox.margin>
                                     <Insets bottom="5.0" />
                                  </VBox.margin>

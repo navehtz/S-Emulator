@@ -26,5 +26,12 @@ public class Constants {
     public final static String USERS_LIST = FULL_SERVER_PATH + "/userslist";
     public final static String LOGOUT = FULL_SERVER_PATH + "/logout";
 
+    //Query parameters
+    public static final String PROGRAM_NAME_QUERY_PARAM = "programName";
+    public static final String DEGREE_QUERY_PARAM = "degree";
+    public static final String INPUTS_VALUES_QUERY_PARAM = "inputsValues";
+    public static final String CHOSEN_ARCHITECTURE_STR_QUERY_PARAM = "architecture";
+    public static final String CREDITS_AMOUNT_QUERY_PARAM = "creditsAmount";
+
     public static final Gson GSON_INSTANCE = new Gson();
 }

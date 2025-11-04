@@ -1,7 +1,7 @@
 // src/main/java/ui/MainController.java
 package ui.execution.components.main;
 
-import com.google.gson.Gson;
+import dto.execution.*;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import ui.execution.components.dynamicInputs.DynamicInputsController;
@@ -10,10 +10,6 @@ import ui.execution.components.instructionTable.InstructionTableController;
 import ui.execution.components.summaryLine.SummaryLineController;
 import ui.execution.components.topBar.TopBarController;
 import ui.execution.components.variableTable.VariablesTableController;
-import dto.execution.DebugDTO;
-import dto.execution.InstructionsDTO;
-import dto.execution.ProgramDTO;
-import dto.execution.ProgramExecutorDTO;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -42,7 +38,6 @@ import util.http.HttpClientUtil;
 import util.support.Constants;
 import util.support.Dialogs;
 import util.behavior.HighlightingBehavior;
-import util.themes.Theme;
 
 import java.io.IOException;
 import java.util.*;
@@ -62,6 +57,7 @@ public class ExecutionPageController {
     @FXML private ScrollPane rootScroll;
     @FXML private BorderPane rootContent;
     @FXML private Button btnRun, btnDebug, btnStop, btnResume, btnStepOver, btnStepBack;
+    @FXML private ComboBox<String> architectureSelector;
 
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
     private final BooleanProperty isRunInProgress = new SimpleBooleanProperty(false);
@@ -123,6 +119,7 @@ public class ExecutionPageController {
         topBarController.registerThemedTable(mainInstrTableController.getTable());
         topBarController.registerThemedTable(historyInstrTableController.getTable());
 
+        architectureSelector.getItems().setAll("I", "II", "III", "IV");
 //        rightPane.setMinWidth(400);
 //        rightPane.setPrefWidth(400);
 //        rightPane.setMaxWidth(500);
@@ -677,9 +674,10 @@ public class ExecutionPageController {
 
                     String json = responseBody != null ? responseBody.string() : "";
                     ProgramDTO programDTO = GSON_INSTANCE.fromJson(json, ProgramDTO.class);
+                    List<InstructionDTO> rows = programDTO.instructions().programInstructionsDTOList();
 
                     Platform.runLater(() -> {
-                        applyProgram(programDTO);
+                        applyProgram(programDTO, rows);
                         fetchAndPopulateDegrees(programName, 0);
 //                        currentProgramDTO.set(programDTO);
 //                        mainInstrTableController.setItems(programDTO.instructions().programInstructionsDTOList());
@@ -729,8 +727,11 @@ public class ExecutionPageController {
                         return;
                     }
                     ProgramDTO programDTO = new com.google.gson.Gson().fromJson(responseBody != null ? responseBody.string() : "", ProgramDTO.class);
+                    List<InstructionDTO> rows = programDTO.instructions().programInstructionsDTOList();
+
                     Platform.runLater(() -> {
-                        applyProgram(programDTO);
+                        applyProgram(programDTO, rows);
+                        fetchAndPopulateDegrees(programName, 0);
                         populateHighlightSelectorFromCurrentProgram();
                     });
                 }
@@ -738,9 +739,9 @@ public class ExecutionPageController {
         });
     }
 
-    private void applyProgram(ProgramDTO programDTO) {
+    private void applyProgram(ProgramDTO programDTO, List<InstructionDTO> rows) {
         this.currentProgramDTO.set(programDTO);
-        mainInstrTableController.setItems(programDTO.instructions().programInstructionsDTOList());
+        mainInstrTableController.setItems(rows);
         clearExecutionData();
     }
 }

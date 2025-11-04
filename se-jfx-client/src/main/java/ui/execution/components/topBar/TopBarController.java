@@ -25,6 +25,7 @@ public class TopBarController {
     @FXML private ComboBox<String> highlightSelector;
     @FXML private ComboBox<String> themeSelector;
 
+
     private SimpleStringProperty userNameProperty = new SimpleStringProperty();
 
     private Runnable onBackToDashboard;
