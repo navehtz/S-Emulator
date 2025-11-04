@@ -43,7 +43,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static util.support.Constants.GSON_INSTANCE;
+import static util.http.HttpClientUtil.HTTP_CLIENT;
+import static util.support.Constants.*;
 
 public class ExecutionPageController {
 
@@ -62,11 +63,14 @@ public class ExecutionPageController {
     private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
     private final BooleanProperty isRunInProgress = new SimpleBooleanProperty(false);
     private final BooleanProperty isDebugInProgress = new SimpleBooleanProperty(false);
+    private final static Object EXPAND_TAG = new Object();
 
     private SEmulatorAppMainController sEmulatorAppMainController;
 
     private String selectedProgramName;
     private int selectedDegree = 0;
+    private String lastFetchProgram = null;
+    private Integer lastFetchDegree = null;
 
     @FXML private VBox rightPane;
     //@FXML private RunHistoryTableController runsPaneController;
@@ -688,7 +692,7 @@ public class ExecutionPageController {
         });
     }
 
-    private void fetchAndPopulateDegrees(String programName, int preferredDegree) {
+    private void fetchAndPopulateDegrees(String programName, int selectedDegree) {
         String url = Constants.FULL_SERVER_PATH + "/max-degree?programName=" + programName; //TODO: Maybe encode
 
         HttpClientUtil.runAsync(url, new Callback() {
@@ -705,7 +709,7 @@ public class ExecutionPageController {
                     final var degreesRange = IntStream.rangeClosed(0, capacityOfDegrees).boxed().toList();
                     Platform.runLater(() -> {
                         topBarController.setDegrees(degreesRange);
-                        topBarController.selectDegree(Math.min(preferredDegree, capacityOfDegrees));
+                        topBarController.selectDegree(selectedDegree);
                     });
                 }
             }
@@ -713,10 +717,18 @@ public class ExecutionPageController {
     }
 
     private void fetchExpandedProgram(String programName, int degree) {
-        String url = Constants.FULL_SERVER_PATH + "/program-dto?programName=" +
-                programName + "&degree=" + degree;
+        if (!shouldFetch(programName, degree)) return;
+        HttpUrl url = Objects.requireNonNull(HttpUrl.parse(Constants.FULL_SERVER_PATH + "/program-dto"))
+                            .newBuilder()
+                            .addQueryParameter(PROGRAM_NAME_QUERY_PARAM, programName)
+                            .addQueryParameter(DEGREE_QUERY_PARAM, String.valueOf(degree))
+                            .build();
 
-        HttpClientUtil.runAsync(url, new Callback() {
+
+        cancelPreviousExpandCalls(HTTP_CLIENT);
+        Request request = new Request.Builder().url(url).build();
+
+        HttpClientUtil.runAsync(request, new Callback() {
             @Override public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 Platform.runLater(() -> Dialogs.error("Failed to load degree " + degree, e.getMessage(), getOwnerWindowOrNull()));
             }
@@ -731,7 +743,7 @@ public class ExecutionPageController {
 
                     Platform.runLater(() -> {
                         applyProgram(programDTO, rows);
-                        fetchAndPopulateDegrees(programName, 0);
+                        fetchAndPopulateDegrees(programName, degree);
                         populateHighlightSelectorFromCurrentProgram();
                     });
                 }
@@ -744,4 +756,34 @@ public class ExecutionPageController {
         mainInstrTableController.setItems(rows);
         clearExecutionData();
     }
+
+    public void onBecameActive() {
+        if (topBarController != null) {
+            topBarController.startCreditsAutoRefresh();
+        }
+    }
+
+    public void onBecameInactive() {
+        if (topBarController != null) {
+            topBarController.stopCreditsAutoRefresh();
+        }
+    }
+
+    private boolean shouldFetch(String program, int degree) {
+        if (program == null) return false;
+        if (program.equals(lastFetchProgram) && Integer.valueOf(degree).equals(lastFetchDegree)) return false;
+        lastFetchProgram = program;
+        lastFetchDegree = degree;
+        return true;
+    }
+
+    private void cancelPreviousExpandCalls(OkHttpClient client) {
+        for (Call c : client.dispatcher().queuedCalls()) {
+            if (EXPAND_TAG.equals(c.request().tag())) c.cancel();
+        }
+        for (Call c : client.dispatcher().runningCalls()) {
+            if (EXPAND_TAG.equals(c.request().tag())) c.cancel();
+        }
+    }
+
 }

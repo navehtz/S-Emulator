@@ -103,6 +103,10 @@ public class SEmulatorAppMainController implements Closeable {
         setMainPanelTo(dashboardComponent);
         dashboardComponentController.setActive();
 
+        if (executionPageController != null) {
+            executionPageController.onBecameInactive();
+        }
+
         Platform.runLater(() -> {
             var scene = mainPanel.getScene();
             if (scene != null && scene.getWindow() instanceof Stage stage) {
@@ -112,13 +116,8 @@ public class SEmulatorAppMainController implements Closeable {
         });
     }
 
-    public void loadExecutionPage() {
-        if (executionComponent != null) {
-            //setMainPanelTo(executionComponent);
-            return;
-        }
-
-        try {
+    public void loadExecutionPage() throws IOException {
+        if (executionComponent == null) {
             FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource(EXECUTION_PAGE_FXML_RESOURCE_LOCATION));
             executionComponent = fxmlLoader.load();
             executionPageController = fxmlLoader.getController();
@@ -126,16 +125,17 @@ public class SEmulatorAppMainController implements Closeable {
             executionPageController.bindUserName(currentUserName);
 
             //setMainPanelTo(executionComponent);
-        } catch (IOException ioException) {
-            throw new UncheckedIOException("Failed to load Execution page", ioException);
-
         }
     }
 
     public void switchToExecutionPage() {
         Platform.runLater(() -> {
             dashboardComponentController.setInActive();
-            loadExecutionPage();
+            try {
+                loadExecutionPage();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
@@ -144,10 +144,15 @@ public class SEmulatorAppMainController implements Closeable {
             if (dashboardComponentController != null) {
                 dashboardComponentController.setInActive();
             }
-            loadExecutionPage();
+            try {
+                loadExecutionPage();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             setMainPanelTo(executionComponent);
 
             if (executionPageController != null && programName != null) {
+                executionPageController.onBecameActive();
                 executionPageController.loadProgramForExecution(programName);
             }
         });

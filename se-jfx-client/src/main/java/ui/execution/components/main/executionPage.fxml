@@ -52,9 +52,9 @@
                   <children>
    
                      <!-- Debugger / Execution controls -->
-                     <TitledPane expanded="true" maxWidth="1.7976931348623157E308" minHeight="100.0" text="Debugger / Execution" GridPane.columnSpan="2">
+                     <TitledPane expanded="true" maxWidth="1.7976931348623157E308" minHeight="100.0" text="Debugger / Execution" GridPane.columnSpan="2" GridPane.hgrow="SOMETIMES" GridPane.vgrow="SOMETIMES">
                         <content>
-                           <VBox maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="75.0" prefWidth="343.0" spacing="8">
+                           <VBox maxWidth="1.7976931348623157E308" prefHeight="75.0" prefWidth="343.0" spacing="8">
                               <padding>
                                  <Insets bottom="8" left="8" right="8" top="8" />
                               </padding>

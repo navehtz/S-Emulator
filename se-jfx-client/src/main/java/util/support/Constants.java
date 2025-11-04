@@ -8,7 +8,7 @@ public class Constants {
     public final static String LINE_SEPARATOR = System.lineSeparator();
     public final static String TEMP_NAME = "<Anonymous>";
     public final static String USERNAME_PREFIX = "Hello, ";
-    public final static int REFRESH_RATE = 2000;
+    public final static int REFRESH_RATE = 500;
 
     // fxml locations
     public final static String MAIN_PAGE_FXML_RESOURCE_LOCATION = "/ui/main/components/s-emulator-app-main.fxml";

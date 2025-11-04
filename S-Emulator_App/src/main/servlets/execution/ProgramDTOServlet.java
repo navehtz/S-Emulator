@@ -35,10 +35,9 @@ public class ProgramDTOServlet extends HttpServlet {
             }
 
             String degreeStr = request.getParameter("degree");
-            ProgramDTO programDTO;
+            int degree = 0;
 
             if (degreeStr != null && !degreeStr.isBlank()) {
-                int degree;
                 try {
                     degree = Integer.parseInt(degreeStr);
                     if (degree < 0) {
@@ -49,11 +48,9 @@ public class ProgramDTOServlet extends HttpServlet {
                             "Degree must be a non-negative integer");
                     return;
                 }
-
-                programDTO =  engine.getExpandedProgramDTO(programName, degree);
-            } else {
-                programDTO = engine.getProgramByNameToDisplay(programName);
             }
+
+            ProgramDTO programDTO =  engine.getExpandedProgramDTO(programName, degree);
 
             if (programDTO == null) {
                 writeJsonError(response, HttpServletResponse.SC_NOT_FOUND, "Program not found");

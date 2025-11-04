@@ -1,6 +1,10 @@
 package ui.execution.components.topBar;
 
+import dto.dashboard.UserDTO;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
@@ -9,11 +13,23 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.util.Duration;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import org.jetbrains.annotations.NotNull;
+import util.http.HttpClientUtil;
+import util.support.Constants;
 import util.themes.Theme;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntConsumer;
+
+import static util.support.Constants.*;
 
 
 public class TopBarController {
@@ -24,13 +40,18 @@ public class TopBarController {
     @FXML private ComboBox<Integer> degreeSelector;
     @FXML private ComboBox<String> highlightSelector;
     @FXML private ComboBox<String> themeSelector;
+    @FXML private Label availableCreditsLabel;
 
 
     private SimpleStringProperty userNameProperty = new SimpleStringProperty();
+    private final SimpleLongProperty currentCreditsProperty = new SimpleLongProperty(-1);
+    private Timeline poller;
+    private final AtomicBoolean polling = new AtomicBoolean(false);
 
     private Runnable onBackToDashboard;
     private IntConsumer onDegreeChanged;
     private final List<TableView<?>> themedTables = new ArrayList<>();
+
 
 
     @FXML
@@ -42,6 +63,42 @@ public class TopBarController {
             }
         });
         handleTheme();
+
+        availableCreditsLabel.textProperty().bind(currentCreditsProperty.asString());
+    }
+
+    public void startCreditsAutoRefresh() {
+        if (polling.getAndSet(true)) return; // already polling
+
+        poller = new Timeline(new KeyFrame(Duration.millis(REFRESH_RATE), _e -> fetchCreditsOnce()),
+                new KeyFrame(Duration.millis(REFRESH_RATE)));
+        poller.setCycleCount(Timeline.INDEFINITE);
+        poller.play();
+    }
+
+    public void stopCreditsAutoRefresh() {
+        polling.set(false);
+        if (poller != null) {
+            poller.stop();
+            poller = null;
+        }
+    }
+
+    private void fetchCreditsOnce() {
+        String url = Constants.FULL_SERVER_PATH + "/credits/balance";
+        HttpClientUtil.runAsync(url, new Callback() {
+            @Override public void onFailure(@NotNull Call call, @NotNull IOException e) {/*silence*/}
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (response; ResponseBody body = response.body()) {
+                    if (!response.isSuccessful()) return;
+                    String json = body != null ? body.string() : "";
+                    UserDTO userDTO = GSON_INSTANCE.fromJson(json, UserDTO.class);
+                    Platform.runLater(() -> currentCreditsProperty.set(userDTO.currentCredits()));
+                }
+            }
+        });
     }
 
     public StringProperty userNameProperty() {
@@ -156,5 +213,4 @@ public class TopBarController {
             themedTables.add(table);
         }
     }
-
 }
