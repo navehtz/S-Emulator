@@ -20,7 +20,7 @@ public class ProgramExecutionManager {
 
     private ProgramExecutionManager() {}
 
-    ExecutionStatusDTO getExecutionStatus(String runId) {
+    public ExecutionStatusDTO getExecutionStatus(String runId) {
         RunHandle runHandle = executionsStatusMap.get(runId);
         if (runHandle == null) {
             return null;
