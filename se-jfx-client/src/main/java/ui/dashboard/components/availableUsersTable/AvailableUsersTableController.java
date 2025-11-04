@@ -25,6 +25,8 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static util.support.Constants.GSON_INSTANCE;
+
 public class AvailableUsersTableController extends AbstractRefreshableController {
 
     @FXML private TableView<UserDTO> usersTable;
@@ -38,7 +40,6 @@ public class AvailableUsersTableController extends AbstractRefreshableController
 
     private final ObservableList<UserDTO> usersList = FXCollections.observableArrayList();
 
-    private static final Gson gson = new Gson();
     private static final Type usersListType =
             TypeToken.getParameterized(List.class, UserDTO.class).getType();
 
@@ -84,7 +85,7 @@ public class AvailableUsersTableController extends AbstractRefreshableController
                         return;
                     }
 
-                    List<UserDTO> incomingUsersDTOsList = gson.fromJson(responseBodyString, usersListType);
+                    List<UserDTO> incomingUsersDTOsList = GSON_INSTANCE.fromJson(responseBodyString, usersListType);
                     if (incomingUsersDTOsList == null) {
                         incomingUsersDTOsList = List.of();
                     }

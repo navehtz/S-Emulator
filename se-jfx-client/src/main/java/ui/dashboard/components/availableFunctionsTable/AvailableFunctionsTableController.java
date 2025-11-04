@@ -28,6 +28,8 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static util.support.Constants.GSON_INSTANCE;
+
 public class AvailableFunctionsTableController extends AbstractRefreshableController {
 
     @FXML private TableView<AvailableFunctionDTO> functionsTable;
@@ -42,7 +44,6 @@ public class AvailableFunctionsTableController extends AbstractRefreshableContro
     private Consumer<AvailableFunctionDTO> executeFunctionHandler;
 
     private final ObservableList<AvailableFunctionDTO> functionsList = FXCollections.observableArrayList();
-    private static final Gson GSON = new Gson();
     private static final Type LIST_TYPE =
             TypeToken.getParameterized(List.class, AvailableFunctionDTO.class).getType();
 
@@ -78,7 +79,7 @@ public class AvailableFunctionsTableController extends AbstractRefreshableContro
                                 + (responseBodyString.isBlank() ? "" : " | " + responseBodyString));
                         return;
                     }
-                    List<AvailableFunctionDTO> incomingFunctions = GSON.fromJson(responseBodyString, LIST_TYPE);
+                    List<AvailableFunctionDTO> incomingFunctions = GSON_INSTANCE.fromJson(responseBodyString, LIST_TYPE);
                     resetFailures();
                     Platform.runLater(() -> replaceIfChanged(functionsList, incomingFunctions));
                 }

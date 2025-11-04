@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import static util.support.Constants.FULL_SERVER_PATH;
+import static util.support.Constants.GSON_INSTANCE;
 import static util.support.Helpers.validatePath;
 
 public class TopBarController {
@@ -96,8 +97,7 @@ public class TopBarController {
                         (responseBody.length() > 60 ? responseBody.substring(0,60) + "..." : responseBody));
             }
 
-            Gson gson = new Gson();
-            ProgramDTO baseProgram = gson.fromJson(responseBody, ProgramDTO.class);
+            ProgramDTO baseProgram = GSON_INSTANCE.fromJson(responseBody, ProgramDTO.class);
         }
     }
 

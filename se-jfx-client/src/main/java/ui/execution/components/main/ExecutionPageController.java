@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import ui.execution.components.dynamicInputs.DynamicInputsController;
 import ui.execution.components.instructionHistoryChain.InstructionHistoryChainController;
 import ui.execution.components.instructionTable.InstructionTableController;
-import ui.execution.components.runHistoryTable.RunHistoryTableController;
 import ui.execution.components.summaryLine.SummaryLineController;
 import ui.execution.components.topBar.TopBarController;
 import ui.execution.components.variableTable.VariablesTableController;
@@ -15,9 +14,6 @@ import dto.execution.DebugDTO;
 import dto.execution.InstructionsDTO;
 import dto.execution.ProgramDTO;
 import dto.execution.ProgramExecutorDTO;
-import engine.Engine;
-import engine.EngineImpl;
-import exceptions.EngineLoadException;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -40,7 +36,6 @@ import javafx.util.Duration;
 //import ui.execution.debug.DebugUiPresenter;
 //import ui.execution.run.RunOrchestrator;
 //import ui.execution.run.RunUiPresenter;
-import ui.execution.support.RunsHistoryManager;
 import ui.execution.support.VariablesPaneUpdater;
 import ui.main.components.SEmulatorAppMainController;
 import util.http.HttpClientUtil;
@@ -49,43 +44,46 @@ import util.support.Dialogs;
 import util.behavior.HighlightingBehavior;
 import util.themes.Theme;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.IntStream;
+
+import static util.support.Constants.GSON_INSTANCE;
 
 public class ExecutionPageController {
 
-    @FXML private VBox rightPane;
+    @FXML private TopBarController topBarController;
     @FXML private InstructionTableController mainInstrTableController;
     @FXML private InstructionHistoryChainController historyInstrTableController;
     @FXML private VariablesTableController varsPaneController;
     @FXML private DynamicInputsController inputsPaneController;
-    //@FXML private RunHistoryTableController runsPaneController;
     @FXML private SummaryLineController summaryLineController;
-    @FXML private TopBarController topBarController;
+    @FXML private Label cyclesLabel;
+    @FXML private ScrollPane rootScroll;
+    @FXML private BorderPane rootContent;
+    @FXML private Button btnRun, btnDebug, btnStop, btnResume, btnStepOver, btnStepBack;
+
+    private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
+    private final BooleanProperty isRunInProgress = new SimpleBooleanProperty(false);
+    private final BooleanProperty isDebugInProgress = new SimpleBooleanProperty(false);
+
+    private SEmulatorAppMainController sEmulatorAppMainController;
+
+    private String selectedProgramName;
+    private int selectedDegree = 0;
+
+    @FXML private VBox rightPane;
+    //@FXML private RunHistoryTableController runsPaneController;
 
     //@FXML private Label programNameLabel;
     //@FXML private ComboBox<String> contextSelector;
     //@FXML private ComboBox<Integer> degreeSelector;
     //@FXML private ComboBox<String> highlightSelector;
     //@FXML private Button btnLoadFile;
-    @FXML private Button btnRun;
-    @FXML private Button btnDebug;
-    @FXML private Button btnStop;
-    @FXML private Button btnResume;
-    @FXML private Button btnStepOver;
-    @FXML private Button btnStepBack;
-    @FXML private Label cyclesLabel;
-    @FXML private ScrollPane rootScroll;
-    @FXML private BorderPane rootContent;
     //@FXML private CheckBox checkBoxAnimations;
     //@FXML private ComboBox<String> themeSelector;
 
     //private final Engine engine = new EngineImpl();
-    private final ObjectProperty<ProgramDTO> currentProgramDTO = new SimpleObjectProperty<>() {};
-    private final BooleanProperty isRunInProgress = new SimpleBooleanProperty(false);
-    private final BooleanProperty isDebugInProgress = new SimpleBooleanProperty(false);
 
     //private RunOrchestrator runOrchestrator;
     //private RunsHistoryManager runsHistoryManager;
@@ -103,18 +101,17 @@ public class ExecutionPageController {
     public BooleanProperty isDebugInProgressProperty() { return isDebugInProgress; }
     public ProgramDTO getCurrentProgram() { return currentProgramDTO.get(); }
 
-    private SEmulatorAppMainController sEmulatorAppMainController;
 
 
     @FXML
     private void initialize() {
         initCollaborators();
         initUiWiring();
-//        new HighlightingBehavior().wire(
-//                mainInstrTableController.getTable(),
-//                topBarController.highlightSelector,
-//                mainInstrTableController::commandTextOf
-//        );
+        new HighlightingBehavior().wire(
+                mainInstrTableController.getTable(),
+                topBarController.getHighlightSelector(),
+                mainInstrTableController::commandTextOf
+        );
 
         rootScroll.viewportBoundsProperty().addListener((obs, oldVal, newVal) -> {
             double designWidth = 1100.0;
@@ -122,6 +119,9 @@ public class ExecutionPageController {
             rootContent.setPrefWidth(Math.max(designWidth, newVal.getWidth()));
             rootContent.setPrefHeight(Math.max(designHeight, newVal.getHeight()));
         });
+
+        topBarController.registerThemedTable(mainInstrTableController.getTable());
+        topBarController.registerThemedTable(historyInstrTableController.getTable());
 
 //        rightPane.setMinWidth(400);
 //        rightPane.setPrefWidth(400);
@@ -171,6 +171,18 @@ public class ExecutionPageController {
 //        runsHistoryManager.setCurrentProgramKeySupplier(this::selectedOperationKey);
         summaryLineController.setProperty(currentProgramDTO);
         summaryLineController.initializeBindings();
+
+        topBarController.setOnBackToDashboard(() -> {
+            if (sEmulatorAppMainController != null) {
+                sEmulatorAppMainController.switchToDashboard();
+            }
+        });
+
+        topBarController.setOnDegreeChanged(degree -> {
+            if (selectedProgramName == null) return;
+            selectedDegree = degree;
+            fetchExpandedProgram(selectedProgramName, selectedDegree);
+        });
 //        runsPaneController.setOnShowStatus(runsHistoryManager::showStatusPopup);
 //        runsPaneController.setOnRerun(row -> onRerunRow(row));
 
@@ -284,15 +296,17 @@ public class ExecutionPageController {
 //        });
 //    }
 
-//    private void populateHighlightSelectorFromCurrentProgram() {
-//        ProgramDTO currentProgram = getCurrentProgram();
-//        if (currentProgram == null) {
-//            highlightSelector.getItems().clear();
-//        } else {
-//            highlightSelector.getItems().setAll(currentProgram.allVariables());
-//            highlightSelector.getItems().addAll(currentProgram.labelsStr());
-//        }
-//    }
+    private void populateHighlightSelectorFromCurrentProgram() {
+        ProgramDTO currentProgram = getCurrentProgram();
+        if (currentProgram == null) {
+            topBarController.setHighlights(List.of());
+            return;
+        }
+        var variablesAndLabelsList = new ArrayList<String>();
+        variablesAndLabelsList.addAll(currentProgram.allVariables());
+        variablesAndLabelsList.addAll(currentProgram.labelsStr());
+        topBarController.setHighlights(variablesAndLabelsList);
+    }
 
     private void initRunAndDebugButtonsDisableBinding() {
         btnRun.disableProperty().bind(
@@ -584,50 +598,50 @@ public class ExecutionPageController {
         if (runDebugPulse != null) runDebugPulse.stop();
     }
 
-    private void applySelectedTheme(String themeKey) {
-        if (themeKey == null) themeKey = Theme.LIGHT.toString();
-        if (btnRun == null || btnRun.getScene() == null) return;
+//    private void applySelectedTheme(String themeKey) {
+//        if (themeKey == null) themeKey = Theme.LIGHT.toString();
+//        if (btnRun == null || btnRun.getScene() == null) return;
+//
+//        var scene = btnRun.getScene();
+//        var sheets = scene.getStylesheets();
+//        sheets.clear();
+//
+//        addCss(sheets, "/ui/styles/light.css"); // base
+//        String themePath = switch (themeKey) {
+//            case "Dark" -> "/ui/styles/dark.css";
+//            case "Yellow-Blue" -> "/ui/styles/yellowblue.css";
+//            default -> "/ui/styles/light.css";
+//        };
+//        addCss(sheets, themePath);
+//
+//        // Tag the tables with the theme key so the row highlight rules match
+//        var table = mainInstrTableController.getTable();
+//        var historyTable = historyInstrTableController.getTable(); // ensure controller exposes getTable()
+//
+//        String cls = themeKey.equals("Dark") ? "dark"
+//                : themeKey.equals("Yellow-Blue") ? "yellowblue"
+//                : "light";
+//
+//        if (table != null) {
+//            table.getStyleClass().removeAll("light","dark","yellowblue");
+//            table.getStyleClass().add(cls);
+//            table.refresh();
+//        }
+//        if (historyTable != null) {
+//            historyTable.getStyleClass().removeAll("light","dark","yellowblue");
+//            historyTable.getStyleClass().add(cls);
+//            historyTable.refresh();
+//        }
+//    }
 
-        var scene = btnRun.getScene();
-        var sheets = scene.getStylesheets();
-        sheets.clear();
-
-        addCss(sheets, "/ui/styles/light.css"); // base
-        String themePath = switch (themeKey) {
-            case "Dark" -> "/ui/styles/dark.css";
-            case "Yellow-Blue" -> "/ui/styles/yellowblue.css";
-            default -> "/ui/styles/light.css";
-        };
-        addCss(sheets, themePath);
-
-        // Tag the tables with the theme key so the row highlight rules match
-        var table = mainInstrTableController.getTable();
-        var historyTable = historyInstrTableController.getTable(); // ensure controller exposes getTable()
-
-        String cls = themeKey.equals("Dark") ? "dark"
-                : themeKey.equals("Yellow-Blue") ? "yellowblue"
-                : "light";
-
-        if (table != null) {
-            table.getStyleClass().removeAll("light","dark","yellowblue");
-            table.getStyleClass().add(cls);
-            table.refresh();
-        }
-        if (historyTable != null) {
-            historyTable.getStyleClass().removeAll("light","dark","yellowblue");
-            historyTable.getStyleClass().add(cls);
-            historyTable.refresh();
-        }
-    }
-
-    private void addCss(List<String> sheets, String path) {
-        var url = getClass().getResource(path);
-        if (url == null) {
-            System.err.println("CSS not found on classpath: " + path);
-            return;
-        }
-        sheets.add(url.toExternalForm());
-    }
+//    private void addCss(List<String> sheets, String path) {
+//        var url = getClass().getResource(path);
+//        if (url == null) {
+//            System.err.println("CSS not found on classpath: " + path);
+//            return;
+//        }
+//        sheets.add(url.toExternalForm());
+//    }
 
     public void setSEmulatorAppMainController(SEmulatorAppMainController sEmulatorAppMainController) {
         this.sEmulatorAppMainController = sEmulatorAppMainController;
@@ -640,6 +654,8 @@ public class ExecutionPageController {
 
     public void loadProgramForExecution(String programName) {
         if (programName == null || programName.isBlank()) return;
+        this.selectedProgramName = programName;
+        this.selectedDegree = 0;
 
         //programNameLabel.setText(programName);
 
@@ -660,15 +676,71 @@ public class ExecutionPageController {
                     }
 
                     String json = responseBody != null ? responseBody.string() : "";
-                    ProgramDTO programDTO = new Gson().fromJson(json, ProgramDTO.class);
+                    ProgramDTO programDTO = GSON_INSTANCE.fromJson(json, ProgramDTO.class);
 
                     Platform.runLater(() -> {
-                        currentProgramDTO.set(programDTO);
-                        mainInstrTableController.setItems(programDTO.instructions().programInstructionsDTOList());
-                        //populateHighlightSelectorFromCurrentProgram();
+                        applyProgram(programDTO);
+                        fetchAndPopulateDegrees(programName, 0);
+//                        currentProgramDTO.set(programDTO);
+//                        mainInstrTableController.setItems(programDTO.instructions().programInstructionsDTOList());
+                        populateHighlightSelectorFromCurrentProgram();
                     });
                 }
             }
         });
+    }
+
+    private void fetchAndPopulateDegrees(String programName, int preferredDegree) {
+        String url = Constants.FULL_SERVER_PATH + "/max-degree?programName=" + programName; //TODO: Maybe encode
+
+        HttpClientUtil.runAsync(url, new Callback() {
+            @Override public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() -> { topBarController.setDegrees(List.of(0)); topBarController.selectDegree(0); });
+            }
+            @Override public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (response; ResponseBody responseBody = response.body()) {
+                    int maxDegree = 0;
+                    if (response.isSuccessful()) {
+                        try { maxDegree = Integer.parseInt((responseBody != null ? responseBody.string() : "0").trim()); } catch (Exception ignore) {}
+                    }
+                    final int capacityOfDegrees = Math.max(0, maxDegree);
+                    final var degreesRange = IntStream.rangeClosed(0, capacityOfDegrees).boxed().toList();
+                    Platform.runLater(() -> {
+                        topBarController.setDegrees(degreesRange);
+                        topBarController.selectDegree(Math.min(preferredDegree, capacityOfDegrees));
+                    });
+                }
+            }
+        });
+    }
+
+    private void fetchExpandedProgram(String programName, int degree) {
+        String url = Constants.FULL_SERVER_PATH + "/program-dto?programName=" +
+                programName + "&degree=" + degree;
+
+        HttpClientUtil.runAsync(url, new Callback() {
+            @Override public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() -> Dialogs.error("Failed to load degree " + degree, e.getMessage(), getOwnerWindowOrNull()));
+            }
+            @Override public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (response; ResponseBody responseBody = response.body()) {
+                    if (!response.isSuccessful()) {
+                        Platform.runLater(() -> Dialogs.error("Failed to load degree " + degree, "HTTP " + response.code(), getOwnerWindowOrNull()));
+                        return;
+                    }
+                    ProgramDTO programDTO = new com.google.gson.Gson().fromJson(responseBody != null ? responseBody.string() : "", ProgramDTO.class);
+                    Platform.runLater(() -> {
+                        applyProgram(programDTO);
+                        populateHighlightSelectorFromCurrentProgram();
+                    });
+                }
+            }
+        });
+    }
+
+    private void applyProgram(ProgramDTO programDTO) {
+        this.currentProgramDTO.set(programDTO);
+        mainInstrTableController.setItems(programDTO.instructions().programInstructionsDTOList());
+        clearExecutionData();
     }
 }

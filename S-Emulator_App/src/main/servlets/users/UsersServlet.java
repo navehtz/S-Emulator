@@ -12,6 +12,8 @@ import users.UserManager;
 
 import java.io.IOException;
 
+import static main.utils.Constants.GSON_INSTANCE;
+
 @WebServlet(name = "UsersServlet", urlPatterns = "/users")
 public class UsersServlet extends HttpServlet {
 
@@ -34,10 +36,8 @@ public class UsersServlet extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json;charset=UTF-8");
 
-        Gson gson = new Gson();
-
         try (var out = response.getWriter()) {
-            out.print(gson.toJson(userManager.getUsers()));
+            out.print(GSON_INSTANCE.toJson(userManager.getUsers()));
         } catch (Exception e) {
             System.out.println("Error getting users " + e.getMessage());
         }

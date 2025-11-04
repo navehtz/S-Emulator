@@ -15,6 +15,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static main.utils.Constants.GSON_INSTANCE;
+
 @WebServlet(name = "LoadProgramServlet", urlPatterns = "/loadProgram")
 public class LoadProgramServlet extends HttpServlet {
 
@@ -29,8 +31,7 @@ public class LoadProgramServlet extends HttpServlet {
 
         ProgramDTO baseProgram =ServletUtils.getEngine(getServletContext()).getProgramByNameToDisplay(mainProgramName);
 
-        Gson gson = new Gson();
-        String jsonResponse = gson.toJson(baseProgram);
+        String jsonResponse = GSON_INSTANCE.toJson(baseProgram);
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");

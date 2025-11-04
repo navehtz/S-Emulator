@@ -1,5 +1,7 @@
 package util.support;
 
+import com.google.gson.Gson;
+
 public class Constants {
 
     // global constants
@@ -23,4 +25,6 @@ public class Constants {
     public final static String LOGIN_PAGE = FULL_SERVER_PATH + "/login";
     public final static String USERS_LIST = FULL_SERVER_PATH + "/userslist";
     public final static String LOGOUT = FULL_SERVER_PATH + "/logout";
+
+    public static final Gson GSON_INSTANCE = new Gson();
 }

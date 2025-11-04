@@ -60,7 +60,7 @@
                 <Separator orientation="VERTICAL" />
 
                 <Label maxWidth="1.7976931348623157E308" text="Highlight selection:" />
-                <ComboBox fx:id="highlightSelector" prefWidth="200" />
+                <ComboBox fx:id="highlightSelector" prefWidth="200.0" />
             </children>
         </HBox>
         <AnchorPane HBox.hgrow="SOMETIMES">

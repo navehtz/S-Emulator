@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+import static util.support.Constants.GSON_INSTANCE;
+
 public class AvailableProgramsTableController extends AbstractRefreshableController {
 
     @FXML private TableView<AvailableProgramDTO> programsTable;
@@ -48,7 +50,6 @@ public class AvailableProgramsTableController extends AbstractRefreshableControl
 
     private final ObservableList<AvailableProgramDTO> programsList = FXCollections.observableArrayList();
 
-    private static final Gson gson = new Gson();
     private static final Type PROGRAMS_LIST_TYPE =
                         TypeToken.getParameterized(List.class, AvailableProgramDTO.class).getType();
 
@@ -100,7 +101,7 @@ public class AvailableProgramsTableController extends AbstractRefreshableControl
                                 (responseBodyString.isBlank() ? "" : " | " + responseBodyString));
                         return;
                     }
-                    List<AvailableProgramDTO> incomingPrograms = gson.fromJson(responseBodyString, PROGRAMS_LIST_TYPE);
+                    List<AvailableProgramDTO> incomingPrograms = GSON_INSTANCE.fromJson(responseBodyString, PROGRAMS_LIST_TYPE);
                     resetFailures();
                     Platform.runLater(() -> replaceIfChanged(programsList, incomingPrograms));
                 }

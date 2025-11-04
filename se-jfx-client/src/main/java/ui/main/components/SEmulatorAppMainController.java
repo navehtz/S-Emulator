@@ -114,7 +114,7 @@ public class SEmulatorAppMainController implements Closeable {
 
     public void loadExecutionPage() {
         if (executionComponent != null) {
-            setMainPanelTo(executionComponent);
+            //setMainPanelTo(executionComponent);
             return;
         }
 
@@ -125,7 +125,7 @@ public class SEmulatorAppMainController implements Closeable {
             executionPageController.setSEmulatorAppMainController(this);
             executionPageController.bindUserName(currentUserName);
 
-            setMainPanelTo(executionComponent);
+            //setMainPanelTo(executionComponent);
         } catch (IOException ioException) {
             throw new UncheckedIOException("Failed to load Execution page", ioException);
 
@@ -141,8 +141,11 @@ public class SEmulatorAppMainController implements Closeable {
 
     public void switchToExecutionPage(String programName) {
         Platform.runLater(() -> {
-            dashboardComponentController.setInActive();
+            if (dashboardComponentController != null) {
+                dashboardComponentController.setInActive();
+            }
             loadExecutionPage();
+            setMainPanelTo(executionComponent);
 
             if (executionPageController != null && programName != null) {
                 executionPageController.loadProgramForExecution(programName);

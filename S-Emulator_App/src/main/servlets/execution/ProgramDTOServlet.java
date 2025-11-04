@@ -19,7 +19,6 @@ public class ProgramDTOServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
         if (!validateUserSession(request, response)) return;
 
         Engine engine = ServletUtils.getEngine(getServletContext());
@@ -35,10 +34,29 @@ public class ProgramDTOServlet extends HttpServlet {
                 return;
             }
 
-            ProgramDTO programDTO = engine.getProgramByNameToDisplay(programName);
+            String degreeStr = request.getParameter("degree");
+            ProgramDTO programDTO;
+
+            if (degreeStr != null && !degreeStr.isBlank()) {
+                int degree;
+                try {
+                    degree = Integer.parseInt(degreeStr);
+                    if (degree < 0) {
+                        throw new NumberFormatException();
+                    }
+                } catch (NumberFormatException exception) {
+                    writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST,
+                            "Degree must be a non-negative integer");
+                    return;
+                }
+
+                programDTO =  engine.getExpandedProgramDTO(programName, degree);
+            } else {
+                programDTO = engine.getProgramByNameToDisplay(programName);
+            }
+
             if (programDTO == null) {
-                writeJsonError(response, HttpServletResponse.SC_NOT_FOUND,
-                        "Program not found: No program found with the given name");
+                writeJsonError(response, HttpServletResponse.SC_NOT_FOUND, "Program not found");
                 return;
             }
 
