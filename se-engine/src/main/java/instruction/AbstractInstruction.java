@@ -1,6 +1,6 @@
 package instruction;
 
-import dto.InstructionDTO;
+import dto.execution.InstructionDTO;
 import label.FixedLabel;
 import label.Label;
 import operation.OperationView;
@@ -120,7 +120,9 @@ public abstract class AbstractInstruction implements Instruction {
                 referenceLabelStr,
                 getTargetVariable().getRepresentation(),
                 sourceVariableStr,
-                parentDto
+                parentDto,
+                instructionData.getArchitectureType().getRepresentation(),
+                instructionData.getArchitectureType().getRank()
         );
     }
 

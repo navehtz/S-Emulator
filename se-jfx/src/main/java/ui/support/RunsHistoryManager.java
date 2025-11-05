@@ -1,6 +1,6 @@
 package ui.support;
 
-import dto.ProgramExecutorDTO;
+import dto.execution.ProgramExecutorDTO;
 import javafx.application.Platform;
 import ui.components.RunHistoryTableController;
 

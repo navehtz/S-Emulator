@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fx:id="rootScroll" fitToHeight="true" fitToWidth="true" pannable="true" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.execution.components.main.ExecutionPageController">
+   <content>
+      <BorderPane fx:id="rootContent" maxHeight="Infinity" maxWidth="Infinity" minHeight="400" minWidth="900.0" prefHeight="700.0" prefWidth="1100.0">
+
+         <!-- ===== TOP BAR ===== -->
+         <top>
+            <VBox spacing="4">
+               <fx:include fx:id="topBar" maxWidth="1.7976931348623157E308" source="../topBar/TopBar.fxml" />
+            </VBox>
+         </top>
+
+         <!-- ===== CENTER: LEFT/RIGHT SPLIT ===== -->
+         <center>
+            <SplitPane dividerPositions="0.68">
+               <SplitPane dividerPositions="0.6443452380952381" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+                  <items>
+                     <VBox prefHeight="430.0" prefWidth="676.0">
+                        <children>
+
+                           <!-- Main Instructions Table (reused component) -->
+                           <fx:include fx:id="mainInstrTable" source="../instructionTable/InstructionTable.fxml" VBox.vgrow="ALWAYS" />
+
+                           <!-- Summary line -->
+                           <fx:include fx:id="summaryLine" source="../summaryLine/SummaryLine.fxml" />
+                        </children>
+                     </VBox>
+
+                     <!-- Selected instruction history chain (same component reused) -->
+                     <TitledPane expanded="true" prefWidth="660.0" text="Instruction History Chain">
+                        <content>
+                           <fx:include fx:id="historyInstrTable" source="../instructionHistoryChain/InstructionHistoryChain.fxml" />
+                        </content>
+                     </TitledPane>
+                  </items>
+               </SplitPane>
+               <GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" scaleShape="false">
+                 <columnConstraints>
+                   <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="175.0" />
+                   <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="170.0" />
+                 </columnConstraints>
+                 <rowConstraints>
+                   <RowConstraints maxHeight="-Infinity" minHeight="100.0" prefHeight="100.0" valignment="CENTER" vgrow="SOMETIMES" />
+                   <RowConstraints maxHeight="1.7976931348623157E308" minHeight="200.0" prefHeight="468.0" vgrow="SOMETIMES" />
+                   <RowConstraints maxHeight="-Infinity" minHeight="37.0" prefHeight="37.0" vgrow="SOMETIMES" />
+                 </rowConstraints>
+                  <children>
+   
+                     <!-- Debugger / Execution controls -->
+                     <TitledPane expanded="true" maxWidth="1.7976931348623157E308" minHeight="100.0" text="Debugger / Execution" GridPane.columnSpan="2" GridPane.hgrow="SOMETIMES" GridPane.vgrow="SOMETIMES">
+                        <content>
+                           <VBox maxWidth="1.7976931348623157E308" prefHeight="75.0" prefWidth="343.0" spacing="8">
+                              <padding>
+                                 <Insets bottom="8" left="8" right="8" top="8" />
+                              </padding>
+                              <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="8">
+                                 <Button fx:id="btnRun" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" onAction="#onRun" prefHeight="25.0" prefWidth="148.0" text="Run" />
+                                 <Button fx:id="btnDebug" alignment="CENTER" contentDisplay="CENTER" disable="true" maxWidth="1.7976931348623157E308" onAction="#onDebug" prefHeight="25.0" prefWidth="132.0" text="Debug" />
+                              </HBox>
+                              <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="8">
+                                 <Button fx:id="btnStop" alignment="CENTER" contentDisplay="CENTER" disable="true" maxWidth="1.7976931348623157E308" onAction="#onStop" prefHeight="25.0" prefWidth="70.0" text="Stop" />
+                                 <Button fx:id="btnResume" alignment="CENTER" contentDisplay="CENTER" disable="true" maxWidth="1.7976931348623157E308" onAction="#onResume" text="Resume" />
+                                 <Button fx:id="btnStepOver" alignment="CENTER" contentDisplay="CENTER" disable="true" maxWidth="1.7976931348623157E308" onAction="#onStepOver" text="Step Over" />
+                                 <Button fx:id="btnStepBack" alignment="CENTER" contentDisplay="CENTER" disable="true" maxWidth="1.7976931348623157E308" onAction="#onStepBack" text="Step Back" />
+                              </HBox>
+                           </VBox>
+                        </content>
+                     </TitledPane>
+   
+                     <!-- Cycles row -->
+                     <HBox alignment="CENTER" prefHeight="25.0" prefWidth="132.0" spacing="6" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                        <Label alignment="CENTER" text="Cycles:">
+                           <HBox.margin>
+                              <Insets left="5.0" />
+                           </HBox.margin>
+                        </Label>
+                        <Label fx:id="cyclesLabel" alignment="CENTER" text="0" />
+                     </HBox>
+   
+                     <!-- Variables + Dynamic Inputs -->
+                     <HBox prefWidth="193.0" spacing="8" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                        <!-- Variables (component) -->
+                        <fx:include fx:id="varsPane" source="../variableTable/VariablesTable.fxml" />
+                        <VBox minHeight="100.0" prefHeight="473.0" prefWidth="164.0">
+                           <children>
+                              <ComboBox fx:id="architectureSelector" prefHeight="25.0" prefWidth="161.0" promptText="Select Architecture:">
+                                 <VBox.margin>
+                                    <Insets bottom="5.0" />
+                                 </VBox.margin>
+                              </ComboBox>
+         
+                              <!-- Dynamic Inputs (component builds only relevant x_i) -->
+                              <fx:include fx:id="inputsPane" source="../dynamicInputs/DynamicInputsPane.fxml" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </VBox>
+                        <GridPane.margin>
+                           <Insets left="5.0" right="5.0" top="5.0" />
+                        </GridPane.margin>
+                     </HBox>
+                  </children>
+               </GridPane>
+            </SplitPane>
+         </center>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+
+      </BorderPane>
+   </content>
+</ScrollPane>

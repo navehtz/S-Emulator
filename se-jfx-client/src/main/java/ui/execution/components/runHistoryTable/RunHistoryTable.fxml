@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<TitledPane text="History / Statistics" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.execution.components.runHistoryTable.RunHistoryTableController">
+     <VBox spacing="8">
+         <padding>
+             <Insets bottom="6" left="6" right="6" top="6" />
+         </padding>
+         <TableView fx:id="table" prefHeight="238.0" prefWidth="310.0" VBox.vgrow="ALWAYS">
+             <columns>
+                 <TableColumn fx:id="colRunNum" prefWidth="75.0" text="Run #" />
+                 <TableColumn fx:id="colDegree" prefWidth="75.0" text="Degree" />
+                 <TableColumn fx:id="colResult" prefWidth="75.0" text="Result" />
+                 <TableColumn fx:id="colCycles" prefWidth="75.0" text="Cycles" />
+             </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+         </TableView>
+         <HBox spacing="8">
+             <Button fx:id="btnShow" disable="true" onAction="#onShowStatus" text="Show" />
+             <Button fx:id="btnRerun" disable="true" onAction="#onRerun" text="Re-Run" />
+         </HBox>
+     </VBox>
+ </TitledPane>

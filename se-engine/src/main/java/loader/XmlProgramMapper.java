@@ -29,14 +29,14 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-final class XmlProgramMapper {
+public final class XmlProgramMapper {
 
     //private static final Map<String, String> functionNameToUserString = new HashMap<>();
 
     private XmlProgramMapper() {
     }
 
-    static Operation map(SProgram sProgram) {
+    static Operation map(SProgram sProgram, String uploaderName) {
         // ---- name ----
         String programName = safeTrim(sProgram.getName());
         if (programName == null || programName.isEmpty()) {
@@ -49,14 +49,16 @@ final class XmlProgramMapper {
         final List<Label> labels = new ArrayList<>();
 
         List<SInstruction> sInstructions = sProgram.getInstructions();
+        Set<String> calledFunctionNames = new HashSet<>();
         if (sInstructions == null || sInstructions.isEmpty()) {
             // Build an empty program consistently via Builder
             return new ProgramImpl.Builder()
                     .withName(programName)
+                    .withUserUploaded(uploaderName)
                     .build();
         }
 
-        handleInstructions(code, vars, labels, sInstructions);
+        handleInstructions(calledFunctionNames, code, vars, labels, sInstructions);
 
         // ---- build ProgramImpl via Builder (so bucketing happens in ProgramImpl’s ctor) ----
         return new ProgramImpl.Builder()
@@ -65,13 +67,44 @@ final class XmlProgramMapper {
                 .withVariables(vars)
                 .withLabels(labels)
                 .withEntry(labels.isEmpty() ? FixedLabel.EMPTY : labels.getFirst())
+                .withUserUploaded(uploaderName)
+                .withCalledFunctionNames(calledFunctionNames)
                 .build();
     }
 
-    private static void handleInstructions(List<Instruction> code, Set<Variable> vars, List<Label> labels, List<SInstruction> sInstructions) {
+    static Operation map(SFunction sFunction, String mainProgramName, String uploaderName) {
+        String functionName = safeTrim(sFunction.getName());
+        if (functionName == null || functionName.isEmpty()) functionName = "UnnamedFunction";
+
+        final List<Instruction> code = new ArrayList<>();
+        final Set<Variable> vars = new LinkedHashSet<>();
+        final List<Label> labels = new ArrayList<>();
+
+        List<SInstruction> sInstructions = sFunction.getInstructions();
+        Set<String> calledFunctionNames = new HashSet<>();
+        if (sInstructions != null) {
+            handleInstructions(calledFunctionNames, code, vars, labels, sInstructions);
+        }
+
+        String userString = safeTrim(sFunction.getUserString());
+
+        return new FunctionImpl.Builder()
+                .withName(functionName)
+                .withInstructions(code)
+                .withVariables(vars)
+                .withLabels(labels)
+                .withEntry(labels.isEmpty() ? FixedLabel.EMPTY : labels.getFirst())
+                .withUserString(userString)
+                .withMainProgramName(mainProgramName)
+                .withUserUploaded(uploaderName)
+                .withCalledFunctionNames(calledFunctionNames)
+                .build();
+    }
+
+    private static void handleInstructions(Set<String> calledFunctionNames, List<Instruction> code, Set<Variable> vars, List<Label> labels, List<SInstruction> sInstructions) {
         for (int i = 0; i < sInstructions.size(); i++) {
             SInstruction sInstruction = sInstructions.get(i);
-            Instruction mappedInstruction = mapSingleInstruction(sInstruction, i + 1);
+            Instruction mappedInstruction = mapSingleInstruction(calledFunctionNames, sInstruction, i + 1);
 
             // collect instruction
             code.add(mappedInstruction);
@@ -103,32 +136,7 @@ final class XmlProgramMapper {
         }
     }
 
-    static Operation map(SFunction sFunction) {
-        String functionName = safeTrim(sFunction.getName());
-        if (functionName == null || functionName.isEmpty()) functionName = "UnnamedFunction";
-
-        final List<Instruction> code = new ArrayList<>();
-        final Set<Variable> vars = new LinkedHashSet<>();
-        final List<Label> labels = new ArrayList<>();
-
-        List<SInstruction> sInstructions = sFunction.getInstructions();
-        if (sInstructions != null) {
-            handleInstructions(code, vars, labels, sInstructions);
-        }
-
-        String userString = safeTrim(sFunction.getUserString());
-
-        return new FunctionImpl.Builder()
-                .withName(functionName)
-                .withInstructions(code)
-                .withVariables(vars)
-                .withLabels(labels)
-                .withEntry(labels.isEmpty() ? FixedLabel.EMPTY : labels.getFirst())
-                .withUserString(userString)
-                .build();
-    }
-
-    private static Instruction mapSingleInstruction(SInstruction sInstruction, int ordinal) {
+    private static Instruction mapSingleInstruction(Set<String> calledFunctionNames, SInstruction sInstruction, int ordinal) {
         try {
             String instructionName = toUpperSafe(sInstruction.getName());
 
@@ -139,6 +147,7 @@ final class XmlProgramMapper {
             Instruction originInstruction = new OriginOfAllInstruction();
 
             return createNewInstruction(
+                    calledFunctionNames,
                     instructionName,
                     instructionLabel,
                     targetVariable,
@@ -151,7 +160,8 @@ final class XmlProgramMapper {
         }
     }
 
-    private static AbstractInstruction createNewInstruction(String instructionName,
+    private static AbstractInstruction createNewInstruction(Set<String> calledFunctionNames,
+                                                            String instructionName,
                                                             Label instructionLabel,
                                                             Variable targetVariable,
                                                             List<SInstructionArgument> sInstructionArguments,
@@ -248,7 +258,9 @@ final class XmlProgramMapper {
                         .findFirst()
                         .orElse("");
 
-                List<QuoteArg> functionArguments = parseTopLevelArgs(rawFunctionArguments, instructionName, ordinal);
+                functionName = normalizeKey(functionName);
+                calledFunctionNames.add(functionName);
+                List<QuoteArg> functionArguments = parseTopLevelArgs(calledFunctionNames, rawFunctionArguments, instructionName, ordinal);
 
                 return new QuoteInstruction(targetVariable, instructionLabel, originInstruction, ordinal, functionName, functionArguments);
             }
@@ -273,8 +285,9 @@ final class XmlProgramMapper {
                         .findFirst()
                         .orElse("");
 
-
-                List<QuoteArg> functionArguments = parseTopLevelArgs(rawFunctionArguments, instructionName, ordinal);
+                functionName = normalizeKey(functionName);
+                calledFunctionNames.add(functionName);
+                List<QuoteArg> functionArguments = parseTopLevelArgs(calledFunctionNames, rawFunctionArguments, instructionName, ordinal);
 
                 return new JumpEqualFunctionInstruction(targetVariable, instructionLabel, addedLabel, originInstruction, ordinal, functionName, functionArguments);
             }
@@ -286,17 +299,23 @@ final class XmlProgramMapper {
         }
     }
 
-    private static List<QuoteArg> parseTopLevelArgs(String rawFunctionArguments, String where, int ordinal) {
+    public static String normalizeKey(String name) {
+        String s = safeTrim(name);
+        if (s == null) throw new IllegalArgumentException("Null program/function name");
+        return s;
+    }
+
+    private static List<QuoteArg> parseTopLevelArgs(Set<String> calledFunctionNames, String rawFunctionArguments, String where, int ordinal) {
         List<String> tokens = splitTopLevel(rawFunctionArguments);
         List<QuoteArg> functionArguments = new ArrayList<>();
         for (String token : tokens) {
-            functionArguments.add(parseArgExpression(token, where, ordinal));
+            functionArguments.add(parseArgExpression(calledFunctionNames, token, where, ordinal));
         }
 
         return functionArguments;
     }
 
-    private static QuoteArg parseArgExpression(String token, String where, int ordinal) {
+    private static QuoteArg parseArgExpression(Set<String> calledFunctionNames, String token, String where, int ordinal) {
         String trimmedToken = safeTrim(token);
         if (trimmedToken == null || trimmedToken.isEmpty()) {
             throw new IllegalArgumentException("Empty argument for \" + where + \" at #\" + ordinal");
@@ -315,10 +334,12 @@ final class XmlProgramMapper {
 
             //String functionUserString = functionNameToUserString.get(parts.getFirst().trim());
             String functionName = parts.getFirst().trim();
+            functionName = normalizeKey(functionName);
+            calledFunctionNames.add(functionName);
             List<QuoteArg> subArguments = new ArrayList<>();
 
             for (int i = 1; i < parts.size(); i++) {
-                subArguments.add(parseArgExpression(parts.get(i), where, ordinal));
+                subArguments.add(parseArgExpression(calledFunctionNames, parts.get(i), where, ordinal));
             }
 
             return new CallArg(functionName, subArguments);
@@ -411,7 +432,7 @@ final class XmlProgramMapper {
         );
     }
 
-    private static String safeTrim(String s) {
+    public static String safeTrim(String s) {
         return s == null ? null : s.trim();
     }
 

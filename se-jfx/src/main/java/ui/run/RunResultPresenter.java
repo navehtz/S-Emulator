@@ -1,6 +1,6 @@
 package ui.run;
 
-import dto.ProgramExecutorDTO;
+import dto.execution.ProgramExecutorDTO;
 
 public interface RunResultPresenter {
     void onRunStarted();

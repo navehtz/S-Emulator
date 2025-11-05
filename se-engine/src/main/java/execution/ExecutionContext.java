@@ -1,8 +1,6 @@
 package execution;
 
-import operation.Operation;
 import operation.OperationView;
-import program.Program;
 import variable.Variable;
 
 public interface ExecutionContext {
@@ -11,8 +9,8 @@ public interface ExecutionContext {
     long getOperationResult();
     void updateVariable(Variable v, long value);
 
-    long invokeOperation(String name, long... args);
-    long invokeOperation(OperationView operation, long... args);
+    long invokeOperation(String operationName, long... args);
+    long invokeOperation(OperationView operation, String userName, long... args);
 
     int getLastInvocationCycles();
 }

@@ -1,0 +1,159 @@
+/* ===== Yellow–Blue Theme (more blue, clean contrast) ===== */
+
+/* Typography */
+.root {
+    -fx-font-family: "Nunito", "Segoe UI", Arial, sans-serif;
+    -fx-font-size: 13.5px;
+
+    -fx-background: linear-gradient(#fdfcf6, #fbfbef);
+}
+
+.root {
+    -fx-text-background-color: #202124;
+    -fx-selection-bar: #3875d6;     /* selection blue fallback for lists */
+}
+
+
+
+/* Palette */
+* {
+    /* Blues */
+    -theme-blue-1: #0d47a1;   /* deep */
+    -theme-blue-2: #1976d2;   /* primary */
+    -theme-blue-3: #64b5f6;   /* light accent */
+    /* Yellows */
+    -theme-ylw-1: #f59e0b;    /* primary yellow */
+    -theme-ylw-2: #fde68a;    /* pale */
+    -theme-ylw-3: #fff3c4;    /* very pale */
+}
+
+/* Bars & panes */
+.tool-bar {
+    -fx-background-color: linear-gradient(#fff7d6, #ffeaa0);
+    -fx-padding: 6 8;
+    -fx-border-color: #ffd666;
+    -fx-border-width: 0 0 1 0;
+}
+.titled-pane > .title {
+    -fx-background-color: linear-gradient(#e9f2ff, #d9ecff);
+    -fx-text-fill: #0b1f38;
+}
+.titled-pane > .content {
+    -fx-background-color: #fffef6;
+}
+.split-pane:horizontal *.split-pane-divider,
+.split-pane:vertical   *.split-pane-divider {
+    -fx-background-color: #dbeafe;
+}
+
+/* Controls */
+.label, .check-box { -fx-text-fill: #0b1f38; }
+
+.combo-box, .text-field, .spinner {
+    -fx-background-color: #ffffff, #ffffff, #ffffff;
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 10, 10, 10;
+    -fx-border-color: #bcd6ff;
+    -fx-border-radius: 10;
+}
+
+/* Buttons */
+.button {
+    -fx-background-radius: 10;
+    -fx-padding: 6 14;
+    -fx-font-weight: 700;
+    -fx-background-color: linear-gradient(#f7f9ff, #e7f0ff);
+    -fx-text-fill: #0b1f38;
+    -fx-border-color: #bcd6ff;
+    -fx-border-radius: 10;
+}
+.button:hover   { -fx-background-color: linear-gradient(#ffffff, #eef5ff); }
+.button:pressed { -fx-background-color: linear-gradient(#e7f0ff, #dbe9ff); }
+
+/* Run/Debug — green accent to stand out against blue */
+#btnRun, #btnDebug {
+    -fx-background-color: linear-gradient(#2ecc71, #27ae60);
+    -fx-text-fill: white;
+    -fx-border-color: rgba(0,0,0,0.08);
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(46,204,113,0.35), 10, 0.3, 0, 1);
+}
+#btnRun:hover, #btnDebug:hover   { -fx-background-color: linear-gradient(#35d87b, #2fbe6c); }
+#btnRun:pressed, #btnDebug:pressed { -fx-background-color: linear-gradient(#29c06a, #249b57); }
+
+/* Stop — red */
+#btnStop {
+    -fx-background-color: linear-gradient(#f87171, #ef4444);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(248,113,113,0.35), 10, 0.3, 0, 1);
+}
+#btnStop:hover   { -fx-background-color: linear-gradient(#fb8b8b, #f25555); }
+#btnStop:pressed { -fx-background-color: linear-gradient(#e96363, #e13e3e); }
+
+/* Tables — blue emphasis with yellow stripe */
+.table-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
+    -fx-border-color: #bcd6ff;
+    -fx-border-radius: 10;
+}
+.table-view .column-header-background {
+    -fx-background-color: linear-gradient(#e3f0ff, #d6e9ff);
+    -fx-background-radius: 10 10 0 0;
+}
+.table-view .table-row-cell:odd  { -fx-background-color: #fff7da; } /* subtle yellow */
+.table-view .table-row-cell:even { -fx-background-color: #ffffff; }
+.table-view .table-row-cell:selected {
+    -fx-background-color: #dbeafe; /* light blue selection */
+}
+.table-view .table-cell {
+    -fx-padding: 7 10;
+    -fx-border-color: transparent transparent #f1f5f9 transparent;
+}
+
+/* Scroll */
+.scroll-pane {
+    -fx-background: transparent;
+}
+
+/* base highlight on row */
+.table-view .table-row-cell.var-highlight,
+.table-view .table-row-cell.var-highlight .table-cell {
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.table-view.yellowblue .table-row-cell.var-highlight,
+.table-view.yellowblue .table-row-cell.var-highlight .table-cell {
+    -fx-background-color: rgba(138, 218, 253, 0.38);
+}
+.table-view.yellowblue:row-selection .table-row-cell.var-highlight:selected,
+.table-view.yellowblue:row-selection .table-row-cell.var-highlight:selected .table-cell {
+    -fx-background-color: -fx-selection-bar, rgba(253, 230, 138, 0.40);
+    -fx-background-insets: 0, 0;
+}
+
+table-row-cell.var-highlight {
+    -fx-background-color: -fx-accent, -fx-control-inner-background ;
+    -fx-background-insets: 0, 1 0 0 0;
+    -fx-background-radius: 0;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+/* keep selected row look unchanged */
+.table-row-cell:focused:selected,
+.table-row-cell:selected {
+    /* your selected-row styling */
+}
+
+.table-row-cell.arch-too-high {
+    -fx-background-color: rgba(255, 0, 0, 0.15);
+}
+.table-row-cell:filled:selected.arch-too-high {
+    -fx-background-color: -fx-focus-color, -fx-background;
+}
+
+.label:overcap {
+    -fx-text-fill: #b00020;
+    -fx-font-weight: bold;
+}
