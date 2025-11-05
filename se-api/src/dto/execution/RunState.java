@@ -4,6 +4,6 @@ public enum RunState {
     PENDING,
     IN_PROGRESS,
     DONE,
-    Cancelled,
+    CANCELLED,
     ERROR,
 }

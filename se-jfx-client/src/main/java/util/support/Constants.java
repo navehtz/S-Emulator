@@ -32,6 +32,7 @@ public class Constants {
     public static final String INPUTS_VALUES_QUERY_PARAM = "inputsValues";
     public static final String CHOSEN_ARCHITECTURE_STR_QUERY_PARAM = "architecture";
     public static final String CREDITS_AMOUNT_QUERY_PARAM = "creditsAmount";
+    public static final String RUN_ID_QUERY_PARAM = "runId";
 
     public static final Gson GSON_INSTANCE = new Gson();
 }

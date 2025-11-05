@@ -213,4 +213,13 @@ public class TopBarController {
             themedTables.add(table);
         }
     }
+
+//    public void setCredits(long currentCredits, long usedCredits) {
+//
+//    }
+
+        public int getSelectedDegree() {
+        if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
+        return degreeSelector.getValue();
+    }
 }

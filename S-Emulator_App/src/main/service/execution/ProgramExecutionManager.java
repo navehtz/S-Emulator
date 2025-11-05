@@ -53,7 +53,7 @@ public class ProgramExecutionManager {
                 executionStatus.setMessage("");
             } catch (CancellationException cancellationException) {
                 executionStatus.setMessage("Canceled by user");
-                executionStatus.setState(RunState.Cancelled);
+                executionStatus.setState(RunState.CANCELLED);
                 throw cancellationException;
             } catch (Throwable t) {
                 executionStatus.setMessage(t.getMessage() == null ? "Execution failed" : t.getMessage());
@@ -73,7 +73,7 @@ public class ProgramExecutionManager {
         boolean ok = runHandle.executionFuture().cancel(true); // interrupts the virtual thread
         if (ok) {
             runHandle.executionStatus().setMessage("Canceled by user");
-            runHandle.executionStatus().setState(RunState.Cancelled);
+            runHandle.executionStatus().setState(RunState.CANCELLED);
         }
         return ok;
     }

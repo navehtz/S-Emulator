@@ -30,8 +30,11 @@ import javafx.stage.*;
 import javafx.util.Duration;
 //import ui.execution.debug.DebugOrchestrator;
 //import ui.execution.debug.DebugUiPresenter;
-//import ui.execution.run.RunOrchestrator;
-//import ui.execution.run.RunUiPresenter;
+import ui.execution.run.HttpRunGateway;
+import ui.execution.run.RunOrchestrator;
+import ui.execution.run.RunUiPresenter;
+import ui.execution.run.CreditsUi;
+import ui.execution.support.RunsHistoryManager;
 import ui.execution.support.VariablesPaneUpdater;
 import ui.main.components.SEmulatorAppMainController;
 import util.http.HttpClientUtil;
@@ -75,18 +78,13 @@ public class ExecutionPageController {
     @FXML private VBox rightPane;
     //@FXML private RunHistoryTableController runsPaneController;
 
-    //@FXML private Label programNameLabel;
-    //@FXML private ComboBox<String> contextSelector;
-    //@FXML private ComboBox<Integer> degreeSelector;
-    //@FXML private ComboBox<String> highlightSelector;
-    //@FXML private Button btnLoadFile;
     //@FXML private CheckBox checkBoxAnimations;
     //@FXML private ComboBox<String> themeSelector;
 
     //private final Engine engine = new EngineImpl();
 
-    //private RunOrchestrator runOrchestrator;
-    //private RunsHistoryManager runsHistoryManager;
+    private RunOrchestrator runOrchestrator;
+    private RunsHistoryManager runsHistoryManager;
     //private DebugOrchestrator debugOrchestrator;
     private final Map<String, Long> lastVarsSnapshot = new HashMap<>();
 
@@ -124,6 +122,13 @@ public class ExecutionPageController {
         topBarController.registerThemedTable(historyInstrTableController.getTable());
 
         architectureSelector.getItems().setAll("I", "II", "III", "IV");
+
+//        CreditsUi.bindUpdater((current, used) -> {
+//            topBarController.setCredits(current, used);
+//        });
+
+
+
 //        rightPane.setMinWidth(400);
 //        rightPane.setPrefWidth(400);
 //        rightPane.setMaxWidth(500);
@@ -187,21 +192,28 @@ public class ExecutionPageController {
 //        runsPaneController.setOnShowStatus(runsHistoryManager::showStatusPopup);
 //        runsPaneController.setOnRerun(row -> onRerunRow(row));
 
+        var runGateway = new HttpRunGateway();
 
-//        RunUiPresenter runUiPresenter = new RunUiPresenter(
-//                isRunInProgress,
-//                variablesPaneUpdater,
-//                runsHistoryManager,
-//                this::updateInputsPane);
-//
-//        this.runOrchestrator = new RunOrchestrator(
-//                engine,
-//                this::getOwnerWindowOrNull,
-//                this::getSelectedDegree,
-//                isRunInProgress,
-//                runUiPresenter,
-//                this::selectedOperationKey
-//        );
+        RunUiPresenter runUiPresenter = new RunUiPresenter(
+                isRunInProgress,
+                variablesPaneUpdater,
+                //runsHistoryManager,
+                this::updateInputsPane);
+
+        this.runOrchestrator = new RunOrchestrator(
+                runGateway,
+                this::getOwnerWindowOrNull,
+                () -> topBarController.getSelectedDegree(),
+                isRunInProgress,
+                runUiPresenter,
+                this::selectedOperationKey,
+                () -> {
+                    var selectedArch = architectureSelector.getSelectionModel().getSelectedItem();
+                    return selectedArch == null ? "I" : selectedArch;
+                }
+        );
+
+        mainInstrTableController.bindHistoryTable(currentProgramDTO::get, historyInstrTableController);
 
 //        DebugUiPresenter debugPresenter = new DebugUiPresenter(
 //                isDebugInProgress,
@@ -325,9 +337,9 @@ public class ExecutionPageController {
 
 
     @FXML private void onRun(ActionEvent e) {
-//        runOrchestrator.run(getCurrentProgram());
-//        btnRun.setEffect(null);
-//        btnDebug.setEffect(null);
+        runOrchestrator.run(getCurrentProgram());
+        btnRun.setEffect(null);
+        btnDebug.setEffect(null);
     }
     @FXML private void onDebug(ActionEvent e)      {
 //        debugOrchestrator.debug();
@@ -374,10 +386,7 @@ public class ExecutionPageController {
 //        }
     }
 
-//    private int getSelectedDegree() {
-//        if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
-//        return degreeSelector.getValue();
-//    }
+
 
     private void updateCurrentProgramAndMainInstrTable(ProgramDTO dto) {
         this.currentProgramDTO.set(dto);
@@ -432,14 +441,9 @@ public class ExecutionPageController {
         return c;
     }
 
-//    private String selectedOperationKey() {
-//        String selectedOperationString = contextSelector.getValue();
-//        if (selectedOperationString == null || selectedOperationString.isBlank()) {
-//            return engine.getProgramToDisplay().programName(); // main program fallback
-//        }
-//
-//        return engine.getAllUserStringToFunctionName().getOrDefault(selectedOperationString, selectedOperationString);
-//    }
+    private String selectedOperationKey() {
+        return selectedProgramName;
+    }
 
     private void enterDebugMode() {
         isDebugInProgress.set(true);
