@@ -1,10 +1,12 @@
 package ui.execution.components.summaryLine;
 
+import architecture.ArchitectureType;
 import dto.execution.InstructionDTO;
 import dto.execution.ProgramDTO;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.ObjectProperty;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
@@ -23,6 +25,8 @@ public class SummaryLineController {
     public Label ivArchInstructions;
     public Label amountIVArch;
     private ObjectProperty<ProgramDTO> currentSelectedProgramProperty;
+
+    private static final PseudoClass OVER_CAP = PseudoClass.getPseudoClass("overcap");
 
     @FXML private Label amountTotal;
 //    @FXML private Label amountBasic;
@@ -141,5 +145,17 @@ public class SummaryLineController {
         return (int) list.stream()
                 .filter(instr -> "IV".equals(instr.architectureStr()))
                 .count();
+    }
+
+    public void setArchitectureCap(ArchitectureType architectureType) {
+        int rank = architectureType.getRank();
+        tint(iArchInstructions,   1 > rank);
+        tint(iiArchInstructions,  2 > rank);
+        tint(iiiArchInstructions, 3 > rank);
+        tint(ivArchInstructions,  4 > rank);
+    }
+
+    private void tint(Label label, boolean on) {
+        if (label != null) label.pseudoClassStateChanged(OVER_CAP, on);
     }
 }

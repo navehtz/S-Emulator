@@ -1,6 +1,7 @@
 // src/main/java/ui/MainController.java
 package ui.execution.components.main;
 
+import architecture.ArchitectureType;
 import dto.execution.*;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,6 @@ import javafx.util.Duration;
 import ui.execution.run.HttpRunGateway;
 import ui.execution.run.RunOrchestrator;
 import ui.execution.run.RunUiPresenter;
-import ui.execution.run.CreditsUi;
 import ui.execution.support.RunsHistoryManager;
 import ui.execution.support.VariablesPaneUpdater;
 import ui.main.components.SEmulatorAppMainController;
@@ -67,6 +67,8 @@ public class ExecutionPageController {
     private final BooleanProperty isRunInProgress = new SimpleBooleanProperty(false);
     private final BooleanProperty isDebugInProgress = new SimpleBooleanProperty(false);
     private final static Object EXPAND_TAG = new Object();
+    private ArchitectureType selectedArch = ArchitectureType.A_1;
+    private final BooleanProperty hasOverCap = new SimpleBooleanProperty(false);
 
     private SEmulatorAppMainController sEmulatorAppMainController;
 
@@ -76,12 +78,6 @@ public class ExecutionPageController {
     private Integer lastFetchDegree = null;
 
     @FXML private VBox rightPane;
-    //@FXML private RunHistoryTableController runsPaneController;
-
-    //@FXML private CheckBox checkBoxAnimations;
-    //@FXML private ComboBox<String> themeSelector;
-
-    //private final Engine engine = new EngineImpl();
 
     private RunOrchestrator runOrchestrator;
     private RunsHistoryManager runsHistoryManager;
@@ -121,8 +117,12 @@ public class ExecutionPageController {
         topBarController.registerThemedTable(mainInstrTableController.getTable());
         topBarController.registerThemedTable(historyInstrTableController.getTable());
 
-        architectureSelector.getItems().setAll("I", "II", "III", "IV");
-
+        wireArchitectureSelector();
+        btnRun.disableProperty().bind(
+                        currentProgramProperty().isNull()
+                        .or(isRunInProgressProperty()
+                        .or(hasOverCap)
+                        ));
 //        CreditsUi.bindUpdater((current, used) -> {
 //            topBarController.setCredits(current, used);
 //        });
@@ -337,6 +337,13 @@ public class ExecutionPageController {
 
 
     @FXML private void onRun(ActionEvent e) {
+        if (hasOverCap.get()) {
+            Dialogs.error("Cannot Run",
+                    "Selected architecture (" + selectedArch.getRepresentation() +
+                            ") is lower than some instructions in this program.",
+                    getOwnerWindowOrNull());
+            return;
+        }
         runOrchestrator.run(getCurrentProgram());
         btnRun.setEffect(null);
         btnDebug.setEffect(null);
@@ -759,6 +766,9 @@ public class ExecutionPageController {
         this.currentProgramDTO.set(programDTO);
         mainInstrTableController.setItems(rows);
         clearExecutionData();
+
+        populateHighlightSelectorFromCurrentProgram();
+        applyArchCapHighlighting();
     }
 
     public void onBecameActive() {
@@ -790,4 +800,28 @@ public class ExecutionPageController {
         }
     }
 
+    private void wireArchitectureSelector() {
+        architectureSelector.getItems().setAll("I","II","III","IV");
+        architectureSelector.getSelectionModel().select("I");
+        architectureSelector.valueProperty().addListener((obs, ov, nv) -> {
+            selectedArch = ArchitectureType.fromRepresentation(nv);
+            applyArchCapHighlighting();
+        });
+        currentProgramDTO.addListener((obs, ov, nv) -> {
+            applyArchCapHighlighting();
+        });
+    }
+
+    private void applyArchCapHighlighting() {
+        mainInstrTableController.setArchitectureCap(selectedArch);
+        summaryLineController.setArchitectureCap(selectedArch);
+        hasOverCap.set(checkHasOverCap(currentProgramDTO.get(), selectedArch));
+    }
+
+    private static boolean checkHasOverCap(ProgramDTO programDTO, ArchitectureType cap) {
+        if (programDTO == null) return false;
+        return programDTO.instructions().programInstructionsDTOList().stream()
+                .map(ins -> ArchitectureType.fromRepresentation(ins.architectureStr())) // adapt accessor if different
+                .anyMatch(req -> req.getRank() > cap.getRank()); // A_0 has rank 0, so it’s fine
+    }
 }

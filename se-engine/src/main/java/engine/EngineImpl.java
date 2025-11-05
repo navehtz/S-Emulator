@@ -25,6 +25,8 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class EngineImpl implements Engine, Serializable {
@@ -40,6 +42,9 @@ public class EngineImpl implements Engine, Serializable {
     //private transient Debug debug;
     private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new ConcurrentHashMap<>();
     private final UserManager userManager = new UserManager();
+
+    private final ReadWriteLock programExpansionLock = new ReentrantReadWriteLock(); // For 'nameAndDegreeToProgram'
+
 
 
 //    @Override
@@ -150,8 +155,9 @@ public class EngineImpl implements Engine, Serializable {
         ArchitectureType architectureSelected = ArchitectureType.fromRepresentation(architectureRepresentation);
         userManager.incrementExecutions(userName);
         userManager.subtractCredits(userName, architectureSelected.getCreditsCost());
-        programExecutor = new ProgramExecutorImpl(targetProgram, architectureSelected, registry, userName);
+        programExecutor = new ProgramExecutorImpl(targetProgram, architectureSelected, runRegistry, userName);
         programExecutor.run(userName, degree, inputs);
+        userManager.subtractCredits(userName, programExecutor.getTotalCyclesOfProgram());
         ExecutionHistory executionHistory = programToExecutionHistory
                 .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
         executionHistory.addProgramToHistory(programExecutor);
@@ -250,6 +256,7 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public void calculateExpansionForAllPrograms() {
+
 //        this.nameAndDegreeToProgram.put(
 //                mainProgram.getName(),
 //                mainProgram.calculateDegreeToProgram()

@@ -9,7 +9,6 @@ import java.util.function.Supplier;
 import javafx.stage.Window;
 
 public class RunOrchestrator {
-    private final RunGateway runGateway;
     private final Supplier<Window> ownerWindowSupplier;
     private final Supplier<Integer> expansionDegreeSupplier;
     private final BooleanProperty isRunInProgress;

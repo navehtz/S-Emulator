@@ -129,3 +129,15 @@ table-row-cell.var-highlight {
 .table-row-cell:selected {
     /* your selected-row styling */
 }
+
+.table-row-cell.arch-too-high {
+    -fx-background-color: rgba(255, 0, 0, 0.15);
+}
+.table-row-cell:filled:selected.arch-too-high {
+    -fx-background-color: -fx-focus-color, -fx-background;
+}
+
+.label:overcap {
+    -fx-text-fill: #b00020;
+    -fx-font-weight: bold;
+}

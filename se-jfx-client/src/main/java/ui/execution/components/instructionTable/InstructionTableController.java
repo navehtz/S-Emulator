@@ -1,5 +1,6 @@
 package ui.execution.components.instructionTable;
 
+import architecture.ArchitectureType;
 import ui.execution.components.instructionHistoryChain.InstructionHistoryChainController;
 import dto.execution.InstructionDTO;
 import dto.execution.ProgramDTO;
@@ -38,6 +39,8 @@ public class InstructionTableController {
     private final Set<BreakpointKey> breakpoints = new HashSet<>();
     private final IntegerProperty currentExecIndex = new SimpleIntegerProperty(-1);
 
+    private ArchitectureType architectureCap = ArchitectureType.A_1;
+
 
     @FXML
     private void initialize() {
@@ -59,9 +62,14 @@ public class InstructionTableController {
             @Override
             protected void updateItem(InstructionDTO item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setStyle("");
-                    return;
+                getStyleClass().remove("arch-too-high");
+                if (!empty && item != null) {
+                    ArchitectureType req = ArchitectureType.fromRepresentation(item.architectureStr());
+                    if (req.getRank() > architectureCap.getRank()) {
+                        getStyleClass().add("arch-too-high");
+//                        setStyle("-fx-background-color: rgba(255, 0, 0, 0.15);");
+//                        return;
+                    }
                 }
 
                 boolean isDebugRow = getIndex() == currentExecIndex.get();
@@ -201,5 +209,10 @@ public class InstructionTableController {
         if (index < 0) return;
         table.getSelectionModel().clearAndSelect(index);
         table.scrollTo(index);
+    }
+
+    public void setArchitectureCap(ArchitectureType cap) {
+        this.architectureCap = cap != null ? cap : ArchitectureType.A_1;
+        if (table != null) table.refresh();
     }
 }
