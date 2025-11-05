@@ -209,7 +209,7 @@ public class TopBarController {
         });
     }
 
-    private void refreshCreditsFromServer() {
+    public void refreshCreditsFromServer() {
         String url = FULL_SERVER_PATH + "/credits";
 
         HttpClientUtil.runAsync(url, new Callback() {

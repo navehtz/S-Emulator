@@ -57,6 +57,7 @@ public class ProgramExecutionManager {
             } catch (Throwable t) {
                 executionStatus.setMessage(t.getMessage() == null ? "Execution failed" : t.getMessage());
                 executionStatus.setState(RunState.ERROR);
+                t.printStackTrace();
             }
         });
 

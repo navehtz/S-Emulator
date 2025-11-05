@@ -96,14 +96,56 @@ public class EngineImpl implements Engine, Serializable {
         for (OperationView opView : loadedOperations.values()) {
             opView.setRegistry(this.registry);
         }
+        for (OperationView op : registry.getAllPrograms()) {
+            Set<String> transitive = computeTransitiveDependencySet(op.getName());
+            // store an unmodifiable defensive copy
+            operationToSubOperationsNames.put(
+                    op.getName(),
+                    Collections.unmodifiableSet(new LinkedHashSet<>(transitive))
+            );
+        }
         //this.mainProgram.setRegistry(this.registry);
         operationToSubOperationsNames.putIfAbsent(loadResult.getMainProgram().getName(), loadResult.getAllByName().keySet());
+
 
         FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
 
         calculateExpansionForAllPrograms();
 
         return loadResult.getMainProgram().getName();
+    }
+
+    private Set<String> computeTransitiveDependencySet(String rootOperationName) {
+        OperationView root = registry.getProgramByName(rootOperationName);
+        if (root == null) {
+            throw new IllegalArgumentException("Operation not found: " + rootOperationName);
+        }
+
+        Set<String> visited = new LinkedHashSet<>();
+        Deque<String> stack = new ArrayDeque<>();
+        stack.push(rootOperationName);
+
+        while (!stack.isEmpty()) {
+            String currentName = stack.pop();
+            if (!visited.add(currentName)) continue;
+
+            OperationView current = registry.getProgramByName(currentName);
+            if (current == null) continue; // if this must not happen, throw instead
+
+            for (String calleeName : current.getCalledFunctionNames()) {
+                boolean existsInRegistry = registry.findProgramByNameOrNull(calleeName) != null;
+                boolean existsInLoaded = loadedOperations.containsKey(calleeName);
+                if (existsInRegistry || existsInLoaded) {
+                    stack.push(calleeName);
+                } else {
+                    throw new IllegalArgumentException(
+                            "Function '" + calleeName + "' used by '" + currentName + "' is not defined " +
+                                    "in the system or in the current file."
+                    );
+                }
+            }
+        }
+        return visited;
     }
 
 //    @Override

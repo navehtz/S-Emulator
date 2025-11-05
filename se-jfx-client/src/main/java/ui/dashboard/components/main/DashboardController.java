@@ -52,20 +52,18 @@ public class DashboardController implements Closeable {
 
     @Override
     public void close() throws IOException {
-        // TODO
         //availableUsersTableController.close();
     }
 
     public void setActive() {
-        // TODO
         availableUsersTableController.startAutoRefresh(Constants.REFRESH_RATE);
         programsTableController.startAutoRefresh(Constants.REFRESH_RATE);
         functionsTableController.startAutoRefresh(Constants.REFRESH_RATE);
+        topBarController.refreshCreditsFromServer();
     }
 
     public void setInActive() {
         try {
-            // TODO
             availableUsersTableController.stopAutoRefresh();
             programsTableController.stopAutoRefresh();
             functionsTableController.stopAutoRefresh();
