@@ -34,7 +34,10 @@
                      <Insets bottom="2.0" top="3.0" />
                   </HBox.margin>
                </Separator>
-               <Button fx:id="btnChargeCredits" onAction="#onChargeCredits" mnemonicParsing="false" text="Charge Credits" HBox.hgrow="SOMETIMES" />
+               <Button fx:id="btnChargeCredits" mnemonicParsing="false" onAction="#onChargeCredits" text="Charge Credits" HBox.hgrow="SOMETIMES">
+                  <HBox.margin>
+                     <Insets right="5.0" />
+                  </HBox.margin></Button>
             </children>
             <opaqueInsets>
                <Insets right="5.0" />
