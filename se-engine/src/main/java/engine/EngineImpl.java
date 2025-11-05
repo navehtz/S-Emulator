@@ -33,7 +33,6 @@ public class EngineImpl implements Engine, Serializable {
     private final Map<String, Set<String>> operationToSubOperationsNames = new ConcurrentHashMap<>();
     //private Map<String, Operation> nameToProgram = new HashMap<>();
     private Operation mainProgram;
-    private ProgramExecutor programExecutor;
     //private ExecutionHistory executionHistory;
     private final Map<String, ExecutionHistory> programToExecutionHistory = new HashMap<>();
     private transient Path xmlPath;
@@ -160,7 +159,7 @@ public class EngineImpl implements Engine, Serializable {
         ArchitectureType architectureSelected = ArchitectureType.fromRepresentation(architectureRepresentation);
         userManager.incrementExecutions(userName);
         userManager.subtractCredits(userName, architectureSelected.getCreditsCost());
-        programExecutor = new ProgramExecutorImpl(targetProgram, architectureSelected, runRegistry, userName);
+        ProgramExecutor programExecutor = new ProgramExecutorImpl(targetProgram, architectureSelected, runRegistry, userName);
         programExecutor.run(userName, degree, inputs);
         userManager.subtractCredits(userName, programExecutor.getTotalCyclesOfProgram());
 //        ExecutionHistory executionHistory = programToExecutionHistory
@@ -296,34 +295,6 @@ public class EngineImpl implements Engine, Serializable {
         );
     }
 
-    @Override
-    public void saveState(Path path) throws EngineLoadException {
-        try {
-            EngineIO.save(this, path);
-        } catch (IOException e) {
-            throw new EngineLoadException("Failed to save engine state: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void loadState(Path path) throws EngineLoadException {
-        try {
-            EngineImpl loaded = EngineIO.load(path);
-
-            this.xmlPath = loaded.xmlPath;
-            this.mainProgram = loaded.mainProgram;
-            this.programExecutor = loaded.programExecutor;
-            this.programToExecutionHistory.putIfAbsent(mainProgram.getName(), loaded.programToExecutionHistory.get(mainProgram.getName()));
-        } catch (IOException | ClassNotFoundException e) {
-            throw new EngineLoadException("Failed to load engine state: " + e.getMessage(), e);
-        }
-    }
-
-    @Serial
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeObject(xmlPath != null ? xmlPath.toString() : null);
-    }
 
     @Serial
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {

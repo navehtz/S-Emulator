@@ -42,6 +42,4 @@ public interface Engine {
     Map<String, String> getAllUserStringToFunctionName();
     UserManager getUserManager();
 
-    void saveState(Path path) throws EngineLoadException;
-    void loadState(Path path) throws EngineLoadException;
 }
