@@ -17,4 +17,8 @@ public interface ProgramExecutor {
     List<Long> getInputsValuesOfUser();
     int getTotalCyclesOfProgram();
     Map<String, Long> getVariablesToValuesSorted();
+
+    //String getUserName();
+    String getArchitectureRepresentation(); // "I"/"II"/"III"/"IV"
+    String getOperationName();              // executed program/function name
 }

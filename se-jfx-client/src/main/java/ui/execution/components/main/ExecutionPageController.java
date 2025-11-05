@@ -492,23 +492,24 @@ public class ExecutionPageController {
 //        }
 //    }
 
-    private ProgramExecutorDTO toProgramExecutor(DebugDTO dbg) {
-        var stub = new ProgramDTO(
-                dbg.programName(),
-                List.of(), List.of(),
-                new InstructionsDTO(List.of()),
-                List.of(),
-                List.of()
-        );
-        return new ProgramExecutorDTO(
-                stub,
-                dbg.variablesToValuesSorted(),
-                dbg.result(),
-                dbg.totalCycles(),
-                dbg.degree(),
-                List.of() // inputs pane is already set at session start
-        );
-    }
+//    private ProgramExecutorDTO toProgramExecutor(DebugDTO dbg) {
+//        var stub = new ProgramDTO(
+//                dbg.programName(),
+//                List.of(), List.of(),
+//                new InstructionsDTO(List.of()),
+//                List.of(),
+//                List.of()
+//        );
+//        return new ProgramExecutorDTO(
+//                stub,
+//                dbg.variablesToValuesSorted(),
+//                dbg.result(),
+//                dbg.totalCycles(),
+//                dbg.degree(),
+//                List.of() // inputs pane is already set at session start
+//                dbg.
+//        );
+//    }
 
 //    private void onRerunRow(RunHistoryTableController.RunRow row) {
 //        String programKey = row.programKey();

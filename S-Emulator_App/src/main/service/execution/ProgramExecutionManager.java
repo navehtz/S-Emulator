@@ -15,13 +15,13 @@ public class ProgramExecutionManager {
     private static final ProgramExecutionManager INSTANCE = new ProgramExecutionManager();
     public static ProgramExecutionManager getInstance() { return INSTANCE; }
 
-    private final ExecutorService runExecutor = Executors.newVirtualThreadPerTaskExecutor();
-    private final Map<String, RunHandle> executionsStatusMap = new ConcurrentHashMap<>();
+    private final ExecutorService virtualThreads = Executors.newVirtualThreadPerTaskExecutor();
+    private final Map<String, RunStatus> executionsStatusMap = new ConcurrentHashMap<>();
 
     private ProgramExecutionManager() {}
 
     public ExecutionStatusDTO getExecutionStatus(String runId) {
-        RunHandle runHandle = executionsStatusMap.get(runId);
+        RunStatus runHandle = executionsStatusMap.get(runId);
         if (runHandle == null) {
             return null;
         }
@@ -41,12 +41,11 @@ public class ProgramExecutionManager {
         final ExecutionStatus executionStatus = new ExecutionStatus();
         executionStatus.setState(RunState.PENDING);
 
-        Future<?> future = runExecutor.submit(() -> {
+        Future<?> future = virtualThreads.submit(() -> {
             executionStatus.setState(RunState.IN_PROGRESS);
             try {
                 Long[] inputArray = inputs.toArray(new Long[0]);
 
-                // TODO: report progress, wire a callback to executionStatus.setProgressPercent(...)
                 engine.runProgram(programName, architecture, degree, userName, inputArray);
 
                 executionStatus.setState(RunState.DONE);
@@ -61,13 +60,12 @@ public class ProgramExecutionManager {
             }
         });
 
-        var metadata = new RunMetadata(runId, programName, userName);
-        executionsStatusMap.put(runId, new RunHandle(metadata, executionStatus, future));
+        executionsStatusMap.put(runId, new RunStatus(runId, programName, userName, executionStatus, future));
         return runId;
     }
 
     public boolean cancelRun(String runId) {
-        RunHandle runHandle = executionsStatusMap.get(runId);
+        RunStatus runHandle = executionsStatusMap.get(runId);
         if (runHandle == null) return false;
 
         boolean ok = runHandle.executionFuture().cancel(true); // interrupts the virtual thread
@@ -79,14 +77,14 @@ public class ProgramExecutionManager {
     }
 
     public void updateProgress(String runId, int percent) {
-        RunHandle runHandle = executionsStatusMap.get(runId);
+        RunStatus runHandle = executionsStatusMap.get(runId);
         if (runHandle != null) {
             runHandle.executionStatus().setProgressPercent(percent);
         }
     }
 
     public void shutdown() {
-        runExecutor.shutdownNow();
+        virtualThreads.shutdownNow();
     }
 
 

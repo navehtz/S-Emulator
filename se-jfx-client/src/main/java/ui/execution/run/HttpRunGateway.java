@@ -71,9 +71,10 @@ public class HttpRunGateway implements RunGateway {
     }
 
     @Override
-    public ProgramExecutorDTO fetchResult(String programName) throws IOException {
+    public ProgramExecutorDTO fetchResult(String programName, String runId) throws IOException {
         HttpUrl url = baseUrl("/runResult").newBuilder()
                 .addQueryParameter(PROGRAM_NAME_QUERY_PARAM, programName)
+                .addQueryParameter(RUN_ID_QUERY_PARAM, runId)
                 .build();
         Request request = new Request.Builder().url(url).get().build();
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {

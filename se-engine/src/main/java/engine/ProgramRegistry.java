@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static loader.XmlProgramMapper.normalizeKey;
+import static loader.XmlProgramMapper.safeTrim;
+
 public class ProgramRegistry implements Serializable {
     private final Map<String, OperationView> programsByName = new HashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -18,7 +21,7 @@ public class ProgramRegistry implements Serializable {
     public void register(OperationView op) {
         lock.writeLock().lock();
         try {
-            programsByName.put(op.getName(), op);
+            programsByName.put(normalizeKey(op.getName()), op);
         } finally {
             lock.writeLock().unlock();
         }
@@ -36,7 +39,7 @@ public class ProgramRegistry implements Serializable {
     public OperationView getProgramByName(String name) {
         lock.readLock().lock();
         try {
-            OperationView operation = programsByName.get(name);
+            OperationView operation = programsByName.get(normalizeKey(name));
             if (operation == null) {
                 throw new IllegalArgumentException("No program with name: " + name);
             }

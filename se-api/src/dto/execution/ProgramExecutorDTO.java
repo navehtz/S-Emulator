@@ -9,5 +9,6 @@ public record ProgramExecutorDTO (
     long result,
     int totalCycles,
     int degree,
-    List<Long> inputsValuesOfUser
+    List<Long> inputsValuesOfUser,
+    String architectureTypeSelected
 ) {}

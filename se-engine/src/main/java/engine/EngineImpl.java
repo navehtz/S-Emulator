@@ -3,7 +3,6 @@ package engine;
 import architecture.ArchitectureType;
 //import debug.Debug;
 //import debug.DebugImpl;
-import dto.execution.DebugDTO;
 import dto.execution.InstructionsDTO;
 import dto.execution.ProgramDTO;
 import dto.execution.ProgramExecutorDTO;
@@ -13,7 +12,6 @@ import function.Function;
 import function.FunctionDisplayResolver;
 import history.ExecutionHistory;
 import execution.ProgramExecutor;
-import history.ExecutionHistoryImpl;
 import operation.Operation;
 import loader.XmlProgramLoader;
 import operation.OperationView;
@@ -42,6 +40,7 @@ public class EngineImpl implements Engine, Serializable {
     //private transient Debug debug;
     private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new ConcurrentHashMap<>();
     private final UserManager userManager = new UserManager();
+    private final Map<String, List<ProgramExecutor>> userNameToExecution = new ConcurrentHashMap<>();
 
     private final ReadWriteLock programExpansionLock = new ReentrantReadWriteLock(); // For 'nameAndDegreeToProgram'
 
@@ -79,10 +78,16 @@ public class EngineImpl implements Engine, Serializable {
         XmlProgramLoader loader = new XmlProgramLoader(registry, userManager);
         LoadResult loadResult = loader.loadAll(inputStream, uploaderName);
 
+        OperationView mainProgram = loadResult.getMainProgram();
+        Set<String> subOperationsNames = loadResult.getAllByName().keySet();
+
+        validateCalledFunctionsExist(mainProgram.getName(), subOperationsNames);
+
         for (OperationView operation : loadResult.allOperationsByName.values()) {
             operation.validateProgram();
             operation.initialize();
         }
+
 
         //this.mainProgram = loadResult.getMainProgram();
         //this.registry.clear();
@@ -158,9 +163,12 @@ public class EngineImpl implements Engine, Serializable {
         programExecutor = new ProgramExecutorImpl(targetProgram, architectureSelected, runRegistry, userName);
         programExecutor.run(userName, degree, inputs);
         userManager.subtractCredits(userName, programExecutor.getTotalCyclesOfProgram());
-        ExecutionHistory executionHistory = programToExecutionHistory
-                .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
-        executionHistory.addProgramToHistory(programExecutor);
+//        ExecutionHistory executionHistory = programToExecutionHistory
+//                .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
+        //executionHistory.addProgramToHistory(programExecutor);
+
+        List<ProgramExecutor> executorHistory = userNameToExecution.computeIfAbsent(userName, k -> new ArrayList<>());
+        executorHistory.add(programExecutor);
     }
 
     @Override
@@ -184,7 +192,8 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public ProgramExecutorDTO getProgramToDisplayAfterRun() {
+    public ProgramExecutorDTO getProgramToDisplayAfterRun(String userName) {
+        ProgramExecutor programExecutor = getLastUserExecutor(userName);
         ProgramDTO programDTO = buildProgramDTO(programExecutor.getProgram());
 
         return new ProgramExecutorDTO(programDTO,
@@ -192,7 +201,8 @@ public class EngineImpl implements Engine, Serializable {
                 programExecutor.getVariableValue(Variable.RESULT),
                 programExecutor.getTotalCyclesOfProgram(),
                 programExecutor.getRunDegree(),
-                programExecutor.getInputsValuesOfUser()
+                programExecutor.getInputsValuesOfUser(),
+                programExecutor.getArchitectureRepresentation()
         );
     }
 
@@ -212,7 +222,8 @@ public class EngineImpl implements Engine, Serializable {
                     programExecutorItem.getVariableValue(Variable.RESULT),
                     programExecutorItem.getTotalCyclesOfProgram(),
                     programExecutorItem.getRunDegree(),
-                    programExecutorItem.getInputsValuesOfUser()
+                    programExecutorItem.getInputsValuesOfUser(),
+                    programExecutorItem.getArchitectureRepresentation()
             ));
 
         }
@@ -418,5 +429,42 @@ public class EngineImpl implements Engine, Serializable {
 //
     public UserManager getUserManager() {
         return userManager;
+    }
+
+    private void validateCalledFunctionsExist(String programName, Set<String> functionsInProgram) {
+
+        // Validate the main program first
+        validateSingleProgramDependencies(programName, functionsInProgram);
+
+        // Validate each internal function as well
+        for (String functionName : functionsInProgram) {
+            validateSingleProgramDependencies(functionName, functionsInProgram);
+        }
+    }
+
+    private void validateSingleProgramDependencies(String programName, Set<String> functionsInProgram) {
+        for (String functionName : registry.getProgramByName(programName).getCalledFunctionNames()) {
+
+            boolean existsInRegistry = registry.findProgramByNameOrNull(functionName) != null;
+            boolean existsInCurrentFile = functionsInProgram.stream()
+                    .anyMatch(f -> f.equals(functionName));
+
+            if (!existsInRegistry && !existsInCurrentFile) {
+                throw new IllegalArgumentException(
+                        "The function '" + functionName + "' that is used in this file is not defined in the system or in the current file."
+                );
+            }
+        }
+    }
+
+    private ProgramExecutor getLastUserExecutor(String username) {
+        List<ProgramExecutor> list = userNameToExecution.get(username);
+        if (list == null || list.isEmpty()) {
+            throw new IllegalStateException("No executions found for user '" + username + "'");
+        }
+
+        synchronized (list) {
+            return list.getLast();
+        }
     }
 }

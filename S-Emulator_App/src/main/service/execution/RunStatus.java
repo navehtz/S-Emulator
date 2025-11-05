@@ -4,8 +4,10 @@ import dto.execution.ExecutionStatusDTO;
 
 import java.util.concurrent.Future;
 
-public record RunHandle(
-    RunMetadata runMetadata,
+public record RunStatus(
+    String runId,
+    String programName,
+    String username,
     ExecutionStatus executionStatus,
     Future<?> executionFuture
 ) {
@@ -13,9 +15,9 @@ public record RunHandle(
     public ExecutionStatusDTO toDTO() {
         var executionStatusSnapshot = executionStatus.getAtomicSnapshot();
         return new ExecutionStatusDTO(
-                runMetadata.runId(),
-                runMetadata.programName(),
-                runMetadata.username(),
+                runId(),
+                programName(),
+                username(),
                 executionStatusSnapshot.state(),
                 executionStatusSnapshot.progressPercent(),
                 executionStatusSnapshot.message()

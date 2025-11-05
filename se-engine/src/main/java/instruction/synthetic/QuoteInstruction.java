@@ -160,7 +160,7 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
 
     private Function resolveCallee() {
         ProgramRegistry registry = getRegistry();
-        OperationView operation = findByNameOrNull(registry, functionName);
+        OperationView operation;
         try {
             operation = registry.getProgramByName(functionName);
         } catch (IllegalArgumentException e) {
@@ -302,6 +302,6 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
 
     private static OperationView findByNameOrNull(ProgramRegistry registry, String name) {
         if (registry == null || name == null || name.isBlank()) return null;
-        return registry.getAllProgramsByName().get(name); // never throws
+        return registry.getProgramByName(name); // never throws
     }
 }

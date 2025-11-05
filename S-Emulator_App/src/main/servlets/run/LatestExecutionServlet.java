@@ -26,16 +26,21 @@ public class LatestExecutionServlet extends HttpServlet {
         String programName = request.getParameter("programName");
         if (!validateProgramName(programName, response)) return;
 
-        List<ProgramExecutorDTO> executionsHistory = engine.getHistoryToDisplayByProgramName(programName);
-        if (executionsHistory.isEmpty()) {
-            writeJsonError(response, HttpServletResponse.SC_NOT_FOUND, "No executions for program");
-            return;
-        }
+        try {
+            List<ProgramExecutorDTO> executionsHistory = engine.getHistoryToDisplayByProgramName(programName);
 
-        ProgramExecutorDTO latest = executionsHistory.getLast();
+            if (executionsHistory.isEmpty()) {
+                writeJsonError(response, HttpServletResponse.SC_NOT_FOUND, "No executions for program");
+                return;
+            }
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType("application/json");
-        response.getWriter().write(GSON_INSTANCE.toJson(latest));
+            ProgramExecutorDTO latest = executionsHistory.getLast();
+
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType("application/json");
+            response.getWriter().write(GSON_INSTANCE.toJson(latest));
+        }  catch (Exception e) {
+        e.printStackTrace();
+    }
     }
 }

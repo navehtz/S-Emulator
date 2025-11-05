@@ -15,5 +15,5 @@ public interface RunGateway {
 
     ExecutionStatusDTO getStatus(String runId) throws IOException;
 
-    ProgramExecutorDTO fetchResult(String programName) throws IOException;
+    ProgramExecutorDTO fetchResult(String programName, String runId) throws IOException;
 }

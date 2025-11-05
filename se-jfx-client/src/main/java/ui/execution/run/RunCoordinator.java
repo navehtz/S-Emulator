@@ -75,22 +75,24 @@ public final class RunCoordinator {
 
                 String runId = runGateway.submitRun(programName, architecture, degree, inputsList);
 
+                String id = "";
                 // Poll
                 final long sleepMilliseconds = 150L;
                 while (true) {
-                    ExecutionStatusDTO st = runGateway.getStatus(runId);
-                    if (st == null) throw new IllegalStateException("Unknown runId: " + runId);
+                    ExecutionStatusDTO executionStatusDTO = runGateway.getStatus(runId);
+                    id = executionStatusDTO.id();
+                    if (executionStatusDTO == null) throw new IllegalStateException("Unknown runId: " + runId);
 
-                    if (st.state() == RunState.DONE) break;
-                    if (st.state() == RunState.ERROR) throw new RuntimeException(
-                            st.message() == null || st.message().isBlank() ? "Execution failed" : st.message());
-                    if (st.state() == RunState.CANCELLED) throw new RuntimeException("Execution cancelled");
+                    if (executionStatusDTO.state() == RunState.DONE) break;
+                    if (executionStatusDTO.state() == RunState.ERROR) throw new RuntimeException(
+                            executionStatusDTO.message() == null || executionStatusDTO.message().isBlank() ? "Execution failed" : executionStatusDTO.message());
+                    if (executionStatusDTO.state() == RunState.CANCELLED) throw new RuntimeException("Execution cancelled");
 
                     Thread.sleep(sleepMilliseconds);
                 }
 
                 // Fetch result to display
-                return runGateway.fetchResult(programName);
+                return runGateway.fetchResult(programName, id);
             }
         };
 

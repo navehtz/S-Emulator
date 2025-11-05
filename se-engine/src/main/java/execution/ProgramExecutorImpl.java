@@ -7,6 +7,7 @@ import label.FixedLabel;
 import label.Label;
 import operation.OperationInvoker;
 import operation.OperationView;
+import users.UserManager;
 import variable.Variable;
 
 import java.io.Serializable;
@@ -112,5 +113,20 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
         }
 
         return VariablesToValuesSorted;
+    }
+
+//    @Override
+//    public String getUserName() {
+//        return UserManager;
+//    }
+
+    @Override
+    public String getArchitectureRepresentation() {
+        return architectureTypeSelected.toString();
+    }
+
+    @Override
+    public String getOperationName() {
+        return program.getName();
     }
 }

@@ -22,7 +22,7 @@ public interface Engine {
     ProgramDTO getProgramToDisplay();  // throws if no program loaded
     ProgramDTO getProgramByNameToDisplay(String programName);
     ProgramDTO getExpandedProgramToDisplay(int degree);
-    ProgramExecutorDTO getProgramToDisplayAfterRun();
+    ProgramExecutorDTO getProgramToDisplayAfterRun(String runId);
     List<ProgramExecutorDTO> getHistoryToDisplayByProgramName(String programName);
     ProgramDTO getExpandedProgramDTO(String programName, int degree);
     int getMaxDegree() throws EngineLoadException;  // per current program

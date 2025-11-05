@@ -10,12 +10,12 @@
               <children>
                   <TableView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="199.0" prefWidth="467.0" VBox.vgrow="ALWAYS">
                       <columns>
-                          <TableColumn prefWidth="55.0" text="#" />
-                          <TableColumn prefWidth="105.0" text="Program/Function" />
-                          <TableColumn prefWidth="75.0" text="Program/Function's Name" />
-                          <TableColumn prefWidth="75.0" text="Architecture" />
-                          <TableColumn prefWidth="75.0" text="Degree" />
-                          <TableColumn prefWidth="75.0" text="Result" />
+                          <TableColumn fx:id="colRunNum" prefWidth="55.0" text="#" />
+                          <TableColumn fx:id="colMainProgramOrFunction" prefWidth="105.0" text="Program/Function" />
+                          <TableColumn fx:id="colProgramName" prefWidth="75.0" text="Program/Function's Name" />
+                          <TableColumn fx:id="colArchitectureType" prefWidth="75.0" text="Architecture" />
+                          <TableColumn fx:id="colDegree" prefWidth="75.0" text="Degree" />
+                          <TableColumn fx:id="colCycles" prefWidth="75.0" text="Result" />
                   <TableColumn prefWidth="75.0" text="Cycles" />
                       </columns>
                       <columnResizePolicy>

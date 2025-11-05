@@ -32,6 +32,7 @@ public abstract class Operation implements OperationView, Serializable {
     protected final Set<Label> referencedLabels;
     protected Label entry;
     protected final String userUploaded;
+    private final Set<String> calledFunctionNames;
 
 
     protected int nextLabelNumber = 1;
@@ -52,6 +53,7 @@ public abstract class Operation implements OperationView, Serializable {
         this.labelsInOperation = new ArrayList<>();
         this.labelsAddedAfterExtension = new LinkedHashSet<>();
         this.referencedLabels = new LinkedHashSet<>();
+        this.calledFunctionNames = new HashSet<>();
 
 
         // bucket declared variables (even if not used in instructions)
@@ -93,6 +95,7 @@ public abstract class Operation implements OperationView, Serializable {
         protected final Set<Label> referencedLabels = new LinkedHashSet<>();
         protected Label entry;
         protected String userUploaded;
+        protected Set<String> calledFunctionNames;
 
         protected abstract B self();
         public abstract T build();
@@ -157,6 +160,11 @@ public abstract class Operation implements OperationView, Serializable {
 
         public B withUserUploaded(String userUploaded) {
             this.userUploaded = userUploaded;
+            return self();
+        }
+
+        public B withCalledFunctionNames(Set<String> calledFunctionNames) {
+            this.calledFunctionNames = calledFunctionNames;
             return self();
         }
     }
@@ -509,5 +517,15 @@ public abstract class Operation implements OperationView, Serializable {
         } while (canExpandMore);
 
         return degreeToProgram;
+    }
+
+    @Override
+    public void addCalledFunctionName(String functionName) {
+        calledFunctionNames.add(functionName);
+    }
+
+    @Override
+    public Set<String> getCalledFunctionNames() {
+        return calledFunctionNames;
     }
 }
