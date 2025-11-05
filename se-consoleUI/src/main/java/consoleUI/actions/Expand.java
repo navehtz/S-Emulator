@@ -2,8 +2,8 @@ package consoleUI.actions;
 
 import consoleUI.menu.MenuActionable;
 import consoleUI.validator.Validator;
-import dto.InstructionDTO;
-import dto.ProgramDTO;
+import dto.execution.InstructionDTO;
+import dto.execution.ProgramDTO;
 import engine.Engine;
 import exceptions.EngineLoadException;
 

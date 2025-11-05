@@ -1,11 +1,13 @@
 package execution;
 
+import architecture.ArchitectureType;
 import engine.ProgramRegistry;
 import instruction.Instruction;
 import label.FixedLabel;
 import label.Label;
 import operation.OperationInvoker;
 import operation.OperationView;
+import users.UserManager;
 import variable.Variable;
 
 import java.io.Serializable;
@@ -14,38 +16,36 @@ import java.util.*;
 public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 
     private final OperationView program;
-    private final ProgramRegistry programRegistry;
+    private final ArchitectureType architectureTypeSelected;
+    //private final ProgramRegistry programRegistry;
     private final ExecutionContext context;
     private List<Long> inputsValues;
     private int runDegree = 0;
     private int totalCycles = 0;
 
-    public ProgramExecutorImpl(OperationView program, ProgramRegistry registry) {
+//    public ProgramExecutorImpl(OperationView program, ProgramRegistry registry) {
+//        this.program = program;
+//        this.programRegistry = Objects.requireNonNull(registry, "Program registry cannot be null");
+//        OperationInvoker invoker = new ProgramExecutorInvoker(registry);
+//        this.context = new ExecutionContextImpl(registry, invoker);
+//        this.inputsValues = new ArrayList<>();
+//    }
+
+    public ProgramExecutorImpl(OperationView program, ArchitectureType architectureTypeSelected, ProgramRegistry registry, String userName) {
         this.program = program;
-        this.programRegistry = Objects.requireNonNull(registry, "Program registry cannot be null");
-        OperationInvoker invoker = new ProgramExecutorInvoker(registry);
-        this.context = new ExecutionContextImpl(registry, invoker);
+        this.architectureTypeSelected = architectureTypeSelected;
+        //ProgramRegistry programRegistry = Objects.requireNonNull(registry, "Program registry cannot be null");
+        OperationInvoker invoker = new ProgramExecutorInvoker(registry, architectureTypeSelected);
+        this.context = new ExecutionContextImpl(registry, invoker, userName);
         this.inputsValues = new ArrayList<>();
     }
-
-
-    // Called by the invoker the context holds, to execute a callee Operation.
-//    private long invokeCallee(OperationView callee, long... args) {
-//        ProgramExecutorImpl nestedExecutor = new ProgramExecutorImpl(callee, programRegistry);
-//        nestedExecutor.runDegree = this.runDegree;
-//
-//        Long[] boxedArgs = Arrays.stream(args).boxed().toArray(Long[]::new);
-//        nestedExecutor.run(runDegree, boxedArgs);
-//
-//        return nestedExecutor.getExecutionContext().getOperationResult();
-//    }
 
     public ExecutionContext getExecutionContext() {
         return context;
     }
 
     @Override
-    public void run(int runDegree, Long... inputs) {
+    public void run(String userName, int runDegree, Long... inputs) {
         Instruction currentInstruction = program.getInstructionsList().getFirst();
         Instruction nextInstruction = null;
         Label nextLabel;
@@ -57,6 +57,7 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
         do {
             nextLabel = currentInstruction.execute(context);
             totalCycles += currentInstruction.getCycleOfInstruction();
+
 
             if (nextLabel == FixedLabel.EMPTY) {
                 int indexOfNextInstruction = program.getInstructionsList().indexOf(currentInstruction) + 1;
@@ -112,5 +113,20 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
         }
 
         return VariablesToValuesSorted;
+    }
+
+//    @Override
+//    public String getUserName() {
+//        return UserManager;
+//    }
+
+    @Override
+    public String getArchitectureRepresentation() {
+        return architectureTypeSelected.toString();
+    }
+
+    @Override
+    public String getOperationName() {
+        return program.getName();
     }
 }

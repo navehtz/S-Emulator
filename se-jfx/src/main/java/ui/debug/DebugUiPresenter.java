@@ -1,9 +1,9 @@
 package ui.debug;
 
-import dto.DebugDTO;
-import dto.InstructionsDTO;
-import dto.ProgramDTO;
-import dto.ProgramExecutorDTO;
+import dto.execution.DebugDTO;
+import dto.execution.InstructionsDTO;
+import dto.execution.ProgramDTO;
+import dto.execution.ProgramExecutorDTO;
 import javafx.beans.property.BooleanProperty;
 import ui.support.Dialogs;
 import ui.support.RunsHistoryManager;

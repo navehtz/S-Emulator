@@ -1,11 +1,10 @@
 package ui.run;
 
-import dto.ProgramDTO;
+import dto.execution.ProgramDTO;
 import engine.Engine;
 import javafx.beans.property.BooleanProperty;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 import javafx.stage.Window;
 

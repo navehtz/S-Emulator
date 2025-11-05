@@ -1,0 +1,146 @@
+/* ===== Dark Theme (real dark, not just tables) ===== */
+
+/* Typography */
+.root {
+    -fx-font-family: "JetBrains Mono", "Consolas", "SF Mono", monospace;
+    -fx-font-size: 12.5px;
+    -fx-base: #0f141a;
+
+    -fx-background: #0f141a;
+}
+
+.root {
+    -fx-text-background-color: #202124;
+    -fx-selection-bar: #3875d6;     /* selection blue fallback for lists */
+}
+
+.root {
+    -fx-text-fill: #e6e6e6;
+    -fx-text-background-color: #e6e6e6;
+    -fx-selection-bar: #0e3a5a;
+}
+
+/* Containers */
+.tool-bar {
+    -fx-background-color: linear-gradient(#1b242e, #161d26);
+    -fx-padding: 6 8;
+    -fx-border-color: #1e2936;
+    -fx-border-width: 0 0 1 0;
+}
+.titled-pane > .title {
+    -fx-background-color: linear-gradient(#1b242e, #161d26);
+    -fx-text-fill: #e6e6e6;
+}
+.titled-pane > .content {
+    -fx-background-color: #121820;
+}
+.split-pane:horizontal *.split-pane-divider,
+.split-pane:vertical   *.split-pane-divider {
+    -fx-background-color: #1e2732;
+}
+
+/* Inputs */
+.label, .check-box { -fx-text-fill: #e6e6e6; }
+.combo-box, .text-field, .spinner {
+    -fx-background-color: #0f141a, #16202b, #16202b;
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 8, 8, 8;
+    -fx-border-color: #2a3847;
+    -fx-border-radius: 8;
+    -fx-text-fill: #e6e6e6;
+}
+.combo-box .cell, .list-view .cell { -fx-text-fill: #e6e6e6; }
+
+/* Buttons base */
+.button {
+    -fx-background-radius: 8;
+    -fx-padding: 6 12;
+    -fx-font-weight: 600;
+    -fx-background-color: #1d2733;
+    -fx-text-fill: #e6e6e6;
+}
+.button:hover   { -fx-background-color: #223041; }
+.button:pressed { -fx-background-color: #17212c; }
+
+/* IntelliJ-like Run/Debug + Stop */
+#btnRun, #btnDebug {
+    -fx-background-color: linear-gradient(#27c468, #149a52);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(39,196,104,0.35), 10, 0.3, 0, 1);
+}
+#btnRun:hover, #btnDebug:hover   { -fx-background-color: linear-gradient(#2bd473, #17ac5c); }
+#btnRun:pressed, #btnDebug:pressed { -fx-background-color: linear-gradient(#22b95e, #128a4a); }
+
+#btnStop {
+    -fx-background-color: linear-gradient(#f05252, #c92a2a);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(240,82,82,0.4), 10, 0.3, 0, 1);
+}
+#btnStop:hover   { -fx-background-color: linear-gradient(#ff5f5f, #db2f2f); }
+#btnStop:pressed { -fx-background-color: linear-gradient(#e64a4a, #b72626); }
+
+/* Tables (dark) */
+.table-view {
+    -fx-background-insets: 0;
+    -fx-background-color: #111821;
+    -fx-border-color: #223141;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+.table-view .column-header-background {
+    -fx-background-color: linear-gradient(#1a2330, #151d28);
+    -fx-background-radius: 8 8 0 0;
+}
+.table-view .table-row-cell:odd  { -fx-background-color: #0f141a; }
+.table-view .table-row-cell:even { -fx-background-color: #111821; }
+.table-view .table-row-cell:selected { -fx-background-color: #0e3a5a; }
+.table-view .table-cell {
+    -fx-text-fill: #d9e1ea;
+    -fx-border-color: transparent transparent #1a2430 transparent;
+    -fx-padding: 6 8;
+}
+
+/* Scrolls */
+.scroll-pane { -fx-background: #0f141a; }
+
+/* base highlight on row */
+.table-view .table-row-cell.var-highlight,
+.table-view .table-row-cell.var-highlight .table-cell {
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.table-view.dark .table-row-cell.var-highlight,
+.table-view.dark .table-row-cell.var-highlight .table-cell {
+    -fx-background-color: rgba(33, 150, 243, 0.28);
+}
+.table-view.dark:row-selection .table-row-cell.var-highlight:selected,
+.table-view.dark:row-selection .table-row-cell.var-highlight:selected .table-cell {
+    -fx-background-color: -fx-selection-bar, rgba(33,150,243,0.22);
+    -fx-background-insets: 0, 0;
+}
+
+table-row-cell.var-highlight {
+    -fx-background-color: -fx-accent, -fx-control-inner-background ;
+    -fx-background-insets: 0, 1 0 0 0;
+    -fx-background-radius: 0;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+/* keep selected row look unchanged */
+.table-row-cell:focused:selected,
+.table-row-cell:selected {
+    /* your selected-row styling */
+}
+
+.table-row-cell.arch-too-high {
+    -fx-background-color: rgba(255, 0, 0, 0.15);
+}
+.table-row-cell:filled:selected.arch-too-high {
+    -fx-background-color: -fx-focus-color, -fx-background;
+}
+
+.label:overcap {
+    -fx-text-fill: #b00020;
+    -fx-font-weight: bold;
+}

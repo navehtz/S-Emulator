@@ -1,6 +1,6 @@
 package ui.components;
 
-import dto.InstructionDTO;
+import dto.execution.InstructionDTO;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;

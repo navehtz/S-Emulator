@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="31.0" prefWidth="500.0" spacing="7.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.execution.components.summaryLine.SummaryLineController">
+    <children>
+        <Label fx:id="totalInstructions" text="Total:">
+         <HBox.margin>
+            <Insets left="10.0" />
+         </HBox.margin></Label>
+      <Label fx:id="amountTotal" text="amount">
+         <padding>
+            <Insets right="15.0" />
+         </padding>
+      </Label>
+        <Label fx:id="iArchInstructions" text="I:" />
+      <Label fx:id="amountIArch" text="amount">
+         <padding>
+            <Insets right="15.0" />
+         </padding>
+      </Label>
+        <Label fx:id="iiArchInstructions" text="II:" />
+      <Label fx:id="amountIIArch" text="amount">
+         <padding>
+            <Insets right="15.0" />
+         </padding>
+      </Label>
+      <Label fx:id="iiiArchInstructions" layoutX="280.0" layoutY="17.0" text="III:" />
+      <Label fx:id="amountIIIArch" layoutX="344.0" layoutY="17.0" text="amount">
+         <padding>
+            <Insets right="15.0" />
+         </padding>
+      </Label>
+      <Label fx:id="ivArchInstructions" layoutX="408.0" layoutY="17.0" text="IV:" />
+      <Label fx:id="amountIVArch" layoutX="456.0" layoutY="17.0" text="amount">
+         <padding>
+            <Insets right="15.0" />
+         </padding>
+      </Label>
+    </children>
+   <opaqueInsets>
+      <Insets />
+   </opaqueInsets>
+</HBox>

@@ -1,6 +1,6 @@
 package debug;
 
-import dto.DebugDTO;
+import dto.execution.DebugDTO;
 
 import java.util.List;
 

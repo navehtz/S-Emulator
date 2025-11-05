@@ -1,95 +1,215 @@
 package engine;
 
-import debug.Debug;
-import debug.DebugImpl;
-import dto.DebugDTO;
-import dto.InstructionsDTO;
-import dto.ProgramDTO;
-import dto.ProgramExecutorDTO;
+import architecture.ArchitectureType;
+//import debug.Debug;
+//import debug.DebugImpl;
+import dto.execution.InstructionsDTO;
+import dto.execution.ProgramDTO;
+import dto.execution.ProgramExecutorDTO;
 import exceptions.EngineLoadException;
 import execution.ProgramExecutorImpl;
 import function.Function;
 import function.FunctionDisplayResolver;
 import history.ExecutionHistory;
 import execution.ProgramExecutor;
-import history.ExecutionHistoryImpl;
 import operation.Operation;
 import loader.XmlProgramLoader;
 import operation.OperationView;
 import program.Program;
+import users.UserManager;
 import variable.Variable;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class EngineImpl implements Engine, Serializable {
     private final ProgramRegistry registry = new ProgramRegistry();
-    private Map<String, OperationView> loadedOperations = new HashMap<>();
+    private Map<String, OperationView> loadedOperations = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> operationToSubOperationsNames = new ConcurrentHashMap<>();
+    //private Map<String, Operation> nameToProgram = new HashMap<>();
     private Operation mainProgram;
-    private ProgramExecutor programExecutor;
     //private ExecutionHistory executionHistory;
     private final Map<String, ExecutionHistory> programToExecutionHistory = new HashMap<>();
     private transient Path xmlPath;
-    private transient Debug debug;
-    private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new HashMap<>();
+    //private transient Debug debug;
+    private final Map<String, Map<Integer, OperationView>> nameAndDegreeToProgram = new ConcurrentHashMap<>();
+    private final UserManager userManager = new UserManager();
+    private final Map<String, List<ProgramExecutor>> userNameToExecution = new ConcurrentHashMap<>();
 
+    private final ReadWriteLock programExpansionLock = new ReentrantReadWriteLock(); // For 'nameAndDegreeToProgram'
+
+
+
+//    @Override
+//    public void loadProgram(Path xmlPath) throws EngineLoadException {
+//        this.xmlPath = xmlPath;
+//
+//        XmlProgramLoader loader = new XmlProgramLoader();
+//        LoadResult loadResult = loader.loadAll(xmlPath);
+//
+//        for (OperationView operation : loadResult.allOperationsByName.values()) {
+//            operation.validateProgram();
+//            operation.initialize();
+//        }
+//
+//        this.mainProgram = loadResult.getMainProgram();
+//        this.registry.clear();
+//        this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+//        this.registry.registerAll(loadResult.allOperationsByName);
+//        for (OperationView opView : loadedOperations.values()) {
+//            opView.setRegistry(this.registry);
+//        }
+//        this.mainProgram.setRegistry(this.registry);
+//
+//        FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
+//
+//        calculateExpansionForAllPrograms();
+//    }
 
     @Override
-    public void loadProgram(Path xmlPath) throws EngineLoadException {
-        this.xmlPath = xmlPath;
+    public String loadProgram(InputStream inputStream, String uploaderName) throws EngineLoadException {
 
-        XmlProgramLoader loader = new XmlProgramLoader();
-        LoadResult loadResult = loader.loadAll(xmlPath);
+        XmlProgramLoader loader = new XmlProgramLoader(registry, userManager);
+        LoadResult loadResult = loader.loadAll(inputStream, uploaderName);
+
+        OperationView mainProgram = loadResult.getMainProgram();
+        Set<String> subOperationsNames = loadResult.getAllByName().keySet();
+
+        validateCalledFunctionsExist(mainProgram.getName(), subOperationsNames);
 
         for (OperationView operation : loadResult.allOperationsByName.values()) {
             operation.validateProgram();
             operation.initialize();
         }
 
-        this.mainProgram = loadResult.getMainProgram();
-        this.registry.clear();
-        this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+
+        //this.mainProgram = loadResult.getMainProgram();
+        //this.registry.clear();
+        //this.loadedOperations = new HashMap<>(loadResult.allOperationsByName);
+        this.loadedOperations.putAll(loadResult.allOperationsByName);
         this.registry.registerAll(loadResult.allOperationsByName);
         for (OperationView opView : loadedOperations.values()) {
             opView.setRegistry(this.registry);
         }
-        this.mainProgram.setRegistry(this.registry);
+        for (OperationView op : registry.getAllPrograms()) {
+            Set<String> transitive = computeTransitiveDependencySet(op.getName());
+            // store an unmodifiable defensive copy
+            operationToSubOperationsNames.put(
+                    op.getName(),
+                    Collections.unmodifiableSet(new LinkedHashSet<>(transitive))
+            );
+        }
+        //this.mainProgram.setRegistry(this.registry);
+        operationToSubOperationsNames.putIfAbsent(loadResult.getMainProgram().getName(), loadResult.getAllByName().keySet());
+
 
         FunctionDisplayResolver.populateDisplayNames(loadResult.getAllByName().values(), registry);
 
         calculateExpansionForAllPrograms();
+
+        return loadResult.getMainProgram().getName();
     }
 
-    @Override
-    public void runProgram(int degree, Long... inputs) {
-        Map<String, OperationView> clonedOperations = new HashMap<>();
-        for (Map.Entry<String, OperationView> entry : loadedOperations.entrySet()) {
-            clonedOperations.put(entry.getKey(), entry.getValue().deepClone());
+    private Set<String> computeTransitiveDependencySet(String rootOperationName) {
+        OperationView root = registry.getProgramByName(rootOperationName);
+        if (root == null) {
+            throw new IllegalArgumentException("Operation not found: " + rootOperationName);
         }
+
+        Set<String> visited = new LinkedHashSet<>();
+        Deque<String> stack = new ArrayDeque<>();
+        stack.push(rootOperationName);
+
+        while (!stack.isEmpty()) {
+            String currentName = stack.pop();
+            if (!visited.add(currentName)) continue;
+
+            OperationView current = registry.getProgramByName(currentName);
+            if (current == null) continue; // if this must not happen, throw instead
+
+            for (String calleeName : current.getCalledFunctionNames()) {
+                boolean existsInRegistry = registry.findProgramByNameOrNull(calleeName) != null;
+                boolean existsInLoaded = loadedOperations.containsKey(calleeName);
+                if (existsInRegistry || existsInLoaded) {
+                    stack.push(calleeName);
+                } else {
+                    throw new IllegalArgumentException(
+                            "Function '" + calleeName + "' used by '" + currentName + "' is not defined " +
+                                    "in the system or in the current file."
+                    );
+                }
+            }
+        }
+        return visited;
+    }
+
+//    @Override
+//    public void runProgram(int degree, Long... inputs) {
+//        Map<String, OperationView> clonedOperations = new HashMap<>();
+//        for (Map.Entry<String, OperationView> entry : loadedOperations.entrySet()) {
+//            clonedOperations.put(entry.getKey(), entry.getValue().deepClone());
+//        }
+//
+//        ProgramRegistry runRegistry = new ProgramRegistry();
+//        runRegistry.registerAll(clonedOperations);
+//
+//        for (OperationView op : clonedOperations.values()) {
+//            op.setRegistry(runRegistry);
+//        }
+//
+//        for (OperationView operation : clonedOperations.values()) {
+//            operation.expandProgram(degree);
+//        }
+//
+//
+//        OperationView mainClone = clonedOperations.get(mainProgram.getName());
+//
+//        programExecutor = new ProgramExecutorImpl(mainClone, runRegistry);
+//
+//        programExecutor.run(degree, inputs);
+//        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
+//        executionHistory.addProgramToHistory(programExecutor);
+//        programToExecutionHistory.putIfAbsent(mainProgram.getName(), executionHistory);
+//
+//    }
+
+    @Override
+    public void runProgram(String operationName, String architectureRepresentation, int degree, String userName, Long... inputs) {
+        // clone all operations for this run
+        Map<String, OperationView> cloned = new HashMap<>();
+        // Old: for (var e : loadedOperations.entrySet()) cloned.put(e.getKey(), e.getValue().deepClone());
+        for (String operationKey : operationToSubOperationsNames.get(operationName)) {
+            OperationView operation = loadedOperations.get(operationKey);
+            if (operation == null) throw new IllegalArgumentException("Program not found: " + operationKey);
+            cloned.put(operationKey, operation.deepClone());
+        }
+
+        // expand all
+        for (OperationView op : cloned.values()) op.expandProgram(degree);
 
         ProgramRegistry runRegistry = new ProgramRegistry();
-        runRegistry.registerAll(clonedOperations);
+        runRegistry.registerAll(cloned);
 
-        for (OperationView op : clonedOperations.values()) {
-            op.setRegistry(runRegistry);
-        }
+        OperationView targetProgram = cloned.get(operationName);
+        if (targetProgram == null) throw new IllegalArgumentException("Program not found: " + operationName);
 
-        for (OperationView operation : clonedOperations.values()) {
-            operation.expandProgram(degree);
-        }
+        ArchitectureType architectureSelected = ArchitectureType.fromRepresentation(architectureRepresentation);
+        userManager.incrementExecutions(userName);
+        userManager.subtractCredits(userName, architectureSelected.getCreditsCost());
+        ProgramExecutor programExecutor = new ProgramExecutorImpl(targetProgram, architectureSelected, runRegistry, userName);
+        programExecutor.run(userName, degree, inputs);
+        userManager.subtractCredits(userName, programExecutor.getTotalCyclesOfProgram());
+//        ExecutionHistory executionHistory = programToExecutionHistory
+//                .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
+        //executionHistory.addProgramToHistory(programExecutor);
 
-
-        OperationView mainClone = clonedOperations.get(mainProgram.getName());
-
-        programExecutor = new ProgramExecutorImpl(mainClone, runRegistry);
-
-        programExecutor.run(degree, inputs);
-        ExecutionHistory executionHistory = new ExecutionHistoryImpl();
-        executionHistory.addProgramToHistory(programExecutor);
-        programToExecutionHistory.putIfAbsent(mainProgram.getName(), executionHistory);
-
+        List<ProgramExecutor> executorHistory = userNameToExecution.computeIfAbsent(userName, k -> new ArrayList<>());
+        executorHistory.add(programExecutor);
     }
 
     @Override
@@ -98,12 +218,23 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
+    public Collection<OperationView> getAllOperations() {
+        return List.copyOf(registry.getAllPrograms());
+    }
+
+    @Override
     public ProgramDTO getProgramToDisplay() {
         return buildProgramDTO(mainProgram);
     }
 
     @Override
-    public ProgramExecutorDTO getProgramToDisplayAfterRun() {
+    public ProgramDTO getProgramByNameToDisplay(String programName) {
+        return buildProgramDTO(registry.getProgramByName(programName));
+    }
+
+    @Override
+    public ProgramExecutorDTO getProgramToDisplayAfterRun(String userName) {
+        ProgramExecutor programExecutor = getLastUserExecutor(userName);
         ProgramDTO programDTO = buildProgramDTO(programExecutor.getProgram());
 
         return new ProgramExecutorDTO(programDTO,
@@ -111,7 +242,8 @@ public class EngineImpl implements Engine, Serializable {
                 programExecutor.getVariableValue(Variable.RESULT),
                 programExecutor.getTotalCyclesOfProgram(),
                 programExecutor.getRunDegree(),
-                programExecutor.getInputsValuesOfUser()
+                programExecutor.getInputsValuesOfUser(),
+                programExecutor.getArchitectureRepresentation()
         );
     }
 
@@ -131,7 +263,8 @@ public class EngineImpl implements Engine, Serializable {
                     programExecutorItem.getVariableValue(Variable.RESULT),
                     programExecutorItem.getTotalCyclesOfProgram(),
                     programExecutorItem.getRunDegree(),
-                    programExecutorItem.getInputsValuesOfUser()
+                    programExecutorItem.getInputsValuesOfUser(),
+                    programExecutorItem.getArchitectureRepresentation()
             ));
 
         }
@@ -175,15 +308,16 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public void calculateExpansionForAllPrograms() {
-        this.nameAndDegreeToProgram.put(
-                mainProgram.getName(),
-                mainProgram.calculateDegreeToProgram()
-        );
 
-        for (OperationView function : registry.allPrograms()) {
+//        this.nameAndDegreeToProgram.put(
+//                mainProgram.getName(),
+//                mainProgram.calculateDegreeToProgram()
+//        );
+
+        for (OperationView operation : registry.getAllPrograms()) {
             this.nameAndDegreeToProgram.put(
-                    function.getName(),
-                    function.calculateDegreeToProgram()
+                    operation.getName(),
+                    operation.calculateDegreeToProgram()
             );
         }
     }
@@ -203,34 +337,6 @@ public class EngineImpl implements Engine, Serializable {
         );
     }
 
-    @Override
-    public void saveState(Path path) throws EngineLoadException {
-        try {
-            EngineIO.save(this, path);
-        } catch (IOException e) {
-            throw new EngineLoadException("Failed to save engine state: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void loadState(Path path) throws EngineLoadException {
-        try {
-            EngineImpl loaded = EngineIO.load(path);
-
-            this.xmlPath = loaded.xmlPath;
-            this.mainProgram = loaded.mainProgram;
-            this.programExecutor = loaded.programExecutor;
-            this.programToExecutionHistory.putIfAbsent(mainProgram.getName(), loaded.programToExecutionHistory.get(mainProgram.getName()));
-        } catch (IOException | ClassNotFoundException e) {
-            throw new EngineLoadException("Failed to load engine state: " + e.getMessage(), e);
-        }
-    }
-
-    @Serial
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeObject(xmlPath != null ? xmlPath.toString() : null);
-    }
 
     @Serial
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -241,7 +347,7 @@ public class EngineImpl implements Engine, Serializable {
 
     @Override
     public List<String> getAllFunctionsNames() {
-        return registry.allPrograms().stream().map(OperationView::getName).toList();
+        return registry.getAllPrograms().stream().map(OperationView::getName).toList();
     }
 
     @Override
@@ -270,88 +376,108 @@ public class EngineImpl implements Engine, Serializable {
     }
 
     @Override
-    public void runProgram(String operationName, int degree, Long... inputs) {
-        // clone all operations for this run
-        Map<String, OperationView> cloned = new HashMap<>();
-        for (var e : loadedOperations.entrySet()) cloned.put(e.getKey(), e.getValue().deepClone());
-        // expand all
-        for (OperationView op : cloned.values()) op.expandProgram(degree);
-
-        ProgramRegistry runRegistry = new ProgramRegistry();
-        runRegistry.registerAll(cloned);
-
-        OperationView target = cloned.get(operationName);
-        if (target == null) throw new IllegalArgumentException("Program not found: " + operationName);
-
-        programExecutor = new ProgramExecutorImpl(target, runRegistry);
-        programExecutor.run(degree, inputs);
-        ExecutionHistory executionHistory = programToExecutionHistory
-                .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
-        executionHistory.addProgramToHistory(programExecutor);
-    }
-
-    @Override
     public int getNumberOfInputVariables(String operationName) {
         OperationView op = loadedOperations.get(operationName);
         if (op == null) throw new IllegalArgumentException("Program not found: " + operationName);
         return op.getInputVariables().size();
     }
 
-    @Override
-    public void initializeDebugger(String programName, int degree, List<Long> inputs) {
-        Map<String, OperationView> cloned = new HashMap<>();
-        for (var entry : loadedOperations.entrySet()) {
-            cloned.put(entry.getKey(), entry.getValue().deepClone());
+//    @Override
+//    public void initializeDebugger(String programName, int degree, List<Long> inputs) {
+//        Map<String, OperationView> cloned = new HashMap<>();
+//        for (var entry : loadedOperations.entrySet()) {
+//            cloned.put(entry.getKey(), entry.getValue().deepClone());
+//        }
+//
+//        for (OperationView op : cloned.values()) {
+//            op.setRegistry(registry);
+//            op.expandProgram(degree);
+//        }
+//
+//        ProgramRegistry runRegistry = new ProgramRegistry();
+//        runRegistry.registerAll(cloned);
+//        for (OperationView op : cloned.values()) {
+//            op.setRegistry(runRegistry);
+//        }
+//
+//        OperationView target = cloned.get(programName);
+//        if (target == null) {
+//            throw new IllegalArgumentException("Program not found: " + programName);
+//        }
+//
+//        this.debug = new DebugImpl(target, runRegistry, degree, inputs != null ? inputs : List.of() );
+//    }
+//
+//    @Override
+//    public DebugDTO getProgramAfterStepOver() {
+//        DebugDTO debugDTO = debug.stepOver();    // Step Over
+//        return debugDTO;
+//    }
+//
+//    private void addDebugResultToHistoryMap(DebugDTO debugDTO) {
+//    }
+//
+//    @Override
+//    public DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException {
+//        DebugDTO debugDTO = debug.resume(breakPoints);  // Resume
+//
+//        return debugDTO;
+//    }
+//
+//    @Override
+//    public DebugDTO getProgramAfterStepBack() {
+//        return debug.stepBack();
+//    }
+//
+//    @Override
+//    public void stopDebugPress() {
+//        DebugDTO debugDTO = debug.stop();
+//    }
+//
+//    @Override
+//    public DebugDTO getInitSnapshot() {
+//        if (debug == null) throw new IllegalStateException("Debugger not initialized");
+//        return debug.init();
+//    }
+//
+    public UserManager getUserManager() {
+        return userManager;
+    }
+
+    private void validateCalledFunctionsExist(String programName, Set<String> functionsInProgram) {
+
+        // Validate the main program first
+        validateSingleProgramDependencies(programName, functionsInProgram);
+
+        // Validate each internal function as well
+        for (String functionName : functionsInProgram) {
+            validateSingleProgramDependencies(functionName, functionsInProgram);
+        }
+    }
+
+    private void validateSingleProgramDependencies(String programName, Set<String> functionsInProgram) {
+        for (String functionName : registry.getProgramByName(programName).getCalledFunctionNames()) {
+
+            boolean existsInRegistry = registry.findProgramByNameOrNull(functionName) != null;
+            boolean existsInCurrentFile = functionsInProgram.stream()
+                    .anyMatch(f -> f.equals(functionName));
+
+            if (!existsInRegistry && !existsInCurrentFile) {
+                throw new IllegalArgumentException(
+                        "The function '" + functionName + "' that is used in this file is not defined in the system or in the current file."
+                );
+            }
+        }
+    }
+
+    private ProgramExecutor getLastUserExecutor(String username) {
+        List<ProgramExecutor> list = userNameToExecution.get(username);
+        if (list == null || list.isEmpty()) {
+            throw new IllegalStateException("No executions found for user '" + username + "'");
         }
 
-        for (OperationView op : cloned.values()) {
-            op.setRegistry(registry);
-            op.expandProgram(degree);
+        synchronized (list) {
+            return list.getLast();
         }
-
-        ProgramRegistry runRegistry = new ProgramRegistry();
-        runRegistry.registerAll(cloned);
-        for (OperationView op : cloned.values()) {
-            op.setRegistry(runRegistry);
-        }
-
-        OperationView target = cloned.get(programName);
-        if (target == null) {
-            throw new IllegalArgumentException("Program not found: " + programName);
-        }
-
-        this.debug = new DebugImpl(target, runRegistry, degree, inputs != null ? inputs : List.of() );
-    }
-
-    @Override
-    public DebugDTO getProgramAfterStepOver() {
-        DebugDTO debugDTO = debug.stepOver();    // Step Over
-        return debugDTO;
-    }
-
-    private void addDebugResultToHistoryMap(DebugDTO debugDTO) {
-    }
-
-    @Override
-    public DebugDTO getProgramAfterResume(List<Boolean> breakPoints) throws InterruptedException {
-        DebugDTO debugDTO = debug.resume(breakPoints);  // Resume
-
-        return debugDTO;
-    }
-
-    @Override
-    public DebugDTO getProgramAfterStepBack() {
-        return debug.stepBack();
-    }
-
-    @Override
-    public void stopDebugPress() {
-        DebugDTO debugDTO = debug.stop();
-    }
-
-    @Override
-    public DebugDTO getInitSnapshot() {
-        if (debug == null) throw new IllegalStateException("Debugger not initialized");
-        return debug.init();
     }
 }

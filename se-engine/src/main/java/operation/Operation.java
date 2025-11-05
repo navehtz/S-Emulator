@@ -1,18 +1,16 @@
 package operation;
 
-import dto.InstructionDTO;
+import dto.execution.InstructionDTO;
 import engine.ProgramRegistry;
 import exceptions.EngineLoadException;
 import function.FunctionDisplayResolver;
 import instruction.Instruction;
 import instruction.LabelReferencesInstruction;
 import instruction.SyntheticInstruction;
-import instruction.synthetic.QuoteInstruction;
 import instruction.SourceVariableInstruction;
 import label.FixedLabel;
 import label.Label;
 import label.LabelImpl;
-import program.Program;
 import variable.Variable;
 import variable.VariableImpl;
 import variable.VariableType;
@@ -33,6 +31,8 @@ public abstract class Operation implements OperationView, Serializable {
     protected final Set<Label> labelsAddedAfterExtension;     // keep order after expansion
     protected final Set<Label> referencedLabels;
     protected Label entry;
+    protected final String userUploaded;
+    private final Set<String> calledFunctionNames;
 
 
     protected int nextLabelNumber = 1;
@@ -43,6 +43,9 @@ public abstract class Operation implements OperationView, Serializable {
         this.operationName = (builder.operationName == null || builder.operationName.isBlank())
                 ? "Unnamed Program" : builder.operationName;
 
+        this.userUploaded = builder.userUploaded == null ?
+                "Unnamed User" : builder.userUploaded;
+
         this.operationInstructions = new ArrayList<>();
         this.labelToInstruction = new LinkedHashMap<>();
         this.inputVariables = new LinkedHashSet<>();
@@ -50,6 +53,7 @@ public abstract class Operation implements OperationView, Serializable {
         this.labelsInOperation = new ArrayList<>();
         this.labelsAddedAfterExtension = new LinkedHashSet<>();
         this.referencedLabels = new LinkedHashSet<>();
+        this.calledFunctionNames = new HashSet<>();
 
 
         // bucket declared variables (even if not used in instructions)
@@ -90,6 +94,8 @@ public abstract class Operation implements OperationView, Serializable {
         protected final List<Label> labels = new ArrayList<>();
         protected final Set<Label> referencedLabels = new LinkedHashSet<>();
         protected Label entry;
+        protected String userUploaded;
+        protected Set<String> calledFunctionNames;
 
         protected abstract B self();
         public abstract T build();
@@ -151,6 +157,16 @@ public abstract class Operation implements OperationView, Serializable {
             this.entry = entry;
             return self();
         }
+
+        public B withUserUploaded(String userUploaded) {
+            this.userUploaded = userUploaded;
+            return self();
+        }
+
+        public B withCalledFunctionNames(Set<String> calledFunctionNames) {
+            this.calledFunctionNames = calledFunctionNames;
+            return self();
+        }
     }
 
     // --------- cloning ----------
@@ -177,6 +193,10 @@ public abstract class Operation implements OperationView, Serializable {
     // --------- Program API ----------
     public String getName() {
         return this.operationName;
+    }
+
+    public String getUserUploaded() {
+        return this.userUploaded;
     }
 
     @Override
@@ -497,5 +517,15 @@ public abstract class Operation implements OperationView, Serializable {
         } while (canExpandMore);
 
         return degreeToProgram;
+    }
+
+    @Override
+    public void addCalledFunctionName(String functionName) {
+        calledFunctionNames.add(functionName);
+    }
+
+    @Override
+    public Set<String> getCalledFunctionNames() {
+        return calledFunctionNames;
     }
 }

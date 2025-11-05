@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="200.0" minViewportHeight="700.0" minViewportWidth="1000.0" minWidth="500.0" prefViewportHeight="700.0" prefViewportWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.dashboard.components.main.DashboardController">
+   <content>
+      <GridPane maxWidth="1.7976931348623157E308" prefHeight="761.0" prefWidth="1037.0">
+          <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="469.0" />
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="568.0" />
+          </columnConstraints>
+          <rowConstraints>
+            <RowConstraints maxHeight="90.0" minHeight="-Infinity" prefHeight="93.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="1.7976931348623157E308" minHeight="200.0" prefHeight="383.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="217.0" minHeight="150.0" prefHeight="217.0" vgrow="SOMETIMES" />
+          </rowConstraints>
+           <children>
+              <fx:include fx:id="topBar" source="../topBar/TopBar.fxml" GridPane.columnSpan="2" />
+              <fx:include fx:id="programsTable" source="../availableProgramsTable/AvailableProgramsTable.fxml" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+              <fx:include fx:id="functionsTable" source="../availableFunctionsTable/AvailableFunctionsTable.fxml" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+              <fx:include fx:id="availableUsersTable" source="../availableUsersTable/AvailableUsersTable.fxml" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+              <fx:include fx:id="userHistory" source="../userHistoryTable/UserHistoryTable.fxml" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+           </children>
+        </GridPane>
+   </content>
+</ScrollPane>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" prefHeight="79.0" prefWidth="1021.0" spacing="4" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.dashboard.components.topBar.TopBarController">
+   <GridPane prefWidth="1100.0">
+     <columnConstraints>
+       <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="310.0" />
+         <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="389.0" />
+       <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" prefWidth="349.0" />
+     </columnConstraints>
+     <rowConstraints>
+       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+     </rowConstraints>
+      <children>
+         <Label fx:id="userNameLabel" text="User Name:">
+            <GridPane.margin>
+               <Insets left="5.0" />
+            </GridPane.margin>
+         </Label>
+         <Label text="S-Emulator - Dashboard" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+         <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
+            <children>
+               <Label prefHeight="17.0" prefWidth="95.0" text="Available Credits:" HBox.hgrow="SOMETIMES" />
+               <Label fx:id="availableCreditsLabel" text="______" HBox.hgrow="SOMETIMES">
+                  <padding>
+                     <Insets left="5.0" right="10.0" />
+                  </padding>
+               </Label>
+               <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="3.0" HBox.hgrow="SOMETIMES">
+                  <HBox.margin>
+                     <Insets bottom="2.0" top="3.0" />
+                  </HBox.margin>
+               </Separator>
+               <Button fx:id="btnChargeCredits" mnemonicParsing="false" onAction="#onChargeCredits" text="Charge Credits" HBox.hgrow="SOMETIMES">
+                  <HBox.margin>
+                     <Insets right="5.0" />
+                  </HBox.margin></Button>
+            </children>
+            <opaqueInsets>
+               <Insets right="5.0" />
+            </opaqueInsets>
+         </HBox>
+      </children>
+      <padding>
+         <Insets top="3.0" />
+      </padding>
+   </GridPane>
+     <HBox maxWidth="1.7976931348623157E308" minHeight="-Infinity" spacing="6">
+         <padding>
+             <Insets bottom="0" left="6" right="6" top="6" />
+         </padding>
+      <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="818.0" HBox.hgrow="ALWAYS">
+         <children>
+      
+                           <Button fx:id="btnLoadFile" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#onLoadXml" prefHeight="27.0" prefWidth="149.0" text="Load File">
+               <HBox.margin>
+                  <Insets />
+               </HBox.margin>
+            </Button>
+      
+                           <Label maxHeight="1.7976931348623157E308" prefHeight="25.0" prefWidth="53.0" text="File path:" HBox.hgrow="ALWAYS">
+               <HBox.margin>
+                  <Insets left="10.0" />
+               </HBox.margin>
+            </Label>
+                 <Label fx:id="programNameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="509.0" text="(none)" />
+         </children>
+      </HBox>
+      <AnchorPane HBox.hgrow="SOMETIMES">
+         <HBox.margin>
+            <Insets bottom="5.0" />
+         </HBox.margin>
+         <children>
+            <HBox alignment="CENTER_RIGHT" prefHeight="25.0" prefWidth="249.0" AnchorPane.rightAnchor="0.0">
+               <children>
+                     <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="23.0" />
+                       <CheckBox fx:id="checkBoxAnimations" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Animations">
+                     <HBox.margin>
+                        <Insets right="5.0" />
+                     </HBox.margin>
+                  </CheckBox>
+                     <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="5.0" />
+                       <ComboBox fx:id="themeSelector" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="126.0" promptText="Theme" />
+               </children>
+            </HBox>
+         </children>
+      </AnchorPane>
+
+                 </HBox>
+ </VBox>

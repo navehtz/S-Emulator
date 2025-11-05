@@ -1,7 +1,7 @@
 package ui.debug;
 
-import dto.DebugDTO;
-import dto.ProgramDTO;
+import dto.execution.DebugDTO;
+import dto.execution.ProgramDTO;
 import engine.Engine;
 import javafx.stage.Window;
 

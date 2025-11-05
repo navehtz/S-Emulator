@@ -1,7 +1,6 @@
 package ui.debug;
 
-import dto.DebugDTO;
-import dto.ProgramExecutorDTO;
+import dto.execution.DebugDTO;
 
 public interface DebugResultPresenter {
     void onDebugStarted();
