@@ -65,9 +65,9 @@ public interface OperationView {
 
     String getUserUploaded();
 
-    public void addCalledFunctionName(String functionName);
+    void addCalledFunctionName(String functionName);
 
-    public Set<String> getCalledFunctionNames();
+    Set<String> getCalledFunctionNames();
 
 }
 
