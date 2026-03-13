@@ -198,7 +198,8 @@ public class ExecutionPageController {
                 isRunInProgress,
                 variablesPaneUpdater,
                 //runsHistoryManager,
-                this::updateInputsPane);
+                this::updateInputsPane,
+                () -> { if (sEmulatorAppMainController != null) sEmulatorAppMainController.switchToDashboard(); });
 
         this.runOrchestrator = new RunOrchestrator(
                 runGateway,
@@ -755,7 +756,6 @@ public class ExecutionPageController {
 
                     Platform.runLater(() -> {
                         applyProgram(programDTO, rows);
-                        fetchAndPopulateDegrees(programName, degree);
                         populateHighlightSelectorFromCurrentProgram();
                     });
                 }

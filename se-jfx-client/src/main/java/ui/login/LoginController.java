@@ -76,7 +76,7 @@ public class LoginController {
                     );
                 } else {
                     Platform.runLater(() -> {
-                            sEmulatorAppMainController.updateUserName(USERNAME_PREFIX + userName);
+                            sEmulatorAppMainController.updateUserName(userName);
                             sEmulatorAppMainController.switchToDashboard();
                     });
                 }

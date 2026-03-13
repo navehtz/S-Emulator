@@ -1,5 +1,6 @@
 package ui.dashboard.components.main;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.TitledPane;
@@ -26,6 +27,7 @@ public class DashboardController implements Closeable {
 
 
     private SEmulatorAppMainController sEmulatorAppMainController;
+    private StringProperty rawUserNameProperty = new SimpleStringProperty();
 
 
 
@@ -44,10 +46,21 @@ public class DashboardController implements Closeable {
         });
 
         topBarController.setOnChargeCredits(() -> availableUsersTableController.refreshNow());
+
+        availableUsersTableController.setOnUserSelected(selectedUsername -> {
+            String target = selectedUsername != null
+                    ? selectedUsername
+                    : rawUserNameProperty.get();
+            userHistoryTableController.showHistoryForUser(target);
+        });
     }
 
     public void bindUserName(StringProperty userNameProperty) {
         topBarController.userNameProperty().bind(userNameProperty);
+    }
+
+    public void bindRawUserName(StringProperty rawUserName) {
+        rawUserNameProperty.bind(rawUserName);
     }
 
     @Override
@@ -60,6 +73,11 @@ public class DashboardController implements Closeable {
         programsTableController.startAutoRefresh(Constants.REFRESH_RATE);
         functionsTableController.startAutoRefresh(Constants.REFRESH_RATE);
         topBarController.refreshCreditsFromServer();
+
+        String username = rawUserNameProperty.get();
+        if (username != null && !username.isBlank()) {
+            userHistoryTableController.showHistoryForUser(username);
+        }
     }
 
     public void setInActive() {

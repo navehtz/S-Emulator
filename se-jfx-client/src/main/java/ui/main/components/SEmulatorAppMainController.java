@@ -34,9 +34,11 @@ public class SEmulatorAppMainController implements Closeable {
     @FXML private AnchorPane mainPanel;
 
     private final StringProperty currentUserName;
+    private final StringProperty rawUserName;
 
     public SEmulatorAppMainController() {
         currentUserName = new SimpleStringProperty(TEMP_NAME);
+        rawUserName = new SimpleStringProperty();
     }
 
     @FXML
@@ -46,7 +48,8 @@ public class SEmulatorAppMainController implements Closeable {
     }
 
     public void updateUserName(String userName) {
-        currentUserName.set(userName);
+        rawUserName.set(userName);
+        currentUserName.set(USERNAME_PREFIX + userName);
     }
     
     private void setMainPanelTo(Parent pane) {
@@ -92,6 +95,7 @@ public class SEmulatorAppMainController implements Closeable {
             dashboardComponentController.setSEmulatorAppMainController(this);
 
             dashboardComponentController.bindUserName(currentUserName);
+            dashboardComponentController.bindRawUserName(rawUserName);
 
         } catch (IOException e) {
             e.printStackTrace();
