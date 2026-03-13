@@ -1,6 +1,8 @@
 package ui.dashboard.components.userHistoryTable;
 
+import com.google.gson.reflect.TypeToken;
 import dto.dashboard.UserHistoryRowDTO;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -10,11 +12,25 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import org.jetbrains.annotations.NotNull;
+import util.http.HttpClientUtil;
+import util.support.Constants;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static util.support.Constants.GSON_INSTANCE;
+
 public class UserHistoryTableController {
 
+    private static final Type HISTORY_LIST_TYPE =
+            TypeToken.getParameterized(List.class, UserHistoryRowDTO.class).getType();
 
     @FXML private TableView<UserHistoryRowDTO> historyTable;
 
@@ -87,6 +103,28 @@ public class UserHistoryTableController {
         if (showStatusHandler != null) {
             showStatusHandler.accept(selectedRow);
         }
+    }
+
+    public void showHistoryForUser(String username) {
+        String url = Constants.USER_HISTORY + "?" + Constants.USER_NAME_QUERY_PARAM + "=" + username;
+
+        HttpClientUtil.runAsync(url, new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                System.err.println("Failed to fetch history for " + username + ": " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (response; ResponseBody body = response.body()) {
+                    if (!response.isSuccessful() || body == null) return;
+                    List<UserHistoryRowDTO> rows = GSON_INSTANCE.fromJson(body.string(), HISTORY_LIST_TYPE);
+                    if (rows == null) rows = List.of();
+                    List<UserHistoryRowDTO> finalRows = rows;
+                    Platform.runLater(() -> setRows(finalRows));
+                }
+            }
+        });
     }
 
     public void setOnRerun(/*RerunListener rerunListener*/) {

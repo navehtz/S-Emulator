@@ -539,7 +539,9 @@ public class MainController {
                 dbg.result(),
                 dbg.totalCycles(),
                 dbg.degree(),
-                List.of() // inputs pane is already set at session start
+                List.of(), // inputs pane is already set at session start
+                "",
+                false
         );
     }
 

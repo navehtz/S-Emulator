@@ -3,6 +3,7 @@ package engine;
 import architecture.ArchitectureType;
 //import debug.Debug;
 //import debug.DebugImpl;
+import dto.dashboard.UserHistoryRowDTO;
 import dto.execution.InstructionsDTO;
 import dto.execution.ProgramDTO;
 import dto.execution.ProgramExecutorDTO;
@@ -199,17 +200,15 @@ public class EngineImpl implements Engine, Serializable {
         if (targetProgram == null) throw new IllegalArgumentException("Program not found: " + operationName);
 
         ArchitectureType architectureSelected = ArchitectureType.fromRepresentation(architectureRepresentation);
-        userManager.incrementExecutions(userName);
         userManager.subtractCredits(userName, architectureSelected.getCreditsCost());
-        ProgramExecutor programExecutor = new ProgramExecutorImpl(targetProgram, architectureSelected, runRegistry, userName);
-        programExecutor.run(userName, degree, inputs);
-        userManager.subtractCredits(userName, programExecutor.getTotalCyclesOfProgram());
-//        ExecutionHistory executionHistory = programToExecutionHistory
-//                .computeIfAbsent(operationName, k -> new ExecutionHistoryImpl());
-        //executionHistory.addProgramToHistory(programExecutor);
-
-        List<ProgramExecutor> executorHistory = userNameToExecution.computeIfAbsent(userName, k -> new ArrayList<>());
-        executorHistory.add(programExecutor);
+        userManager.incrementExecutions(userName);
+        ProgramExecutor programExecutor = new ProgramExecutorImpl(targetProgram, architectureSelected, runRegistry, userName, userManager);
+        try {
+            programExecutor.run(userName, degree, inputs);
+        } finally {
+            // Always record in history, even if the run stopped due to insufficient credits
+            userNameToExecution.computeIfAbsent(userName, k -> new ArrayList<>()).add(programExecutor);
+        }
     }
 
     @Override
@@ -243,7 +242,8 @@ public class EngineImpl implements Engine, Serializable {
                 programExecutor.getTotalCyclesOfProgram(),
                 programExecutor.getRunDegree(),
                 programExecutor.getInputsValuesOfUser(),
-                programExecutor.getArchitectureRepresentation()
+                programExecutor.getArchitectureRepresentation(),
+                programExecutor.wasPartial()
         );
     }
 
@@ -264,7 +264,8 @@ public class EngineImpl implements Engine, Serializable {
                     programExecutorItem.getTotalCyclesOfProgram(),
                     programExecutorItem.getRunDegree(),
                     programExecutorItem.getInputsValuesOfUser(),
-                    programExecutorItem.getArchitectureRepresentation()
+                    programExecutorItem.getArchitectureRepresentation(),
+                    programExecutorItem.wasPartial()
             ));
 
         }
@@ -468,6 +469,28 @@ public class EngineImpl implements Engine, Serializable {
                 );
             }
         }
+    }
+
+    @Override
+    public List<UserHistoryRowDTO> getUserHistory(String username) {
+        List<ProgramExecutor> executions = userNameToExecution.getOrDefault(username, List.of());
+        List<UserHistoryRowDTO> userHistoryRowDTOList = new ArrayList<>();
+        for (int i = 0; i < executions.size(); i++) {
+            ProgramExecutor programExecutor = executions.get(i);
+            String programType = programExecutor.getProgram() instanceof Function ? "Function" : "Program";
+            userHistoryRowDTOList.add(new UserHistoryRowDTO(
+                    i + 1,
+                    programType,
+                    programExecutor.getOperationName(),
+                    programExecutor.getArchitectureRepresentation(),
+                    programExecutor.getRunDegree(),
+                    (int) programExecutor.getVariableValue(Variable.RESULT),
+                    programExecutor.getTotalCyclesOfProgram(),
+                    programExecutor.getVariablesToValuesSorted(),
+                    programExecutor.getInputsValuesOfUser()
+            ));
+        }
+        return userHistoryRowDTOList;
     }
 
     private ProgramExecutor getLastUserExecutor(String username) {

@@ -24,6 +24,7 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
     private List<Long> inputsValues;
     private int runDegree = 0;
     private int totalCycles = 0;
+    private boolean wasPartial = false;
 
 //    public ProgramExecutorImpl(OperationView program, ProgramRegistry registry) {
 //        this.program = program;
@@ -85,7 +86,11 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 
                 currentInstruction = nextInstruction;
 
-        } while(nextLabel != FixedLabel.EXIT);
+            } while (nextLabel != FixedLabel.EXIT);
+        } catch (CreditsException e) {
+            this.wasPartial = true;
+            throw e;
+        }
 
         context.getVariableValue(Variable.RESULT);
     }
@@ -139,5 +144,10 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
     @Override
     public String getOperationName() {
         return program.getName();
+    }
+
+    @Override
+    public boolean wasPartial() {
+        return wasPartial;
     }
 }

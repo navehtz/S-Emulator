@@ -13,15 +13,18 @@ public class RunUiPresenter implements RunResultPresenter {
     private final VariablesPaneUpdater variablesPaneUpdater;
     //private final RunsHistoryManager runsHistoryManager;
     private final Consumer<ProgramExecutorDTO> inputsUpdater;
+    private final Runnable onOutOfCredits;
 
     public RunUiPresenter(BooleanProperty isRunInProgress,
                           VariablesPaneUpdater variablesPaneUpdater,
                           //RunsHistoryManager runsHistoryManager,
-                          Consumer<ProgramExecutorDTO> inputsUpdater) {
+                          Consumer<ProgramExecutorDTO> inputsUpdater,
+                          Runnable onOutOfCredits) {
         this.isRunInProgress = isRunInProgress;
         this.variablesPaneUpdater = variablesPaneUpdater;
         //this.runsHistoryManager = runsHistoryManager;
         this.inputsUpdater = inputsUpdater;
+        this.onOutOfCredits = onOutOfCredits;
     }
 
     @Override
@@ -44,5 +47,15 @@ public class RunUiPresenter implements RunResultPresenter {
     public void onRunFailed(String message) {
         isRunInProgress.set(false);
         Dialogs.error("Run failed", message, null);
+    }
+
+    @Override
+    public void onRunOutOfCredits(String message, ProgramExecutorDTO partialResult) {
+        isRunInProgress.set(false);
+        if (partialResult != null) {
+            variablesPaneUpdater.update(partialResult);
+        }
+        Dialogs.error("Out of Credits", message, null);
+        if (onOutOfCredits != null) onOutOfCredits.run();
     }
 }

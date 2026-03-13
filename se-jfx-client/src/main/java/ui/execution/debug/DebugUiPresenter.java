@@ -77,7 +77,9 @@ public class DebugUiPresenter implements DebugResultPresenter {
                 dbg.result(),
                 dbg.totalCycles(),
                 dbg.degree(),
-                List.of() // inputs not needed for pane updates
+                List.of(), // inputs not needed for pane updates
+                "",
+                false
         );
     }
 }
