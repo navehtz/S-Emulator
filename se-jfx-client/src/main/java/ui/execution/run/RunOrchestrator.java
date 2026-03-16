@@ -63,4 +63,8 @@ public class RunOrchestrator {
         //ensureCoordinator();
         runCoordinator.seedPrefillInputs(selectedOperationKey, inputs);
     }
+
+    public void seedRawInputs(List<Long> rawInputValues) {
+        runCoordinator.seedRawInputs(rawInputValues);
+    }
 }

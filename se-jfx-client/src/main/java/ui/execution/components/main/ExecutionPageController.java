@@ -404,6 +404,7 @@ public class ExecutionPageController {
     private void clearExecutionData() {
         inputsPaneController.clearInputs();
         varsPaneController.clearVariables();
+        cyclesLabel.setText("");
     }
 
 
@@ -582,7 +583,7 @@ public class ExecutionPageController {
         btnDebug.setEffect(ds);
 
         double scaleUpRatio = 1.08;
-        Duration time = Duration.millis(350);
+        Duration time = Duration.millis(750);
 
         ScaleTransition runUp   = new ScaleTransition(time, btnRun);
         runUp.setToX(scaleUpRatio);
@@ -664,6 +665,43 @@ public class ExecutionPageController {
 
     public void bindUserName(StringProperty userNameProperty) {
         topBarController.userNameProperty().bind(userNameProperty);
+    }
+
+    public void loadProgramForRerun(String programName, int degree, List<Long> rawInputValues) {
+        if (programName == null || programName.isBlank()) return;
+        this.selectedProgramName = programName;
+        this.selectedDegree = degree;
+
+        runOrchestrator.seedRawInputs(rawInputValues);
+
+        String url = Constants.FULL_SERVER_PATH + "/program-dto?programName=" + programName;
+
+        HttpClientUtil.runAsync(url, new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() -> Dialogs.error("Failed to load program", e.getMessage(), getOwnerWindowOrNull()));
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (response; ResponseBody responseBody = response.body()) {
+                    if (!response.isSuccessful()) {
+                        Platform.runLater(() -> Dialogs.error("Failed to load program", "Server returned " + response.code(), getOwnerWindowOrNull()));
+                        return;
+                    }
+                    String json = responseBody != null ? responseBody.string() : "";
+                    ProgramDTO programDTO = GSON_INSTANCE.fromJson(json, ProgramDTO.class);
+                    List<InstructionDTO> rows = programDTO.instructions().programInstructionsDTOList();
+
+                    Platform.runLater(() -> {
+                        applyProgram(programDTO, rows);
+                        fetchAndPopulateDegrees(programName, degree);
+                        populateHighlightSelectorFromCurrentProgram();
+                        pulseRunAndDebugButtons();
+                    });
+                }
+            }
+        });
     }
 
     public void loadProgramForExecution(String programName) {

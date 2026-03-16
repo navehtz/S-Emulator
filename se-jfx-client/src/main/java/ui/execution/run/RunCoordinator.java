@@ -21,6 +21,7 @@ public final class RunCoordinator {
     private final RunResultPresenter resultPresenter;
 
     private final Map<String, Map<String, Double>> lastInputsByProgram = new HashMap<>();
+    private List<Long> pendingRawInputs = new ArrayList<>();
 
     public RunCoordinator(  RunGateway runGateway,
                             Window ownerWindow,
@@ -49,6 +50,17 @@ public final class RunCoordinator {
         } catch (Exception ex) {
             resultPresenter.onRunFailed("Failed to get inputs: " + ex.getMessage());
             return;
+        }
+
+        if (pendingRawInputs != null) {
+            Map<String, Double> rerunPrefill = new LinkedHashMap<>();
+            for (int inputIndex = 0; inputIndex < requiredInputs.size(); inputIndex++) {
+                String inputName = requiredInputs.get(inputIndex);
+                double inputValue = inputIndex < pendingRawInputs.size() ? pendingRawInputs.get(inputIndex).doubleValue() : 0.0;
+                rerunPrefill.put(inputName, inputValue);
+            }
+            lastInputsByProgram.put(programName, rerunPrefill);
+            pendingRawInputs = null;
         }
 
         Map<String, Double> prefill = lastInputsByProgram.getOrDefault(programName, Collections.emptyMap());
@@ -145,6 +157,10 @@ public final class RunCoordinator {
 //
 //        new Thread(task, "run-exec").start();
     }
+
+        public void seedRawInputs(List<Long> rawInputValues) {
+            this.pendingRawInputs = rawInputValues;
+        }
 
         public void seedPrefillInputs(String programName, List<Long> inputsValues) {
             List<String> inputsNames;

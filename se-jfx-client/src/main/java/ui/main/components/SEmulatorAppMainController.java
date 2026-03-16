@@ -18,6 +18,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.util.List;
 
 import static util.support.Constants.*;
 
@@ -158,6 +159,25 @@ public class SEmulatorAppMainController implements Closeable {
             if (executionPageController != null && programName != null) {
                 executionPageController.onBecameActive();
                 executionPageController.loadProgramForExecution(programName);
+            }
+        });
+    }
+
+    public void switchToExecutionPageForRerun(String programName, int degree, List<Long> rawInputValues) {
+        Platform.runLater(() -> {
+            if (dashboardComponentController != null) {
+                dashboardComponentController.setInActive();
+            }
+            try {
+                loadExecutionPage();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            setMainPanelTo(executionComponent);
+
+            if (executionPageController != null && programName != null) {
+                executionPageController.onBecameActive();
+                executionPageController.loadProgramForRerun(programName, degree, rawInputValues);
             }
         });
     }

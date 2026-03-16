@@ -45,11 +45,9 @@ public class UserHistoryTableController {
     @FXML public Button btnShow;
     @FXML public Button btnReRun;
 
-//    public interface RerunListener { void onRerun(UserHistoryRowDTO row);}
-//    private RerunListener rerunListener;
-//
     private final ObservableList<UserHistoryRowDTO> tableRows = FXCollections.observableArrayList();
     private Consumer<UserHistoryRowDTO> showStatusHandler;
+    private Consumer<UserHistoryRowDTO> rerunHandler;
 
     @FXML
     private void initialize() {
@@ -127,14 +125,16 @@ public class UserHistoryTableController {
         });
     }
 
-    public void setOnRerun(/*RerunListener rerunListener*/) {
-        /*this.rerunListener = rerunListener;*/
+    public void setOnRerun(Consumer<UserHistoryRowDTO> handler) {
+        this.rerunHandler = handler;
     }
 
     @FXML
     private void onReRun() {
-//        UserHistoryRowDTO selectedRow = historyTable.getSelectionModel().getSelectedItem();
-//        if (selectedRow != null && rerunListener != null)
-//            rerunListener.onRerun(selectedRow);
+        UserHistoryRowDTO selectedRow = historyTable.getSelectionModel().getSelectedItem();
+        if (selectedRow == null) return;
+        if (rerunHandler != null) {
+            rerunHandler.accept(selectedRow);
+        }
     }
 }
