@@ -1,5 +1,6 @@
 package engine;
 
+import debug.Debug;
 import dto.dashboard.UserHistoryRowDTO;
 import dto.execution.DebugDTO;
 import dto.execution.ProgramDTO;
@@ -43,5 +44,10 @@ public interface Engine {
     Map<String, String> getAllUserStringToFunctionName();
     UserManager getUserManager();
     List<UserHistoryRowDTO> getUserHistory(String username);
+
+    Debug createDebug(String programName, String architecture, int degree, String userName, List<Long> inputs);
+    double getAverageCycles(String programName, int degree);
+    int getArchitectureCost(String architectureRepresentation);
+    void recordDebugHistory(String userName, Debug debug, String architecture, int degree, List<Long> inputs, DebugDTO finalSnap, boolean partial);
 
 }

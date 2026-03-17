@@ -1,5 +1,6 @@
 package debug;
 
+import architecture.ArchitectureType;
 import dto.execution.DebugDTO;
 import engine.ProgramRegistry;
 import execution.*;
@@ -7,16 +8,18 @@ import instruction.Instruction;
 import label.FixedLabel;
 import label.Label;
 import operation.OperationView;
+import users.UserManager;
 import variable.Variable;
 
 import java.util.*;
+import java.util.function.LongConsumer;
 
 public class DebugImpl implements Debug {
     private final OperationView program;
-    private final ProgramRegistry registry;
     private final ExecutionContext context;
     private final List<Long> inputsValuesOfUser;
     private final int degree;
+    private final LongConsumer perStepCreditDeductor;
 
     private final List<Instruction> instructions;
     private int currentInstructionIndex;
@@ -31,17 +34,22 @@ public class DebugImpl implements Debug {
 
     public DebugImpl(OperationView program,
                      ProgramRegistry registry,
+                     ArchitectureType architectureType,
+                     UserManager userManager,
+                     String userName,
                      int degree,
-                     List<Long> inputs) {
+                     List<Long> inputs,
+                     LongConsumer perStepCreditDeductor) {
         this.program = Objects.requireNonNull(program, "program");
-        this.registry = Objects.requireNonNull(registry, "registry");
         this.degree = degree;
         this.inputsValuesOfUser = Objects.requireNonNullElseGet(inputs, List::of);
+        this.perStepCreditDeductor = perStepCreditDeductor;
 
         // Build an execution context wired to registry and invoker
         this.context = new ExecutionContextImpl(
                 registry,
-                new ProgramExecutorInvoker(registry) // implements OperationInvoker
+                new ProgramExecutorInvoker(registry, architectureType, userManager),
+                userName
         );
 
         // initialize variables for the selected program/function
@@ -139,6 +147,11 @@ public class DebugImpl implements Debug {
     }
 
     @Override
+    public OperationView getProgram() {
+        return program;
+    }
+
+    @Override
     public boolean hasMoreInstructions() {
         if (currentInstructionIndex >= instructions.size()) return false;
         return !instructions.get(currentInstructionIndex).getLabel().equals(FixedLabel.EXIT);
@@ -168,6 +181,10 @@ public class DebugImpl implements Debug {
         if (currentInstructionIndex >= instructions.size()) return;
 
         Instruction currentInstruction = instructions.get(currentInstructionIndex);
+
+        if (perStepCreditDeductor != null) {
+            perStepCreditDeductor.accept(currentInstruction.getCycleOfInstruction());
+        }
 
         Label next = currentInstruction.execute(context);
         currentCycles += currentInstruction.getCycleOfInstruction();
@@ -218,7 +235,8 @@ public class DebugImpl implements Debug {
                 degree,
                 result,
                 currentCycles,
-                varsToValues
+                varsToValues,
+                inputsValuesOfUser
         );
     }
 }

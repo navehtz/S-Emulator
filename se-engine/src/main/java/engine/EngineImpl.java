@@ -1,12 +1,14 @@
 package engine;
 
 import architecture.ArchitectureType;
-//import debug.Debug;
-//import debug.DebugImpl;
+import debug.Debug;
+import debug.DebugImpl;
 import dto.dashboard.UserHistoryRowDTO;
+import dto.execution.DebugDTO;
 import dto.execution.InstructionsDTO;
 import dto.execution.ProgramDTO;
 import dto.execution.ProgramExecutorDTO;
+import exceptions.CreditsException;
 import exceptions.EngineLoadException;
 import execution.ProgramExecutorImpl;
 import function.Function;
@@ -477,7 +479,7 @@ public class EngineImpl implements Engine, Serializable {
         List<UserHistoryRowDTO> userHistoryRowDTOList = new ArrayList<>();
         for (int i = 0; i < executions.size(); i++) {
             ProgramExecutor programExecutor = executions.get(i);
-            String programType = programExecutor.getProgram() instanceof Function ? "Function" : "Program";
+            String programType = programExecutor.getProgram() instanceof Function ? "Function" : "Program"; // null-safe: instanceof returns false for null
             userHistoryRowDTOList.add(new UserHistoryRowDTO(
                     i + 1,
                     programType,
@@ -491,6 +493,104 @@ public class EngineImpl implements Engine, Serializable {
             ));
         }
         return userHistoryRowDTOList;
+    }
+
+    @Override
+    public Debug createDebug(String programName, String architecture, int degree, String userName, List<Long> inputs) {
+        // Clone the operations needed for this debug session
+        Map<String, OperationView> cloned = new HashMap<>();
+        for (String operationKey : operationToSubOperationsNames.get(programName)) {
+            OperationView operation = loadedOperations.get(operationKey);
+            if (operation == null) throw new IllegalArgumentException("Program not found: " + operationKey);
+            cloned.put(operationKey, operation.deepClone());
+        }
+
+        for (OperationView op : cloned.values()) op.expandProgram(degree);
+
+        ProgramRegistry runRegistry = new ProgramRegistry();
+        runRegistry.registerAll(cloned);
+        for (OperationView op : cloned.values()) op.setRegistry(runRegistry);
+
+        OperationView targetProgram = cloned.get(programName);
+        if (targetProgram == null) throw new IllegalArgumentException("Program not found: " + programName);
+
+        // Deduct architecture cost upfront
+        ArchitectureType architectureSelected = ArchitectureType.fromRepresentation(architecture);
+        userManager.subtractCredits(userName, architectureSelected.getCreditsCost());
+
+        // Build per-step credit deductor: deducts cycles, throws CreditsException if insufficient
+        java.util.function.LongConsumer creditDeductor = cycles -> {
+            if (!userManager.trySubtractCredits(userName, cycles)) {
+                long current = userManager.getUserByName(userName).currentCredits();
+                throw new CreditsException(current, cycles);
+            }
+        };
+
+        return new DebugImpl(targetProgram, runRegistry, architectureSelected, userManager, userName, degree,
+                inputs != null ? inputs : List.of(), creditDeductor);
+    }
+
+    @Override
+    public double getAverageCycles(String programName, int degree) {
+        long totalCycles = 0;
+        long count = 0;
+        for (List<ProgramExecutor> executions : userNameToExecution.values()) {
+            for (ProgramExecutor executor : executions) {
+                if (executor.getOperationName().equals(programName) && executor.getRunDegree() == degree) {
+                    totalCycles += executor.getTotalCyclesOfProgram();
+                    count++;
+                }
+            }
+        }
+        return count == 0 ? 0.0 : (double) totalCycles / count;
+    }
+
+    @Override
+    public int getArchitectureCost(String architectureRepresentation) {
+        return ArchitectureType.fromRepresentation(architectureRepresentation).getCreditsCost();
+    }
+
+    @Override
+    public void recordDebugHistory(String userName, Debug debug, String architecture, int degree,
+                                   List<Long> inputs, DebugDTO finalSnap, boolean partial) {
+        OperationView program = debug.getProgram();
+        ProgramExecutor record = new DebugRecordExecutor(program, architecture, degree, inputs, finalSnap, partial);
+        userNameToExecution.computeIfAbsent(userName, k -> new ArrayList<>()).add(record);
+    }
+
+    private static final class DebugRecordExecutor implements ProgramExecutor {
+        private final OperationView program;
+        private final String architecture;
+        private final int degree;
+        private final List<Long> inputs;
+        private final DebugDTO snap;
+        private final boolean partial;
+
+        DebugRecordExecutor(OperationView program, String architecture, int degree,
+                            List<Long> inputs, DebugDTO snap, boolean partial) {
+            this.program = program;
+            this.architecture = architecture;
+            this.degree = degree;
+            this.inputs = inputs != null ? inputs : List.of();
+            this.snap = snap;
+            this.partial = partial;
+        }
+
+        @Override public void run(String userName, int runDegree, Long... inputs) {}
+        @Override public OperationView getProgram() { return program; }
+        @Override public long getVariableValue(variable.Variable variable) {
+            if (variable == Variable.RESULT) return snap != null ? snap.result() : 0;
+            return 0;
+        }
+        @Override public int getRunDegree() { return degree; }
+        @Override public List<Long> getInputsValuesOfUser() { return inputs; }
+        @Override public int getTotalCyclesOfProgram() { return snap != null ? snap.totalCycles() : 0; }
+        @Override public Map<String, Long> getVariablesToValuesSorted() {
+            return snap != null ? snap.variablesToValuesSorted() : Map.of();
+        }
+        @Override public String getArchitectureRepresentation() { return ArchitectureType.fromRepresentation(architecture).toString(); }
+        @Override public String getOperationName() { return snap != null ? snap.programName() : ""; }
+        @Override public boolean wasPartial() { return partial; }
     }
 
     private ProgramExecutor getLastUserExecutor(String username) {

@@ -1,5 +1,6 @@
 package dto.execution;
 
+import java.util.List;
 import java.util.Map;
 
 public record DebugDTO(
@@ -11,5 +12,6 @@ public record DebugDTO(
         int degree,
         long result,
         int totalCycles,
-        Map<String, Long> variablesToValuesSorted) {
+        Map<String, Long> variablesToValuesSorted,
+        List<Long> inputsValuesOfUser) {
 }
