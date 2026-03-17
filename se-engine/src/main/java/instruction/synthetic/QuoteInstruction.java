@@ -27,7 +27,6 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
     private final List<Instruction> innerInstructions = new ArrayList<>();
     private final Map<Variable, Variable> variableToNewVariableMap = new LinkedHashMap<>();
     private final Map<Label, Label> labelToNewLabelMap = new LinkedHashMap<>();
-    private int currentCyclesNumber;
 
     public QuoteInstruction(Variable targetVariable, Instruction origin, int instructionNumber, String functionName, List<QuoteArg> functionArguments) {
         super(InstructionData.QUOTE, InstructionType.SYNTHETIC, targetVariable, FixedLabel.EMPTY, origin, instructionNumber);
@@ -90,9 +89,6 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
 
         long functionResult = context.invokeOperation(functionName, argsValues);
         context.updateVariable(getTargetVariable(), functionResult);
-        int calleeCycles = context.getLastInvocationCycles();
-
-        this.currentCyclesNumber = InstructionData.QUOTE.getCycles() + calleeCycles;
         return FixedLabel.EMPTY;
     }
 
@@ -132,7 +128,7 @@ public class QuoteInstruction extends AbstractInstruction implements LabelRefere
 
     @Override
     public int getCycleOfInstruction() {
-        return (currentCyclesNumber == 0) ? InstructionData.QUOTE.getCycles() : currentCyclesNumber;
+        return InstructionData.QUOTE.getCycles();
     }
 
     @Override

@@ -9,6 +9,7 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import okhttp3.Call;
@@ -24,12 +25,14 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import static util.support.Constants.GSON_INSTANCE;
 
 public class AvailableUsersTableController extends AbstractRefreshableController {
 
     @FXML private TableView<UserDTO> usersTable;
+    @FXML private Button btnUnselectUser;
 
     @FXML private TableColumn<UserDTO, String> colUserName;
     @FXML private TableColumn<UserDTO, Integer> colPrograms;
@@ -39,6 +42,7 @@ public class AvailableUsersTableController extends AbstractRefreshableController
     @FXML private TableColumn<UserDTO, Integer> colExecutions;
 
     private final ObservableList<UserDTO> usersList = FXCollections.observableArrayList();
+    private Consumer<String> onUserSelectedCallback;
 
     private static final Type usersListType =
             TypeToken.getParameterized(List.class, UserDTO.class).getType();
@@ -53,6 +57,24 @@ public class AvailableUsersTableController extends AbstractRefreshableController
         colExecutions.setCellValueFactory(cd -> new ReadOnlyObjectWrapper<>(cd.getValue().numOfExecutions()));
 
         usersTable.setItems(usersList);
+
+        usersTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (onUserSelectedCallback != null && newVal != null) {
+                onUserSelectedCallback.accept(newVal.userName());
+            }
+        });
+    }
+
+    public void setOnUserSelected(Consumer<String> callback) {
+        this.onUserSelectedCallback = callback;
+    }
+
+    @FXML
+    private void onUnselectUser() {
+        usersTable.getSelectionModel().clearSelection();
+        if (onUserSelectedCallback != null) {
+            onUserSelectedCallback.accept(null);
+        }
     }
 
     @Override

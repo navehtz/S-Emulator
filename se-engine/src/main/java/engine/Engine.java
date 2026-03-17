@@ -1,5 +1,6 @@
 package engine;
 
+import dto.dashboard.UserHistoryRowDTO;
 import dto.execution.DebugDTO;
 import dto.execution.ProgramDTO;
 import dto.execution.ProgramExecutorDTO;
@@ -41,5 +42,6 @@ public interface Engine {
     List<String> getAllFunctionsNames();
     Map<String, String> getAllUserStringToFunctionName();
     UserManager getUserManager();
+    List<UserHistoryRowDTO> getUserHistory(String username);
 
 }

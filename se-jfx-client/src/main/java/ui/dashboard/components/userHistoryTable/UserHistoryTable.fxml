@@ -8,15 +8,15 @@
       <content>
           <VBox alignment="TOP_RIGHT" prefHeight="200.0" prefWidth="597.0">
               <children>
-                  <TableView maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="199.0" prefWidth="467.0" VBox.vgrow="ALWAYS">
+                  <TableView fx:id="historyTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="199.0" prefWidth="467.0" VBox.vgrow="ALWAYS">
                       <columns>
                           <TableColumn fx:id="colRunNum" prefWidth="55.0" text="#" />
-                          <TableColumn fx:id="colMainProgramOrFunction" prefWidth="105.0" text="Program/Function" />
-                          <TableColumn fx:id="colProgramName" prefWidth="75.0" text="Program/Function's Name" />
+                          <TableColumn fx:id="colMainProgramOrFunction" prefWidth="105.0" text="Prog/Fun" />
+                          <TableColumn fx:id="colProgramName" prefWidth="75.0" text="Name" />
                           <TableColumn fx:id="colArchitectureType" prefWidth="75.0" text="Architecture" />
                           <TableColumn fx:id="colDegree" prefWidth="75.0" text="Degree" />
-                          <TableColumn fx:id="colCycles" prefWidth="75.0" text="Result" />
-                  <TableColumn prefWidth="75.0" text="Cycles" />
+                          <TableColumn fx:id="colCycles" prefWidth="75.0" text="Cycles" />
+                          <TableColumn fx:id="colResult" prefWidth="75.0" text="Result" />
                       </columns>
                       <columnResizePolicy>
                           <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -27,12 +27,12 @@
                   </TableView>
             <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0">
                <children>
-                  <Button mnemonicParsing="false" onAction="#onShowStatus" text="Show Status">
+                  <Button fx:id="btnShow" mnemonicParsing="false" onAction="#onShowStatus" text="Show Status">
                      <HBox.margin>
                         <Insets right="10.0" />
                      </HBox.margin>
                   </Button>
-                  <Button mnemonicParsing="false" onAction="#onReRun" text="Re-Run">
+                  <Button fx:id="btnReRun" mnemonicParsing="false" onAction="#onReRun" text="Re-Run">
                      <HBox.margin>
                         <Insets right="5.0" />
                      </HBox.margin>

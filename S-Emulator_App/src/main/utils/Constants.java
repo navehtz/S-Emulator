@@ -18,6 +18,7 @@ public class Constants {
     public static final String CREDITS_AMOUNT_QUERY_PARAM = "creditsAmount";
     public static final String CHOSEN_ARCHITECTURE_QUERY_PARAM = "chosenArchitecture";
     public static final String RUN_ID_QUERY_PARAM = "runId";
+    public static final String USER_NAME_QUERY_PARAM = "userName";
     public static final String RUN_STATE_QUERY_PARAM = "runState";
     public static final String PROGRESS_PERCENT_QUERY_PARAM = "progressPercent";
     public static final String MESSAGE_QUERY_PARAM = "message";

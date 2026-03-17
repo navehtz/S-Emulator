@@ -7,7 +7,7 @@ public record UserHistoryRowDTO(
         int ordinal,
         String programType,
         String operationName,
-        int architecture,
+        String architecture,
         int degree,
         int result,
         int totalCycles,

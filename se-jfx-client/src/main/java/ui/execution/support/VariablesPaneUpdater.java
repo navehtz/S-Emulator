@@ -31,7 +31,11 @@ public class VariablesPaneUpdater {
                 )));
 
         varsPaneController.setVariables(sortedVariables);
-        cyclesLabel.setText(String.valueOf(executionResult.totalCycles()));
+        String cyclesText = String.valueOf(executionResult.totalCycles());
+        if (executionResult.partial()) {
+            cyclesText += " *";
+        }
+        cyclesLabel.setText(cyclesText);
     }
 
     public void update(ProgramExecutorDTO exec, Set<String> changedNames) {
