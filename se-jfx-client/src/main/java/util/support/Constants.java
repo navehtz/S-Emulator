@@ -27,6 +27,15 @@ public class Constants {
     public final static String LOGOUT = FULL_SERVER_PATH + "/logout";
     public final static String USER_HISTORY = FULL_SERVER_PATH + "/userHistory";
 
+    // Debug endpoints
+    public final static String DEBUG_START = FULL_SERVER_PATH + "/debug/start";
+    public final static String DEBUG_STEP = FULL_SERVER_PATH + "/debug/step";
+    public final static String DEBUG_RESUME = FULL_SERVER_PATH + "/debug/resume";
+    public final static String DEBUG_RESUME_STATUS = FULL_SERVER_PATH + "/debug/resumeStatus";
+    public final static String DEBUG_RESUME_RESULT = FULL_SERVER_PATH + "/debug/resumeResult";
+    public final static String AVERAGE_CYCLES = FULL_SERVER_PATH + "/averageCycles";
+    public final static String ARCHITECTURE_COST = FULL_SERVER_PATH + "/architectureCost";
+
     //Query parameters
     public static final String PROGRAM_NAME_QUERY_PARAM = "programName";
     public static final String DEGREE_QUERY_PARAM = "degree";

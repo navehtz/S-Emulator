@@ -29,8 +29,10 @@ import javafx.scene.paint.Color;
 import javafx.stage.*;
 
 import javafx.util.Duration;
-//import ui.execution.debug.DebugOrchestrator;
-//import ui.execution.debug.DebugUiPresenter;
+import ui.execution.debug.DebugGateway;
+import ui.execution.debug.DebugOrchestrator;
+import ui.execution.debug.DebugUiPresenter;
+import ui.execution.debug.HttpDebugGateway;
 import ui.execution.run.HttpRunGateway;
 import ui.execution.run.RunOrchestrator;
 import ui.execution.run.RunUiPresenter;
@@ -81,7 +83,7 @@ public class ExecutionPageController {
 
     private RunOrchestrator runOrchestrator;
     private RunsHistoryManager runsHistoryManager;
-    //private DebugOrchestrator debugOrchestrator;
+    private DebugOrchestrator debugOrchestrator;
     private final Map<String, Long> lastVarsSnapshot = new HashMap<>();
 
     private SequentialTransition pulseAnimation;
@@ -120,9 +122,9 @@ public class ExecutionPageController {
         wireArchitectureSelector();
         btnRun.disableProperty().bind(
                         currentProgramProperty().isNull()
-                        .or(isRunInProgressProperty()
-                        .or(hasOverCap)
-                        ));
+                        .or(isRunInProgressProperty())
+                        .or(isDebugInProgressProperty())
+                        .or(hasOverCap));
 //        CreditsUi.bindUpdater((current, used) -> {
 //            topBarController.setCredits(current, used);
 //        });
@@ -216,23 +218,28 @@ public class ExecutionPageController {
 
         mainInstrTableController.bindHistoryTable(currentProgramDTO::get, historyInstrTableController);
 
-//        DebugUiPresenter debugPresenter = new DebugUiPresenter(
-//                isDebugInProgress,
-//                variablesPaneUpdater,
-//                runsHistoryManager,
-//                this::updateInputsPane,
-//                this::applySnapshot,
-//                this::enterDebugMode
-//        );
-//
-//        this.debugOrchestrator = new DebugOrchestrator(
-//                engine,
-//                this::getOwnerWindowOrNull,
-//                this::getSelectedDegree,
-//                isDebugInProgress,
-//                debugPresenter,
-//                this::selectedOperationKey
-//        );
+        DebugGateway debugGateway = new HttpDebugGateway();
+
+        DebugUiPresenter debugPresenter = new DebugUiPresenter(
+                isDebugInProgress,
+                variablesPaneUpdater,
+                this::applySnapshot,
+                () -> { if (sEmulatorAppMainController != null) sEmulatorAppMainController.switchToDashboard(); },
+                credits -> topBarController.forceSetCredits(credits)
+        );
+
+        this.debugOrchestrator = new DebugOrchestrator(
+                debugGateway,
+                this::getOwnerWindowOrNull,
+                () -> topBarController.getSelectedDegree(),
+                isDebugInProgress,
+                debugPresenter,
+                this::selectedOperationKey,
+                () -> {
+                    var selectedArch = architectureSelector.getSelectionModel().getSelectedItem();
+                    return selectedArch == null ? "I" : selectedArch;
+                }
+        );
     }
 
     private void initUiWiring() {
@@ -326,11 +333,13 @@ public class ExecutionPageController {
         btnRun.disableProperty().bind(
                 currentProgramProperty().isNull()
                         .or(isRunInProgressProperty())
+                        .or(isDebugInProgressProperty())
         );
 
         btnDebug.disableProperty().bind(
                 currentProgramProperty().isNull()
                         .or(isDebugInProgressProperty())
+                        .or(isRunInProgressProperty())
         );
     }
 
@@ -349,49 +358,30 @@ public class ExecutionPageController {
         btnRun.setEffect(null);
         btnDebug.setEffect(null);
     }
-    @FXML private void onDebug(ActionEvent e)      {
-//        debugOrchestrator.debug();
-//        btnRun.setEffect(null);
-//        btnDebug.setEffect(null);
-    }
-    @FXML private void onStop(ActionEvent e)       {
-//        try {
-//            engine.stopDebugPress();
-//        } finally {
-//            leaveDebugMode();
-//        }
+    @FXML private void onDebug(ActionEvent e) {
+        debugOrchestrator.debug(getCurrentProgram());
+        btnRun.setEffect(null);
+        btnDebug.setEffect(null);
     }
 
-    @FXML private void onResume(ActionEvent e)     {
-//        try {
-//            var breakpoints = mainInstrTableController.getBreakpoints();
-//            var d = engine.getProgramAfterResume(breakpoints);
-//            applySnapshot(d);
-//        } catch (InterruptedException ex) {
-//            // user cancelled, ignore
-//        } catch (Exception ex) {
-//            Dialogs.error("Resume failed", ex.getMessage(), getOwnerWindowOrNull());
-//            leaveDebugMode();
-//        }
+    @FXML private void onStop(ActionEvent e) {
+        debugOrchestrator.stop();
     }
 
-    @FXML private void onStepOver(ActionEvent e)   {
-//        try {
-//            var d = engine.getProgramAfterStepOver();
-//            applySnapshot(d);
-//        } catch (Exception exception) {
-//            Dialogs.error("Step Over failed", exception.getMessage(), getOwnerWindowOrNull());
-//            leaveDebugMode();
-//        }
+    @FXML private void onResume(ActionEvent e) {
+        debugOrchestrator.resume(mainInstrTableController.getBreakpoints());
+    }
+
+    @FXML private void onStepOver(ActionEvent e) {
+        debugOrchestrator.stepOver();
     }
 
     @FXML private void onStepBack(ActionEvent actionEvent) {
-//        try {
-//            var d = engine.getProgramAfterStepBack();
-//            applySnapshot(d);
-//        } catch (Exception ex) {
-//            Dialogs.error("Step Back failed", ex.getMessage(), getOwnerWindowOrNull());
-//        }
+        debugOrchestrator.stepBack();
+    }
+
+    private void applySnapshot(DebugDTO snap) {
+        mainInstrTableController.markCurrentInstruction(snap.currentInstructionNumber());
     }
 
 
