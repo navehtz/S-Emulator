@@ -1,12 +1,13 @@
 package engine;
 
 import architecture.ArchitectureType;
-//import debug.Debug;
-//import debug.DebugImpl;
+import debug.Debug;
+import debug.DebugImpl;
 import dto.dashboard.UserHistoryRowDTO;
 import dto.execution.InstructionsDTO;
 import dto.execution.ProgramDTO;
 import dto.execution.ProgramExecutorDTO;
+import exceptions.CreditsException;
 import exceptions.EngineLoadException;
 import execution.ProgramExecutorImpl;
 import function.Function;
@@ -491,6 +492,61 @@ public class EngineImpl implements Engine, Serializable {
             ));
         }
         return userHistoryRowDTOList;
+    }
+
+    @Override
+    public Debug createDebug(String programName, String architecture, int degree, String userName, List<Long> inputs) {
+        // Clone the operations needed for this debug session
+        Map<String, OperationView> cloned = new HashMap<>();
+        for (String operationKey : operationToSubOperationsNames.get(programName)) {
+            OperationView operation = loadedOperations.get(operationKey);
+            if (operation == null) throw new IllegalArgumentException("Program not found: " + operationKey);
+            cloned.put(operationKey, operation.deepClone());
+        }
+
+        for (OperationView op : cloned.values()) op.expandProgram(degree);
+
+        ProgramRegistry runRegistry = new ProgramRegistry();
+        runRegistry.registerAll(cloned);
+        for (OperationView op : cloned.values()) op.setRegistry(runRegistry);
+
+        OperationView targetProgram = cloned.get(programName);
+        if (targetProgram == null) throw new IllegalArgumentException("Program not found: " + programName);
+
+        // Deduct architecture cost upfront
+        ArchitectureType architectureSelected = ArchitectureType.fromRepresentation(architecture);
+        userManager.subtractCredits(userName, architectureSelected.getCreditsCost());
+
+        // Build per-step credit deductor: deducts cycles, throws CreditsException if insufficient
+        java.util.function.LongConsumer creditDeductor = cycles -> {
+            if (!userManager.trySubtractCredits(userName, cycles)) {
+                long current = userManager.getUserByName(userName).currentCredits();
+                throw new CreditsException(current, cycles);
+            }
+        };
+
+        return new DebugImpl(targetProgram, runRegistry, architectureSelected, userManager, userName, degree,
+                inputs != null ? inputs : List.of(), creditDeductor);
+    }
+
+    @Override
+    public double getAverageCycles(String programName, int degree) {
+        long totalCycles = 0;
+        long count = 0;
+        for (List<ProgramExecutor> executions : userNameToExecution.values()) {
+            for (ProgramExecutor executor : executions) {
+                if (executor.getOperationName().equals(programName) && executor.getRunDegree() == degree) {
+                    totalCycles += executor.getTotalCyclesOfProgram();
+                    count++;
+                }
+            }
+        }
+        return count == 0 ? 0.0 : (double) totalCycles / count;
+    }
+
+    @Override
+    public int getArchitectureCost(String architectureRepresentation) {
+        return ArchitectureType.fromRepresentation(architectureRepresentation).getCreditsCost();
     }
 
     private ProgramExecutor getLastUserExecutor(String username) {
