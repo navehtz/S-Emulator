@@ -18,6 +18,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.util.List;
 
 import static util.support.Constants.*;
 
@@ -34,9 +35,11 @@ public class SEmulatorAppMainController implements Closeable {
     @FXML private AnchorPane mainPanel;
 
     private final StringProperty currentUserName;
+    private final StringProperty rawUserName;
 
     public SEmulatorAppMainController() {
         currentUserName = new SimpleStringProperty(TEMP_NAME);
+        rawUserName = new SimpleStringProperty();
     }
 
     @FXML
@@ -46,7 +49,8 @@ public class SEmulatorAppMainController implements Closeable {
     }
 
     public void updateUserName(String userName) {
-        currentUserName.set(userName);
+        rawUserName.set(userName);
+        currentUserName.set(USERNAME_PREFIX + userName);
     }
     
     private void setMainPanelTo(Parent pane) {
@@ -92,6 +96,7 @@ public class SEmulatorAppMainController implements Closeable {
             dashboardComponentController.setSEmulatorAppMainController(this);
 
             dashboardComponentController.bindUserName(currentUserName);
+            dashboardComponentController.bindRawUserName(rawUserName);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -154,6 +159,25 @@ public class SEmulatorAppMainController implements Closeable {
             if (executionPageController != null && programName != null) {
                 executionPageController.onBecameActive();
                 executionPageController.loadProgramForExecution(programName);
+            }
+        });
+    }
+
+    public void switchToExecutionPageForRerun(String programName, int degree, List<Long> rawInputValues) {
+        Platform.runLater(() -> {
+            if (dashboardComponentController != null) {
+                dashboardComponentController.setInActive();
+            }
+            try {
+                loadExecutionPage();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            setMainPanelTo(executionComponent);
+
+            if (executionPageController != null && programName != null) {
+                executionPageController.onBecameActive();
+                executionPageController.loadProgramForRerun(programName, degree, rawInputValues);
             }
         });
     }

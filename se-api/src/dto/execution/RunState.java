@@ -6,4 +6,5 @@ public enum RunState {
     DONE,
     CANCELLED,
     ERROR,
+    OUT_OF_CREDITS,
 }

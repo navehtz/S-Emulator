@@ -47,8 +47,8 @@ public class RunResultServlet extends HttpServlet {
             return;
         }
 
-        if (status.state() != RunState.DONE) {
-            // Execution is still running or pending
+        if (status.state() != RunState.DONE && status.state() != RunState.OUT_OF_CREDITS) {
+            // Execution is still running, pending, or cancelled
             writeJsonError(response, HttpServletResponse.SC_CONFLICT,
                     "Program not finished yet. Run is still in progress");
             return;
@@ -57,13 +57,15 @@ public class RunResultServlet extends HttpServlet {
         try {
             ProgramExecutorDTO programExecutorDTO = engine.getProgramToDisplayAfterRun(status.userName());
             if (programExecutorDTO == null) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                response.getWriter().write(GSON_INSTANCE.toJson("No run result available"));
+                writeJsonError(response, HttpServletResponse.SC_NOT_FOUND, "No run result available");
                 return;
             }
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
             response.getWriter().write(GSON_INSTANCE.toJson(programExecutorDTO));
+        } catch (IllegalStateException e) {
+            // No executor in history (e.g. run never started due to insufficient credits for architecture cost)
+            writeJsonError(response, HttpServletResponse.SC_NOT_FOUND, "No run result available: " + e.getMessage());
         } catch (Exception e) {
             writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Failed to fetch run result: " + e.getMessage());

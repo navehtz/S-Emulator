@@ -89,10 +89,11 @@ public class UserManager {
         }
 
         if (newCredits < 0) {
+
             String errorMessage = "Execution isn't finished." + System.lineSeparator() +
                     "You don't have enough credits." + System.lineSeparator() +
                     "Current credits amount: " + nameToUser.get(userName).currentCredits();
-            throw new CreditsException(errorMessage);
+            throw new CreditsException(nameToUser.get(userName).currentCredits(), creditsToSubtract);
         }
 
         nameToUser.computeIfPresent(userName,
@@ -120,5 +121,27 @@ public class UserManager {
 
     public synchronized boolean hasEnoughCredits(String userName, long creditsToSubtract) {
         return nameToUser.get(userName).currentCredits() - creditsToSubtract >= 0;
+    }
+
+    /**
+     * Atomically checks if the user has enough credits and, if so, deducts them.
+     * Returns true if credits were deducted; false if the user did not have enough
+     * (in which case nothing is deducted).
+     */
+    public synchronized boolean trySubtractCredits(String userName, long creditsToSubtract) {
+        UserDTO user = nameToUser.get(userName);
+        if (user == null) return false;
+        long newCredits = user.currentCredits() - creditsToSubtract;
+        if (newCredits < 0) return false;
+        long newUsedCredits = user.usedCredits() + creditsToSubtract;
+        nameToUser.put(userName, new UserDTO(
+                user.userName(),
+                user.numProgramsUploaded(),
+                user.numFunctionsUploaded(),
+                newCredits,
+                newUsedCredits,
+                user.numOfExecutions()
+        ));
+        return true;
     }
 }

@@ -25,6 +25,16 @@ public class Constants {
     public final static String LOGIN_PAGE = FULL_SERVER_PATH + "/login";
     public final static String USERS_LIST = FULL_SERVER_PATH + "/userslist";
     public final static String LOGOUT = FULL_SERVER_PATH + "/logout";
+    public final static String USER_HISTORY = FULL_SERVER_PATH + "/userHistory";
+
+    // Debug endpoints
+    public final static String DEBUG_START = FULL_SERVER_PATH + "/debug/start";
+    public final static String DEBUG_STEP = FULL_SERVER_PATH + "/debug/step";
+    public final static String DEBUG_RESUME = FULL_SERVER_PATH + "/debug/resume";
+    public final static String DEBUG_RESUME_STATUS = FULL_SERVER_PATH + "/debug/resumeStatus";
+    public final static String DEBUG_RESUME_RESULT = FULL_SERVER_PATH + "/debug/resumeResult";
+    public final static String AVERAGE_CYCLES = FULL_SERVER_PATH + "/averageCycles";
+    public final static String ARCHITECTURE_COST = FULL_SERVER_PATH + "/architectureCost";
 
     //Query parameters
     public static final String PROGRAM_NAME_QUERY_PARAM = "programName";
@@ -33,6 +43,7 @@ public class Constants {
     public static final String CHOSEN_ARCHITECTURE_STR_QUERY_PARAM = "architecture";
     public static final String CREDITS_AMOUNT_QUERY_PARAM = "creditsAmount";
     public static final String RUN_ID_QUERY_PARAM = "runId";
+    public static final String USER_NAME_QUERY_PARAM = "userName";
 
     public static final Gson GSON_INSTANCE = new Gson();
 }

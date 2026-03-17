@@ -31,11 +31,18 @@ public class VariablesPaneUpdater {
                 )));
 
         varsPaneController.setVariables(sortedVariables);
-        cyclesLabel.setText(String.valueOf(executionResult.totalCycles()));
+        String cyclesText = String.valueOf(executionResult.totalCycles());
+        if (executionResult.partial()) {
+            cyclesText += " *";
+        }
+        cyclesLabel.setText(cyclesText);
     }
 
     public void update(ProgramExecutorDTO exec, Set<String> changedNames) {
-        varsPaneController.setVariables(exec.variablesToValuesSorted());
+        Map<String, Long> all = new LinkedHashMap<>();
+        all.put("y", exec.result());
+        all.putAll(exec.variablesToValuesSorted());
+        varsPaneController.setVariables(all);
         varsPaneController.highlightChanged(changedNames);
         cyclesLabel.setText(String.valueOf(exec.totalCycles()));
     }

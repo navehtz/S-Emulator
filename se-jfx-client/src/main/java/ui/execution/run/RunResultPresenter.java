@@ -6,4 +6,5 @@ public interface RunResultPresenter {
     void onRunStarted();
     void onRunSucceeded(ProgramExecutorDTO result);
     void onRunFailed(String message);
+    void onRunOutOfCredits(String message, ProgramExecutorDTO partialResult);
 }

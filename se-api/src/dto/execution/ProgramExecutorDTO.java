@@ -10,5 +10,6 @@ public record ProgramExecutorDTO (
     int totalCycles,
     int degree,
     List<Long> inputsValuesOfUser,
-    String architectureTypeSelected
+    String architectureTypeSelected,
+    boolean partial
 ) {}

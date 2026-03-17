@@ -4,6 +4,7 @@ import dto.execution.ExecutionStatusDTO;
 import dto.execution.ProgramRunRequestDTO;
 import dto.execution.RunState;
 import engine.Engine;
+import exceptions.CreditsException;
 
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,9 @@ public class ProgramExecutionManager {
                 executionStatus.setMessage("Canceled by user");
                 executionStatus.setState(RunState.CANCELLED);
                 throw cancellationException;
+            } catch (CreditsException e) {
+                executionStatus.setMessage(e.getMessage());
+                executionStatus.setState(RunState.OUT_OF_CREDITS);
             } catch (Throwable t) {
                 executionStatus.setMessage(t.getMessage() == null ? "Execution failed" : t.getMessage());
                 executionStatus.setState(RunState.ERROR);

@@ -54,6 +54,9 @@ public abstract class Operation implements OperationView, Serializable {
         this.labelsAddedAfterExtension = new LinkedHashSet<>();
         this.referencedLabels = new LinkedHashSet<>();
         this.calledFunctionNames = new HashSet<>();
+        if (builder.calledFunctionNames != null) {
+            this.calledFunctionNames.addAll(builder.calledFunctionNames);
+        }
 
 
         // bucket declared variables (even if not used in instructions)

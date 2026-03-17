@@ -2,6 +2,7 @@ package execution;
 
 import architecture.ArchitectureType;
 import engine.ProgramRegistry;
+import exceptions.CreditsException;
 import instruction.Instruction;
 import label.FixedLabel;
 import label.Label;
@@ -17,11 +18,13 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 
     private final OperationView program;
     private final ArchitectureType architectureTypeSelected;
-    //private final ProgramRegistry programRegistry;
+    private final UserManager userManager;
+    private final String userName;
     private final ExecutionContext context;
     private List<Long> inputsValues;
     private int runDegree = 0;
     private int totalCycles = 0;
+    private boolean wasPartial = false;
 
 //    public ProgramExecutorImpl(OperationView program, ProgramRegistry registry) {
 //        this.program = program;
@@ -31,11 +34,12 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
 //        this.inputsValues = new ArrayList<>();
 //    }
 
-    public ProgramExecutorImpl(OperationView program, ArchitectureType architectureTypeSelected, ProgramRegistry registry, String userName) {
+    public ProgramExecutorImpl(OperationView program, ArchitectureType architectureTypeSelected, ProgramRegistry registry, String userName, UserManager userManager) {
         this.program = program;
         this.architectureTypeSelected = architectureTypeSelected;
-        //ProgramRegistry programRegistry = Objects.requireNonNull(registry, "Program registry cannot be null");
-        OperationInvoker invoker = new ProgramExecutorInvoker(registry, architectureTypeSelected);
+        this.userManager = Objects.requireNonNull(userManager, "UserManager is required");
+        this.userName = userName;
+        OperationInvoker invoker = new ProgramExecutorInvoker(registry, architectureTypeSelected, userManager);
         this.context = new ExecutionContextImpl(registry, invoker, userName);
         this.inputsValues = new ArrayList<>();
     }
@@ -54,27 +58,39 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
         context.initializeVariables(program, inputs);
         this.runDegree = runDegree;
 
-        do {
-            nextLabel = currentInstruction.execute(context);
-            totalCycles += currentInstruction.getCycleOfInstruction();
-
-
-            if (nextLabel == FixedLabel.EMPTY) {
-                int indexOfNextInstruction = program.getInstructionsList().indexOf(currentInstruction) + 1;
-
-                // If there are more instructions, else Exit
-                if (indexOfNextInstruction < program.getInstructionsList().size()) {
-                    nextInstruction = program.getInstructionsList().get(indexOfNextInstruction);
-                } else {
-                    nextLabel = FixedLabel.EXIT;
+        try {
+            do {
+                long instructionCycles = currentInstruction.getCycleOfInstruction();
+                if (!userManager.trySubtractCredits(userName, instructionCycles)) {
+                    throw new CreditsException(
+                            userManager.getUserByName(userName).currentCredits(),
+                            instructionCycles);
                 }
-            } else if (nextLabel != FixedLabel.EXIT) {
-                nextInstruction = program.getInstructionByLabel(nextLabel);
-            }
+                context.resetLastInvocationCycles();
+                nextLabel = currentInstruction.execute(context);
+                totalCycles += instructionCycles;
+                totalCycles += context.getLastInvocationCycles(); // sub-program cycles (0 for non-invoking instructions)
 
-            currentInstruction = nextInstruction;
+                if (nextLabel == FixedLabel.EMPTY) {
+                    int indexOfNextInstruction = program.getInstructionsList().indexOf(currentInstruction) + 1;
 
-        } while(nextLabel != FixedLabel.EXIT);
+                    // If there are more instructions, else Exit
+                    if (indexOfNextInstruction < program.getInstructionsList().size()) {
+                        nextInstruction = program.getInstructionsList().get(indexOfNextInstruction);
+                    } else {
+                        nextLabel = FixedLabel.EXIT;
+                    }
+                } else if (nextLabel != FixedLabel.EXIT) {
+                    nextInstruction = program.getInstructionByLabel(nextLabel);
+                }
+
+                currentInstruction = nextInstruction;
+
+            } while (nextLabel != FixedLabel.EXIT);
+        } catch (CreditsException e) {
+            this.wasPartial = true;
+            throw e;
+        }
 
         context.getVariableValue(Variable.RESULT);
     }
@@ -128,5 +144,10 @@ public class ProgramExecutorImpl implements ProgramExecutor, Serializable {
     @Override
     public String getOperationName() {
         return program.getName();
+    }
+
+    @Override
+    public boolean wasPartial() {
+        return wasPartial;
     }
 }

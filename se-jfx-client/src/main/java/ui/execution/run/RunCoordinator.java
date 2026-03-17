@@ -21,6 +21,7 @@ public final class RunCoordinator {
     private final RunResultPresenter resultPresenter;
 
     private final Map<String, Map<String, Double>> lastInputsByProgram = new HashMap<>();
+    private List<Long> pendingRawInputs = new ArrayList<>();
 
     public RunCoordinator(  RunGateway runGateway,
                             Window ownerWindow,
@@ -51,6 +52,17 @@ public final class RunCoordinator {
             return;
         }
 
+        if (pendingRawInputs != null) {
+            Map<String, Double> rerunPrefill = new LinkedHashMap<>();
+            for (int inputIndex = 0; inputIndex < requiredInputs.size(); inputIndex++) {
+                String inputName = requiredInputs.get(inputIndex);
+                double inputValue = inputIndex < pendingRawInputs.size() ? pendingRawInputs.get(inputIndex).doubleValue() : 0.0;
+                rerunPrefill.put(inputName, inputValue);
+            }
+            lastInputsByProgram.put(programName, rerunPrefill);
+            pendingRawInputs = null;
+        }
+
         Map<String, Double> prefill = lastInputsByProgram.getOrDefault(programName, Collections.emptyMap());
         RunInputsDialog dialog = new RunInputsDialog(ownerWindow, requiredInputs, prefill);
         Optional<Map<String, Double>> userValues = dialog.showAndWait();
@@ -76,6 +88,7 @@ public final class RunCoordinator {
                 String runId = runGateway.submitRun(programName, architecture, degree, inputsList);
 
                 String id = "";
+                String outOfCreditsMessage = null;
                 // Poll
                 final long sleepMilliseconds = 150L;
                 while (true) {
@@ -84,11 +97,27 @@ public final class RunCoordinator {
                     if (executionStatusDTO == null) throw new IllegalStateException("Unknown runId: " + runId);
 
                     if (executionStatusDTO.state() == RunState.DONE) break;
+                    if (executionStatusDTO.state() == RunState.OUT_OF_CREDITS) {
+                        outOfCreditsMessage = executionStatusDTO.message() == null || executionStatusDTO.message().isBlank()
+                                ? "Not enough credits" : executionStatusDTO.message();
+                        break; // still fetch partial result below
+                    }
                     if (executionStatusDTO.state() == RunState.ERROR) throw new RuntimeException(
                             executionStatusDTO.message() == null || executionStatusDTO.message().isBlank() ? "Execution failed" : executionStatusDTO.message());
                     if (executionStatusDTO.state() == RunState.CANCELLED) throw new RuntimeException("Execution cancelled");
 
                     Thread.sleep(sleepMilliseconds);
+                }
+
+                if (outOfCreditsMessage != null) {
+                    // Try to fetch partial result; if unavailable (run never started), proceed with null
+                    ProgramExecutorDTO partialResult = null;
+                    try {
+                        partialResult = runGateway.fetchResult(programName, id);
+                    } catch (Exception ignored) {
+                        // No partial executor available (e.g. insufficient credits for architecture cost)
+                    }
+                    throw new OutOfCreditsException(outOfCreditsMessage, partialResult);
                 }
 
                 // Fetch result to display
@@ -99,7 +128,11 @@ public final class RunCoordinator {
         task.setOnSucceeded(ev -> resultPresenter.onRunSucceeded(task.getValue()));
         task.setOnFailed(ev -> {
             Throwable ex = task.getException();
-            resultPresenter.onRunFailed(ex != null ? ex.getMessage() : "Unknown error");
+            if (ex instanceof OutOfCreditsException outOfCreditsException) {
+                resultPresenter.onRunOutOfCredits(outOfCreditsException.getMessage(), outOfCreditsException.getPartialResult());
+            } else {
+                resultPresenter.onRunFailed(ex != null ? ex.getMessage() : "Unknown error");
+            }
         });
 
         new Thread(task, "run-exec").start();
@@ -124,6 +157,10 @@ public final class RunCoordinator {
 //
 //        new Thread(task, "run-exec").start();
     }
+
+        public void seedRawInputs(List<Long> rawInputValues) {
+            this.pendingRawInputs = rawInputValues;
+        }
 
         public void seedPrefillInputs(String programName, List<Long> inputsValues) {
             List<String> inputsNames;

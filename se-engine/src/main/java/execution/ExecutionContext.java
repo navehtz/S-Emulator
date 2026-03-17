@@ -13,4 +13,5 @@ public interface ExecutionContext {
     long invokeOperation(OperationView operation, String userName, long... args);
 
     int getLastInvocationCycles();
+    void resetLastInvocationCycles();
 }

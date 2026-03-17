@@ -21,4 +21,5 @@ public interface ProgramExecutor {
     //String getUserName();
     String getArchitectureRepresentation(); // "I"/"II"/"III"/"IV"
     String getOperationName();              // executed program/function name
+    boolean wasPartial();                   // true if stopped mid-run due to insufficient credits
 }

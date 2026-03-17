@@ -214,11 +214,11 @@ public class TopBarController {
         }
     }
 
-//    public void setCredits(long currentCredits, long usedCredits) {
-//
-//    }
+    public void forceSetCredits(long credits) {
+        currentCreditsProperty.set(credits);
+    }
 
-        public int getSelectedDegree() {
+    public int getSelectedDegree() {
         if (degreeSelector == null || degreeSelector.getValue() == null) return 0;
         return degreeSelector.getValue();
     }

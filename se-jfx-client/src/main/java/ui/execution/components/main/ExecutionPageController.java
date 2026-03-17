@@ -29,8 +29,10 @@ import javafx.scene.paint.Color;
 import javafx.stage.*;
 
 import javafx.util.Duration;
-//import ui.execution.debug.DebugOrchestrator;
-//import ui.execution.debug.DebugUiPresenter;
+import ui.execution.debug.DebugGateway;
+import ui.execution.debug.DebugOrchestrator;
+import ui.execution.debug.DebugUiPresenter;
+import ui.execution.debug.HttpDebugGateway;
 import ui.execution.run.HttpRunGateway;
 import ui.execution.run.RunOrchestrator;
 import ui.execution.run.RunUiPresenter;
@@ -81,7 +83,7 @@ public class ExecutionPageController {
 
     private RunOrchestrator runOrchestrator;
     private RunsHistoryManager runsHistoryManager;
-    //private DebugOrchestrator debugOrchestrator;
+    private DebugOrchestrator debugOrchestrator;
     private final Map<String, Long> lastVarsSnapshot = new HashMap<>();
 
     private SequentialTransition pulseAnimation;
@@ -120,9 +122,8 @@ public class ExecutionPageController {
         wireArchitectureSelector();
         btnRun.disableProperty().bind(
                         currentProgramProperty().isNull()
-                        .or(isRunInProgressProperty()
-                        .or(hasOverCap)
-                        ));
+                        .or(isRunInProgressProperty())
+                        .or(isDebugInProgressProperty()));
 //        CreditsUi.bindUpdater((current, used) -> {
 //            topBarController.setCredits(current, used);
 //        });
@@ -198,7 +199,8 @@ public class ExecutionPageController {
                 isRunInProgress,
                 variablesPaneUpdater,
                 //runsHistoryManager,
-                this::updateInputsPane);
+                this::updateInputsPane,
+                () -> { if (sEmulatorAppMainController != null) sEmulatorAppMainController.switchToDashboard(); });
 
         this.runOrchestrator = new RunOrchestrator(
                 runGateway,
@@ -215,23 +217,29 @@ public class ExecutionPageController {
 
         mainInstrTableController.bindHistoryTable(currentProgramDTO::get, historyInstrTableController);
 
-//        DebugUiPresenter debugPresenter = new DebugUiPresenter(
-//                isDebugInProgress,
-//                variablesPaneUpdater,
-//                runsHistoryManager,
-//                this::updateInputsPane,
-//                this::applySnapshot,
-//                this::enterDebugMode
-//        );
-//
-//        this.debugOrchestrator = new DebugOrchestrator(
-//                engine,
-//                this::getOwnerWindowOrNull,
-//                this::getSelectedDegree,
-//                isDebugInProgress,
-//                debugPresenter,
-//                this::selectedOperationKey
-//        );
+        DebugGateway debugGateway = new HttpDebugGateway();
+
+        DebugUiPresenter debugPresenter = new DebugUiPresenter(
+                isDebugInProgress,
+                variablesPaneUpdater,
+                this::applySnapshot,
+                () -> { if (sEmulatorAppMainController != null) sEmulatorAppMainController.switchToDashboard(); },
+                credits -> topBarController.forceSetCredits(credits),
+                this::updateInputsPane
+        );
+
+        this.debugOrchestrator = new DebugOrchestrator(
+                debugGateway,
+                this::getOwnerWindowOrNull,
+                () -> topBarController.getSelectedDegree(),
+                isDebugInProgress,
+                debugPresenter,
+                this::selectedOperationKey,
+                () -> {
+                    var selectedArch = architectureSelector.getSelectionModel().getSelectedItem();
+                    return selectedArch == null ? "I" : selectedArch;
+                }
+        );
     }
 
     private void initUiWiring() {
@@ -325,11 +333,13 @@ public class ExecutionPageController {
         btnRun.disableProperty().bind(
                 currentProgramProperty().isNull()
                         .or(isRunInProgressProperty())
+                        .or(isDebugInProgressProperty())
         );
 
         btnDebug.disableProperty().bind(
                 currentProgramProperty().isNull()
                         .or(isDebugInProgressProperty())
+                        .or(isRunInProgressProperty())
         );
     }
 
@@ -348,49 +358,37 @@ public class ExecutionPageController {
         btnRun.setEffect(null);
         btnDebug.setEffect(null);
     }
-    @FXML private void onDebug(ActionEvent e)      {
-//        debugOrchestrator.debug();
-//        btnRun.setEffect(null);
-//        btnDebug.setEffect(null);
-    }
-    @FXML private void onStop(ActionEvent e)       {
-//        try {
-//            engine.stopDebugPress();
-//        } finally {
-//            leaveDebugMode();
-//        }
-    }
-
-    @FXML private void onResume(ActionEvent e)     {
-//        try {
-//            var breakpoints = mainInstrTableController.getBreakpoints();
-//            var d = engine.getProgramAfterResume(breakpoints);
-//            applySnapshot(d);
-//        } catch (InterruptedException ex) {
-//            // user cancelled, ignore
-//        } catch (Exception ex) {
-//            Dialogs.error("Resume failed", ex.getMessage(), getOwnerWindowOrNull());
-//            leaveDebugMode();
-//        }
+    @FXML private void onDebug(ActionEvent e) {
+        if (hasOverCap.get()) {
+            Dialogs.error("Cannot Debug",
+                    "Selected architecture (" + selectedArch.getRepresentation() +
+                            ") is lower than some instructions in this program.",
+                    getOwnerWindowOrNull());
+            return;
+        }
+        debugOrchestrator.debug(getCurrentProgram());
+        btnRun.setEffect(null);
+        btnDebug.setEffect(null);
     }
 
-    @FXML private void onStepOver(ActionEvent e)   {
-//        try {
-//            var d = engine.getProgramAfterStepOver();
-//            applySnapshot(d);
-//        } catch (Exception exception) {
-//            Dialogs.error("Step Over failed", exception.getMessage(), getOwnerWindowOrNull());
-//            leaveDebugMode();
-//        }
+    @FXML private void onStop(ActionEvent e) {
+        debugOrchestrator.stop();
+    }
+
+    @FXML private void onResume(ActionEvent e) {
+        debugOrchestrator.resume(mainInstrTableController.getBreakpoints());
+    }
+
+    @FXML private void onStepOver(ActionEvent e) {
+        debugOrchestrator.stepOver();
     }
 
     @FXML private void onStepBack(ActionEvent actionEvent) {
-//        try {
-//            var d = engine.getProgramAfterStepBack();
-//            applySnapshot(d);
-//        } catch (Exception ex) {
-//            Dialogs.error("Step Back failed", ex.getMessage(), getOwnerWindowOrNull());
-//        }
+        debugOrchestrator.stepBack();
+    }
+
+    private void applySnapshot(DebugDTO snap) {
+        mainInstrTableController.markCurrentInstruction(snap.currentInstructionNumber());
     }
 
 
@@ -403,6 +401,7 @@ public class ExecutionPageController {
     private void clearExecutionData() {
         inputsPaneController.clearInputs();
         varsPaneController.clearVariables();
+        cyclesLabel.setText("");
     }
 
 
@@ -581,7 +580,7 @@ public class ExecutionPageController {
         btnDebug.setEffect(ds);
 
         double scaleUpRatio = 1.08;
-        Duration time = Duration.millis(350);
+        Duration time = Duration.millis(750);
 
         ScaleTransition runUp   = new ScaleTransition(time, btnRun);
         runUp.setToX(scaleUpRatio);
@@ -663,6 +662,43 @@ public class ExecutionPageController {
 
     public void bindUserName(StringProperty userNameProperty) {
         topBarController.userNameProperty().bind(userNameProperty);
+    }
+
+    public void loadProgramForRerun(String programName, int degree, List<Long> rawInputValues) {
+        if (programName == null || programName.isBlank()) return;
+        this.selectedProgramName = programName;
+        this.selectedDegree = degree;
+
+        runOrchestrator.seedRawInputs(rawInputValues);
+
+        String url = Constants.FULL_SERVER_PATH + "/program-dto?programName=" + programName;
+
+        HttpClientUtil.runAsync(url, new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() -> Dialogs.error("Failed to load program", e.getMessage(), getOwnerWindowOrNull()));
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (response; ResponseBody responseBody = response.body()) {
+                    if (!response.isSuccessful()) {
+                        Platform.runLater(() -> Dialogs.error("Failed to load program", "Server returned " + response.code(), getOwnerWindowOrNull()));
+                        return;
+                    }
+                    String json = responseBody != null ? responseBody.string() : "";
+                    ProgramDTO programDTO = GSON_INSTANCE.fromJson(json, ProgramDTO.class);
+                    List<InstructionDTO> rows = programDTO.instructions().programInstructionsDTOList();
+
+                    Platform.runLater(() -> {
+                        applyProgram(programDTO, rows);
+                        fetchAndPopulateDegrees(programName, degree);
+                        populateHighlightSelectorFromCurrentProgram();
+                        pulseRunAndDebugButtons();
+                    });
+                }
+            }
+        });
     }
 
     public void loadProgramForExecution(String programName) {
@@ -755,7 +791,6 @@ public class ExecutionPageController {
 
                     Platform.runLater(() -> {
                         applyProgram(programDTO, rows);
-                        fetchAndPopulateDegrees(programName, degree);
                         populateHighlightSelectorFromCurrentProgram();
                     });
                 }

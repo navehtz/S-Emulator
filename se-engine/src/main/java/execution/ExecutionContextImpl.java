@@ -109,13 +109,19 @@ public class ExecutionContextImpl implements ExecutionContext, Serializable {
             throw new IllegalStateException("No ProgramRegistry bound to ExecutionContext");
         }
 
-        this.lastInvocationCycles = invoker.getLastCycles();
-        return invoker.invokeOperation(op, userName, args);
+        long result = invoker.invokeOperation(op, userName, args);
+        this.lastInvocationCycles += invoker.getLastCycles(); // += accumulates all invocations within one instruction (e.g. CallArg args + main call)
+        return result;
     }
 
     @Override
     public int getLastInvocationCycles() {
         return lastInvocationCycles;
+    }
+
+    @Override
+    public void resetLastInvocationCycles() {
+        this.lastInvocationCycles = 0;
     }
 
 }
