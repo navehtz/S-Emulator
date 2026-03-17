@@ -125,7 +125,11 @@ public class DebugOrchestrator {
             }
         };
 
-        task.setOnSucceeded(ev -> presenter.onDebugSnapshot(task.getValue()));
+        task.setOnSucceeded(ev -> {
+            DebugResponseDTO response = task.getValue();
+            presenter.onDebugSnapshot(response);
+            if (response != null && !response.snapshot().hasMoreInstructions()) stop();
+        });
         task.setOnFailed(ev -> handleStepFailure(task.getException()));
         new Thread(task, "debug-step-over").start();
     }
@@ -141,7 +145,11 @@ public class DebugOrchestrator {
             }
         };
 
-        task.setOnSucceeded(ev -> presenter.onDebugSnapshot(task.getValue()));
+        task.setOnSucceeded(ev -> {
+            DebugResponseDTO response = task.getValue();
+            presenter.onDebugSnapshot(response);
+            if (response != null && !response.snapshot().hasMoreInstructions()) stop();
+        });
         task.setOnFailed(ev -> handleStepFailure(task.getException()));
         new Thread(task, "debug-step-back").start();
     }

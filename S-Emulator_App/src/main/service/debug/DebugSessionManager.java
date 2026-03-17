@@ -24,9 +24,10 @@ public class DebugSessionManager {
     /**
      * Creates a new debug session and returns its sessionId.
      */
-    public String createSession(Debug debug, String userName, String programName) {
+    public String createSession(Debug debug, String userName, String programName,
+                                String architecture, List<Long> inputs) {
         String sessionId = UUID.randomUUID().toString();
-        DebugSession session = new DebugSession(sessionId, debug, userName, programName);
+        DebugSession session = new DebugSession(sessionId, debug, userName, programName, architecture, inputs);
         sessions.put(sessionId, session);
         return sessionId;
     }
@@ -86,6 +87,12 @@ public class DebugSessionManager {
 
         DebugDTO snap = session.getDebugInstance().stop();
         long credits = engine.getUserManager().getUserByName(session.getUserName()).currentCredits();
+
+        boolean partial = snap != null && snap.hasMoreInstructions();
+        engine.recordDebugHistory(session.getUserName(), session.getDebugInstance(),
+                session.getArchitecture(), snap != null ? snap.degree() : 0,
+                session.getInputs(), snap, partial);
+
         sessions.remove(sessionId);
         return new DebugResponseDTO(sessionId, snap, credits);
     }
@@ -108,6 +115,9 @@ public class DebugSessionManager {
                 session.setLastSnapshot(result);
                 long credits = engine.getUserManager().getUserByName(session.getUserName()).currentCredits();
                 session.setResumeResult(new DebugResponseDTO(sessionId, result, credits));
+                engine.recordDebugHistory(session.getUserName(), session.getDebugInstance(),
+                        session.getArchitecture(), result != null ? result.degree() : 0,
+                        session.getInputs(), result, false);
                 session.setResumeState(RunState.DONE);
             } catch (CreditsException e) {
                 DebugDTO partial = session.getDebugInstance().stop();
@@ -115,6 +125,9 @@ public class DebugSessionManager {
                 long credits = engine.getUserManager().getUserByName(session.getUserName()).currentCredits();
                 session.setResumeResult(new DebugResponseDTO(sessionId, partial, credits));
                 session.setResumeMessage(e.getMessage() != null ? e.getMessage() : "Out of credits");
+                engine.recordDebugHistory(session.getUserName(), session.getDebugInstance(),
+                        session.getArchitecture(), partial != null ? partial.degree() : 0,
+                        session.getInputs(), partial, true);
                 session.setResumeState(RunState.OUT_OF_CREDITS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

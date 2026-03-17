@@ -1,6 +1,7 @@
 package debug;
 
 import dto.execution.DebugDTO;
+import operation.OperationView;
 
 import java.util.List;
 
@@ -10,6 +11,8 @@ public interface Debug {
     DebugDTO stepBack();
     DebugDTO stop();
     DebugDTO init();
+
+    OperationView getProgram();
 
     boolean hasMoreInstructions();
 

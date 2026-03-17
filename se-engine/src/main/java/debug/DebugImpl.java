@@ -147,6 +147,11 @@ public class DebugImpl implements Debug {
     }
 
     @Override
+    public OperationView getProgram() {
+        return program;
+    }
+
+    @Override
     public boolean hasMoreInstructions() {
         if (currentInstructionIndex >= instructions.size()) return false;
         return !instructions.get(currentInstructionIndex).getLabel().equals(FixedLabel.EXIT);
@@ -230,7 +235,8 @@ public class DebugImpl implements Debug {
                 degree,
                 result,
                 currentCycles,
-                varsToValues
+                varsToValues,
+                inputsValuesOfUser
         );
     }
 }

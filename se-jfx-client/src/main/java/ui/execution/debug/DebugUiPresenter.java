@@ -21,6 +21,7 @@ public class DebugUiPresenter implements DebugResultPresenter {
     private final Consumer<DebugDTO> applySnapshot;
     private final Runnable onOutOfCredits;
     private final LongConsumer refreshCredits;
+    private final Consumer<ProgramExecutorDTO> onUpdateInputsPane;
 
     private final Map<String, Long> lastVarsSnapshot = new LinkedHashMap<>();
 
@@ -28,12 +29,14 @@ public class DebugUiPresenter implements DebugResultPresenter {
                             VariablesPaneUpdater variablesPaneUpdater,
                             Consumer<DebugDTO> applySnapshot,
                             Runnable onOutOfCredits,
-                            LongConsumer refreshCredits) {
+                            LongConsumer refreshCredits,
+                            Consumer<ProgramExecutorDTO> onUpdateInputsPane) {
         this.isDebugInProgress = isDebugInProgress;
         this.variablesPaneUpdater = variablesPaneUpdater;
         this.applySnapshot = applySnapshot;
         this.onOutOfCredits = onOutOfCredits;
         this.refreshCredits = refreshCredits;
+        this.onUpdateInputsPane = onUpdateInputsPane;
     }
 
     @Override
@@ -58,9 +61,10 @@ public class DebugUiPresenter implements DebugResultPresenter {
             lastVarsSnapshot.clear();
             lastVarsSnapshot.putAll(variablesNow);
 
-            // Update variables pane
+            // Update variables and inputs panes
             ProgramExecutorDTO exec = toExecDTO(snap);
             variablesPaneUpdater.update(exec, changedVariables);
+            if (onUpdateInputsPane != null) onUpdateInputsPane.accept(exec);
 
             // Refresh credits display
             if (refreshCredits != null) {
@@ -118,7 +122,7 @@ public class DebugUiPresenter implements DebugResultPresenter {
                 dbg.result(),
                 dbg.totalCycles(),
                 dbg.degree(),
-                List.of(),
+                dbg.inputsValuesOfUser() != null ? dbg.inputsValuesOfUser() : List.of(),
                 "",
                 false
         );

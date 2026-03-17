@@ -123,8 +123,7 @@ public class ExecutionPageController {
         btnRun.disableProperty().bind(
                         currentProgramProperty().isNull()
                         .or(isRunInProgressProperty())
-                        .or(isDebugInProgressProperty())
-                        .or(hasOverCap));
+                        .or(isDebugInProgressProperty()));
 //        CreditsUi.bindUpdater((current, used) -> {
 //            topBarController.setCredits(current, used);
 //        });
@@ -225,7 +224,8 @@ public class ExecutionPageController {
                 variablesPaneUpdater,
                 this::applySnapshot,
                 () -> { if (sEmulatorAppMainController != null) sEmulatorAppMainController.switchToDashboard(); },
-                credits -> topBarController.forceSetCredits(credits)
+                credits -> topBarController.forceSetCredits(credits),
+                this::updateInputsPane
         );
 
         this.debugOrchestrator = new DebugOrchestrator(
@@ -359,6 +359,13 @@ public class ExecutionPageController {
         btnDebug.setEffect(null);
     }
     @FXML private void onDebug(ActionEvent e) {
+        if (hasOverCap.get()) {
+            Dialogs.error("Cannot Debug",
+                    "Selected architecture (" + selectedArch.getRepresentation() +
+                            ") is lower than some instructions in this program.",
+                    getOwnerWindowOrNull());
+            return;
+        }
         debugOrchestrator.debug(getCurrentProgram());
         btnRun.setEffect(null);
         btnDebug.setEffect(null);

@@ -1,5 +1,6 @@
 package ui.execution.debug;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -44,14 +45,12 @@ public class DebugInputsDialog extends Dialog<Map<String, Double>> {
                         spinner.getEditor().selectAll();
                     });
 
-            // commit typed value when focus leaves
-            spinner.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            // commit typed value when focus leaves; select all on focus gain (via Tab or click)
+            spinner.getEditor().focusedProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal) {
-                    spinner.getEditor().selectAll();
+                    Platform.runLater(() -> Platform.runLater(spinner.getEditor()::selectAll));
                 } else {
-                    try {
-                        spinner.increment(0); }
-                    catch (Exception ignore) {}
+                    try { spinner.increment(0); } catch (Exception ignore) {}
                 }
             });
 

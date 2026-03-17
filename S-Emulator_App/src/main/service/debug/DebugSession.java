@@ -5,6 +5,7 @@ import dto.execution.DebugDTO;
 import dto.execution.DebugResponseDTO;
 import dto.execution.RunState;
 
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -14,6 +15,8 @@ public class DebugSession {
     private final Debug debugInstance;
     private final String userName;
     private final String programName;
+    private final String architecture;
+    private final List<Long> inputs;
 
     // For async resume tracking
     private final AtomicReference<RunState> resumeState = new AtomicReference<>(RunState.PENDING);
@@ -24,17 +27,22 @@ public class DebugSession {
     // Last known snapshot (used to compute cyclesDiff for stepBack deduction)
     private volatile DebugDTO lastSnapshot;
 
-    public DebugSession(String sessionId, Debug debugInstance, String userName, String programName) {
+    public DebugSession(String sessionId, Debug debugInstance, String userName, String programName,
+                        String architecture, List<Long> inputs) {
         this.sessionId = sessionId;
         this.debugInstance = debugInstance;
         this.userName = userName;
         this.programName = programName;
+        this.architecture = architecture;
+        this.inputs = inputs != null ? inputs : List.of();
     }
 
     public String getSessionId() { return sessionId; }
     public Debug getDebugInstance() { return debugInstance; }
     public String getUserName() { return userName; }
     public String getProgramName() { return programName; }
+    public String getArchitecture() { return architecture; }
+    public List<Long> getInputs() { return inputs; }
 
     public DebugDTO getLastSnapshot() { return lastSnapshot; }
     public void setLastSnapshot(DebugDTO snap) { this.lastSnapshot = snap; }

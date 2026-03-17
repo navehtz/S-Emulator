@@ -60,7 +60,8 @@ public class StartDebugServlet extends HttpServlet {
 
             DebugDTO initSnap = debug.init();
 
-            String sessionId = DebugSessionManager.getInstance().createSession(debug, username, startRequest.programName());
+            String sessionId = DebugSessionManager.getInstance().createSession(debug, username,
+                    startRequest.programName(), startRequest.architecture(), inputs);
 
             DebugSession session = DebugSessionManager.getInstance().getSession(sessionId);
             session.setLastSnapshot(initSnap);

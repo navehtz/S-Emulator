@@ -4,6 +4,7 @@ import architecture.ArchitectureType;
 import debug.Debug;
 import debug.DebugImpl;
 import dto.dashboard.UserHistoryRowDTO;
+import dto.execution.DebugDTO;
 import dto.execution.InstructionsDTO;
 import dto.execution.ProgramDTO;
 import dto.execution.ProgramExecutorDTO;
@@ -478,7 +479,7 @@ public class EngineImpl implements Engine, Serializable {
         List<UserHistoryRowDTO> userHistoryRowDTOList = new ArrayList<>();
         for (int i = 0; i < executions.size(); i++) {
             ProgramExecutor programExecutor = executions.get(i);
-            String programType = programExecutor.getProgram() instanceof Function ? "Function" : "Program";
+            String programType = programExecutor.getProgram() instanceof Function ? "Function" : "Program"; // null-safe: instanceof returns false for null
             userHistoryRowDTOList.add(new UserHistoryRowDTO(
                     i + 1,
                     programType,
@@ -547,6 +548,49 @@ public class EngineImpl implements Engine, Serializable {
     @Override
     public int getArchitectureCost(String architectureRepresentation) {
         return ArchitectureType.fromRepresentation(architectureRepresentation).getCreditsCost();
+    }
+
+    @Override
+    public void recordDebugHistory(String userName, Debug debug, String architecture, int degree,
+                                   List<Long> inputs, DebugDTO finalSnap, boolean partial) {
+        OperationView program = debug.getProgram();
+        ProgramExecutor record = new DebugRecordExecutor(program, architecture, degree, inputs, finalSnap, partial);
+        userNameToExecution.computeIfAbsent(userName, k -> new ArrayList<>()).add(record);
+    }
+
+    private static final class DebugRecordExecutor implements ProgramExecutor {
+        private final OperationView program;
+        private final String architecture;
+        private final int degree;
+        private final List<Long> inputs;
+        private final DebugDTO snap;
+        private final boolean partial;
+
+        DebugRecordExecutor(OperationView program, String architecture, int degree,
+                            List<Long> inputs, DebugDTO snap, boolean partial) {
+            this.program = program;
+            this.architecture = architecture;
+            this.degree = degree;
+            this.inputs = inputs != null ? inputs : List.of();
+            this.snap = snap;
+            this.partial = partial;
+        }
+
+        @Override public void run(String userName, int runDegree, Long... inputs) {}
+        @Override public OperationView getProgram() { return program; }
+        @Override public long getVariableValue(variable.Variable variable) {
+            if (variable == Variable.RESULT) return snap != null ? snap.result() : 0;
+            return 0;
+        }
+        @Override public int getRunDegree() { return degree; }
+        @Override public List<Long> getInputsValuesOfUser() { return inputs; }
+        @Override public int getTotalCyclesOfProgram() { return snap != null ? snap.totalCycles() : 0; }
+        @Override public Map<String, Long> getVariablesToValuesSorted() {
+            return snap != null ? snap.variablesToValuesSorted() : Map.of();
+        }
+        @Override public String getArchitectureRepresentation() { return ArchitectureType.fromRepresentation(architecture).toString(); }
+        @Override public String getOperationName() { return snap != null ? snap.programName() : ""; }
+        @Override public boolean wasPartial() { return partial; }
     }
 
     private ProgramExecutor getLastUserExecutor(String username) {
