@@ -101,7 +101,7 @@
 }
 
 /* Scrolls */
-.scroll-pane { -fx-background: #0f141a; }
+.scroll-pane { -fx-background-color: #0f141a; }
 
 /* base highlight on row */
 .table-view .table-row-cell.var-highlight,

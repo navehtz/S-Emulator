@@ -15,25 +15,35 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import util.http.HttpClientUtil;
 import util.support.Dialogs;
+import util.settings.AppSettings;
+import util.themes.Theme;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.prefs.Preferences;
 
 import static util.support.Constants.*;
 import static util.support.Helpers.validatePath;
 
 public class TopBarController {
 
+    private static final String PREF_KEY_THEME = "app.theme";
+
     @FXML private Label programNameLabel;
     @FXML private Button btnLoadFile;
     @FXML private Label userNameLabel;
     @FXML private Label availableCreditsLabel;
     @FXML private Button btnChargeCredits;
+    @FXML private ComboBox<String> themeSelector;
+    @FXML private CheckBox checkBoxAnimations;
 
     private SimpleStringProperty userNameProperty = new SimpleStringProperty();
     private Runnable onChargeCredits;
+    private final List<TableView<?>> themedTables = new ArrayList<>();
 
     public void setOnChargeCredits(Runnable runnable) {
         this.onChargeCredits = runnable;
@@ -42,8 +52,9 @@ public class TopBarController {
     @FXML
     public void initialize() {
         userNameLabel.textProperty().bind(userNameProperty);
-
         refreshCreditsFromServer();
+        handleTheme();
+        handleAnimations();
     }
 
     public void setUserName(String userName) {
@@ -207,6 +218,74 @@ public class TopBarController {
                 }
             }
         });
+    }
+
+    private void handleTheme() {
+        themeSelector.getItems().setAll(
+                Theme.LIGHT.toString(),
+                Theme.DARK.toString(),
+                Theme.YELLOW_BLUE.toString()
+        );
+        Preferences prefs = Preferences.userNodeForPackage(Theme.class);
+        String saved = prefs.get(PREF_KEY_THEME, Theme.LIGHT.toString());
+        themeSelector.getSelectionModel().select(saved);
+        availableCreditsLabel.sceneProperty().addListener((obs, old, newScene) -> {
+            if (newScene != null) applySelectedTheme(themeSelector.getValue());
+        });
+        themeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                applySelectedTheme(newVal);
+                prefs.put(PREF_KEY_THEME, newVal);
+            }
+        });
+    }
+
+    private void applySelectedTheme(String themeKey) {
+        if (themeKey == null) themeKey = Theme.LIGHT.toString();
+        if (availableCreditsLabel == null || availableCreditsLabel.getScene() == null) return;
+        var scene = availableCreditsLabel.getScene();
+        var sheets = scene.getStylesheets();
+        sheets.clear();
+        addCss(sheets, "/ui/styles/light.css");
+        String themePath = switch (themeKey) {
+            case "Dark"        -> "/ui/styles/dark.css";
+            case "Yellow-Blue" -> "/ui/styles/yellowblue.css";
+            default            -> "/ui/styles/light.css";
+        };
+        addCss(sheets, themePath);
+        String themeCssClass = switch (themeKey) {
+            case "Dark"        -> "dark";
+            case "Yellow-Blue" -> "yellowblue";
+            default            -> "light";
+        };
+        themedTables.forEach(table -> applyThemeToTable(table, themeCssClass));
+    }
+
+    private void addCss(List<String> sheets, String path) {
+        var url = getClass().getResource(path);
+        if (url == null) {
+            System.err.println("CSS not found on classpath: " + path);
+            return;
+        }
+        sheets.add(url.toExternalForm());
+    }
+
+    private void applyThemeToTable(TableView<?> table, String cssClass) {
+        if (table == null) return;
+        table.getStyleClass().removeAll("light", "dark", "yellowblue");
+        table.getStyleClass().add(cssClass);
+        table.refresh();
+    }
+
+    public void registerThemedTable(TableView<?> table) {
+        if (table != null && !themedTables.contains(table)) {
+            themedTables.add(table);
+        }
+    }
+
+    private void handleAnimations() {
+        checkBoxAnimations.setSelected(AppSettings.animationsEnabled.get());
+        checkBoxAnimations.selectedProperty().bindBidirectional(AppSettings.animationsEnabled);
     }
 
     public void refreshCreditsFromServer() {

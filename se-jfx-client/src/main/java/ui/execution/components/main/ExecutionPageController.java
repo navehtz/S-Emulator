@@ -119,6 +119,11 @@ public class ExecutionPageController {
         topBarController.registerThemedTable(mainInstrTableController.getTable());
         topBarController.registerThemedTable(historyInstrTableController.getTable());
 
+        animationsEnabled.bind(topBarController.initAnimations());
+        animationsEnabled.addListener((obs, was, isNow) -> {
+            if (!isNow) stopAllAnimations();
+        });
+
         wireArchitectureSelector();
         btnRun.disableProperty().bind(
                         currentProgramProperty().isNull()
@@ -669,6 +674,7 @@ public class ExecutionPageController {
         this.selectedProgramName = programName;
         this.selectedDegree = degree;
 
+        topBarController.setProgramName(programName);
         runOrchestrator.seedRawInputs(rawInputValues);
 
         String url = Constants.FULL_SERVER_PATH + "/program-dto?programName=" + programName;
@@ -706,7 +712,7 @@ public class ExecutionPageController {
         this.selectedProgramName = programName;
         this.selectedDegree = 0;
 
-        //programNameLabel.setText(programName);
+        topBarController.setProgramName(programName);
 
         String url = Constants.FULL_SERVER_PATH + "/program-dto?programName=" + programName; //TODO: Maybe encode with URLEncoder
 

@@ -77,7 +77,7 @@
             <HBox alignment="CENTER_RIGHT" prefHeight="25.0" prefWidth="249.0" AnchorPane.rightAnchor="0.0">
                <children>
                      <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="23.0" />
-                       <CheckBox fx:id="checkBoxAnimations" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Animations">
+                       <CheckBox fx:id="checkBoxAnimations" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" text="Animations">
                      <HBox.margin>
                         <Insets right="5.0" />
                      </HBox.margin>

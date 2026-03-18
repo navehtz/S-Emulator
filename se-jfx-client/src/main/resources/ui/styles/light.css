@@ -95,7 +95,7 @@
 
 /* ScrollPane */
 .scroll-pane {
-    -fx-background: transparent;
+    -fx-background-color: transparent;
     -fx-padding: 0;
 }
 

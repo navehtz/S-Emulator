@@ -10,6 +10,7 @@ import javafx.beans.property.StringProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
@@ -21,6 +22,7 @@ import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 import util.http.HttpClientUtil;
 import util.support.Constants;
+import util.settings.AppSettings;
 import util.themes.Theme;
 
 import java.io.IOException;
@@ -36,10 +38,12 @@ public class TopBarController {
 
     private static final String PREF_KEY_THEME = "app.theme";
     @FXML private Button btnBackToDashboard;
+    @FXML private Label titleLabel;
     @FXML private Label userNameLabel;
     @FXML private ComboBox<Integer> degreeSelector;
     @FXML private ComboBox<String> highlightSelector;
     @FXML private ComboBox<String> themeSelector;
+    @FXML private CheckBox checkBoxAnimations;
     @FXML private Label availableCreditsLabel;
 
 
@@ -105,6 +109,14 @@ public class TopBarController {
         return userNameProperty;
     }
 
+    public void setProgramName(String programName) {
+        if (programName == null || programName.isBlank()) {
+            titleLabel.setText("S-Emulator - Execution");
+        } else {
+            titleLabel.setText("S-Emulator - Execution  |  " + programName);
+        }
+    }
+
     public void setOnBackToDashboard(Runnable runnable) {
         this.onBackToDashboard = runnable;
     }
@@ -143,26 +155,25 @@ public class TopBarController {
     }
 
     private void handleTheme() {
-        themeSelector.getItems().setAll(
-                Theme.LIGHT.toString(),
-                Theme.DARK.toString(),
-                Theme.YELLOW_BLUE.toString()
-        );
-        var prefs = java.util.prefs.Preferences.userNodeForPackage(getClass());
+        var prefs = java.util.prefs.Preferences.userNodeForPackage(Theme.class);
         String saved = prefs.get(PREF_KEY_THEME, Theme.LIGHT.toString());
         themeSelector.getItems().setAll(Theme.LIGHT.toString(), Theme.DARK.toString(), Theme.YELLOW_BLUE.toString());
         themeSelector.getSelectionModel().select(saved);
-
-        // apply current once UI is ready
-        Platform.runLater(() -> applySelectedTheme(saved));
-
-        // react to changes
+        btnBackToDashboard.sceneProperty().addListener((obs, old, newScene) -> {
+            if (newScene != null) applySelectedTheme(themeSelector.getValue());
+        });
         themeSelector.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 applySelectedTheme(newVal);
                 prefs.put(PREF_KEY_THEME, newVal);
             }
         });
+    }
+
+    public javafx.beans.property.BooleanProperty initAnimations() {
+        checkBoxAnimations.setSelected(AppSettings.animationsEnabled.get());
+        checkBoxAnimations.selectedProperty().bindBidirectional(AppSettings.animationsEnabled);
+        return AppSettings.animationsEnabled;
     }
 
     private void applySelectedTheme(String themeKey) {

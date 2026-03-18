@@ -28,7 +28,7 @@
                   <Label fx:id="userNameLabel" text="User Name:" />
             </children>
          </HBox>
-            <Label text="S-Emulator - Execution" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+            <Label fx:id="titleLabel" text="S-Emulator - Execution" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
             <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
                 <children>
                     <Label prefHeight="17.0" prefWidth="95.0" text="Available Credits:" HBox.hgrow="SOMETIMES" />
