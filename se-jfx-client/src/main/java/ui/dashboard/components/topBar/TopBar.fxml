@@ -23,7 +23,7 @@
          <Label text="S-Emulator - Dashboard" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
          <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
             <children>
-               <Label prefHeight="17.0" prefWidth="95.0" text="Available Credits:" HBox.hgrow="SOMETIMES" />
+               <Label text="Available Credits:" HBox.hgrow="NEVER" />
                <Label fx:id="availableCreditsLabel" text="______" HBox.hgrow="SOMETIMES">
                   <padding>
                      <Insets left="5.0" right="10.0" />
@@ -55,18 +55,18 @@
       <HBox alignment="CENTER_LEFT" prefHeight="0.0" prefWidth="818.0" HBox.hgrow="ALWAYS">
          <children>
       
-                           <Button fx:id="btnLoadFile" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" onAction="#onLoadXml" prefHeight="27.0" prefWidth="149.0" text="Load File">
+                           <Button fx:id="btnLoadFile" minHeight="-Infinity" onAction="#onLoadXml" text="Load File">
                <HBox.margin>
                   <Insets />
                </HBox.margin>
             </Button>
       
-                           <Label maxHeight="1.7976931348623157E308" prefHeight="25.0" prefWidth="53.0" text="File path:" HBox.hgrow="ALWAYS">
+                           <Label text="File path:" HBox.hgrow="NEVER">
                <HBox.margin>
                   <Insets left="10.0" />
                </HBox.margin>
             </Label>
-                 <Label fx:id="programNameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="509.0" text="(none)" />
+                 <Label fx:id="programNameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="25.0" text="(none)" HBox.hgrow="ALWAYS" />
          </children>
       </HBox>
       <AnchorPane HBox.hgrow="SOMETIMES">
@@ -74,7 +74,7 @@
             <Insets bottom="5.0" />
          </HBox.margin>
          <children>
-            <HBox alignment="CENTER_RIGHT" prefHeight="25.0" prefWidth="249.0" AnchorPane.rightAnchor="0.0">
+            <HBox alignment="CENTER_RIGHT" prefHeight="25.0" AnchorPane.rightAnchor="0.0">
                <children>
                      <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="23.0" />
                        <CheckBox fx:id="checkBoxAnimations" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" selected="true" text="Animations">

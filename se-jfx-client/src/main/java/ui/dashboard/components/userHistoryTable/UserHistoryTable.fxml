@@ -6,17 +6,17 @@
 
 <TitledPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="User History" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.dashboard.components.userHistoryTable.UserHistoryTableController">
       <content>
-          <VBox alignment="TOP_RIGHT" prefHeight="200.0" prefWidth="597.0">
+          <VBox alignment="TOP_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
               <children>
-                  <TableView fx:id="historyTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="199.0" prefWidth="467.0" VBox.vgrow="ALWAYS">
+                  <TableView fx:id="historyTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" VBox.vgrow="ALWAYS">
                       <columns>
-                          <TableColumn fx:id="colRunNum" prefWidth="55.0" text="#" />
-                          <TableColumn fx:id="colMainProgramOrFunction" prefWidth="105.0" text="Prog/Fun" />
-                          <TableColumn fx:id="colProgramName" prefWidth="75.0" text="Name" />
-                          <TableColumn fx:id="colArchitectureType" prefWidth="75.0" text="Architecture" />
-                          <TableColumn fx:id="colDegree" prefWidth="75.0" text="Degree" />
-                          <TableColumn fx:id="colCycles" prefWidth="75.0" text="Cycles" />
-                          <TableColumn fx:id="colResult" prefWidth="75.0" text="Result" />
+                          <TableColumn fx:id="colRunNum" minWidth="40.0" prefWidth="50.0" text="#" />
+                          <TableColumn fx:id="colMainProgramOrFunction" minWidth="60.0" prefWidth="90.0" text="Prog/Fun" />
+                          <TableColumn fx:id="colProgramName" minWidth="60.0" prefWidth="100.0" text="Name" />
+                          <TableColumn fx:id="colArchitectureType" minWidth="60.0" prefWidth="110.0" text="Architecture" />
+                          <TableColumn fx:id="colDegree" minWidth="50.0" prefWidth="80.0" text="Degree" />
+                          <TableColumn fx:id="colCycles" minWidth="50.0" prefWidth="80.0" text="Cycles" />
+                          <TableColumn fx:id="colResult" minWidth="50.0" prefWidth="80.0" text="Result" />
                       </columns>
                       <columnResizePolicy>
                           <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

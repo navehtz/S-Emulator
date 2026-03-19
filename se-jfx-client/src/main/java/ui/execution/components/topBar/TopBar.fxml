@@ -31,7 +31,7 @@
             <Label fx:id="titleLabel" text="S-Emulator - Execution" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
             <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.halignment="RIGHT">
                 <children>
-                    <Label prefHeight="17.0" prefWidth="95.0" text="Available Credits:" HBox.hgrow="SOMETIMES" />
+                    <Label text="Available Credits:" HBox.hgrow="NEVER" />
                     <Label fx:id="availableCreditsLabel" text="______" HBox.hgrow="SOMETIMES">
                         <padding>
                             <Insets left="5.0" right="10.0" />
@@ -68,7 +68,7 @@
                 <Insets bottom="5.0" />
             </HBox.margin>
             <children>
-                <HBox alignment="CENTER_RIGHT" prefHeight="25.0" prefWidth="249.0" AnchorPane.rightAnchor="0.0">
+                <HBox alignment="CENTER_RIGHT" prefHeight="25.0" AnchorPane.rightAnchor="0.0">
                     <children>
                         <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="23.0" />
                         <CheckBox fx:id="checkBoxAnimations" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Animations">

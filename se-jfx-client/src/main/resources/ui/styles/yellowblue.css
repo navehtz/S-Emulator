@@ -3,7 +3,7 @@
 /* Typography */
 .root {
     -fx-font-family: "Nunito", "Segoe UI", Arial, sans-serif;
-    -fx-font-size: 13.5px;
+    -fx-font-size: 13px;
     -fx-background: #fdfcf6;
     -fx-base: #f0f4ff;
 }

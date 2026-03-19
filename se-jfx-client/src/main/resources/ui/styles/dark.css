@@ -3,7 +3,7 @@
 /* Typography */
 .root {
     -fx-font-family: "JetBrains Mono", "Consolas", "SF Mono", monospace;
-    -fx-font-size: 12.5px;
+    -fx-font-size: 12px;
     -fx-base: #0f141a;
 
     -fx-background: #0f141a;
